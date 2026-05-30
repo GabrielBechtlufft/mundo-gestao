@@ -1,0 +1,149 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id                  String               @id @default(uuid())
+  name                String
+  login               String               @unique
+  email               String?              @unique
+  password            String
+  role                String               // "ADMIN", "VENDEDOR", "COMPRADOR"
+  statusVendedor      String               @default("APROVADO") // "PENDENTE", "APROVADO", "REJEITADO", "SUSPENSO"
+  trocarSenha         Boolean              @default(false)
+  isosVendidas        String               @default("") // ISOs autorizadas separadas por vírgula: "ISO 9001,ISO 14001"
+  image               String?              // Foto do perfil (Google)
+  googleId            String?              @unique // ID do Google OAuth
+  // Campos da empresa (apenas para role=VENDEDOR)
+  cnpj                String?
+  razaoSocial         String?
+  validadeCertificado DateTime?            // Validade do certificado ISO da empresa
+  // Ranking
+  rankScore           Float                @default(0)
+  rankTier            String               @default("BRONZE") // "BRONZE", "PRATA", "OURO", "PLATINA"
+  propostas           Proposta[]
+  listagens           Listagem[]
+  notificacoes        Notificacao[]
+  propostasVendedor   Proposta[]           @relation("PropostasVendedor")
+  propostasComprador  Proposta[]           @relation("PropostasComprador")
+  funcionarios        FuncionarioVendedor[]
+  mensagensEnviadas   Mensagem[]           @relation("MensagensEnviadas")
+}
+
+model SolicitacaoCadastro {
+  id                    Int      @id @default(autoincrement())
+  // Dados da empresa
+  nome                  String   // Razão social da empresa
+  cnpj                  String?
+  email                 String
+  telefone              String
+  cidade                String
+  isosVendidas          String   @default("")
+  validadeCertificado   String?  // Data de validade do certificado (ISO string)
+  documentoComprovante  String?
+  // Dados do contato principal
+  nomeContato           String?
+  cargoContato          String?
+  mensagem              String?
+  status                String   @default("PENDENTE") // "PENDENTE", "APROVADO", "REJEITADO"
+  motivoRejeicao        String?
+  createdAt             DateTime @default(now())
+}
+
+model FuncionarioVendedor {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  User      User     @relation(fields: [userId], references: [id])
+  nome      String
+  email     String?
+  cargo     String?
+  ativo     Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model Proposta {
+  id                          Int       @id @default(autoincrement())
+  solicitante                 String
+  servico                     String
+  status                      String    @default("PENDENTE") // "PENDENTE", "VENDEDOR_CONFIRMOU", "COMPRADOR_CONFIRMOU", "CONCLUIDA", "CANCELADA"
+  vendedorConfirmou           Boolean   @default(false)
+  compradorConfirmou          Boolean   @default(false)
+  documentoCompra             String?   // Upload do comprador comprovando a compra
+  primeiraRespostaVendedorAt  DateTime? // Para cálculo de tempo de resposta no ranking
+  userId                      String?
+  User                        User?     @relation(fields: [userId], references: [id])
+  listagemId                  Int?
+  Listagem                    Listagem? @relation(fields: [listagemId], references: [id])
+  compradorId                 String?
+  Comprador                   User?     @relation("PropostasComprador", fields: [compradorId], references: [id])
+  vendedorId                  String?
+  Vendedor                    User?     @relation("PropostasVendedor", fields: [vendedorId], references: [id])
+  mensagens                   Mensagem[]
+  createdAt                   DateTime  @default(now())
+  updatedAt                   DateTime  @default(now())
+}
+
+model Mensagem {
+  id          Int      @id @default(autoincrement())
+  propostaId  Int
+  remetenteId String
+  texto       String
+  lida        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  Proposta    Proposta @relation(fields: [propostaId], references: [id], onDelete: Cascade)
+  Remetente   User     @relation("MensagensEnviadas", fields: [remetenteId], references: [id])
+}
+
+model Listagem {
+  id           Int       @id @default(autoincrement())
+  isoTipo      String    // Ex: "ISO 9001", "ISO 14001"
+  titulo       String
+  descricao    String
+  cidade       String
+  destaque     String?
+  imagem       String?   // URL da imagem da ISO
+  status       String    @default("ATIVA") // "ATIVA", "PAUSADA", "REMOVIDA", "PENDENTE_APROVACAO", "REJEITADA"
+  motivoRejeicao String? // Preenchido pelo admin ao rejeitar a listagem
+  visualizacoes Int      @default(0)
+  userId       String?
+  User         User?     @relation(fields: [userId], references: [id])
+  contatos     Contato[]
+  avaliacoes   Avaliacao[]
+  propostas    Proposta[]
+  createdAt    DateTime  @default(now())
+}
+
+model Contato {
+  id          Int      @id @default(autoincrement())
+  listagemId  Int
+  Listagem    Listagem @relation(fields: [listagemId], references: [id])
+  info        String?  // Nome/e-mail do comprador (opcional)
+  createdAt   DateTime @default(now())
+}
+
+model Notificacao {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  User      User     @relation(fields: [userId], references: [id])
+  mensagem  String
+  lida      Boolean  @default(false)
+  tipo      String   @default("INFO") // "INFO", "APROVACAO", "REJEICAO"
+  createdAt DateTime @default(now())
+}
+
+model Avaliacao {
+  id          Int      @id @default(autoincrement())
+  listagemId  Int
+  Listagem    Listagem @relation(fields: [listagemId], references: [id])
+  nomeAvaliador String
+  nota        Int      // 1 a 5
+  comentario  String
+  createdAt   DateTime @default(now())
+}
