@@ -36,16 +36,23 @@ export default function CompradorHome() {
   const [uploadFile, setUploadFile] = useState<File | null>(null);
   const [erro, setErro] = useState("");
 
-  const carregarPropostas = async () => {
-    const res = await getPropostasComprador();
-    if (res.success && res.propostas) {
-      const lista = res.propostas as any[];
-      setPropostas(lista);
-      if (lista.length === 0) router.replace("/comprador/buscar");
-    }
-  };
-
-  useEffect(() => { carregarPropostas(); getSession().then(setUser); }, []);
+  useEffect(() => {
+    const init = async () => {
+      const [sessionData, propostasRes] = await Promise.all([
+        getSession(),
+        getPropostasComprador(),
+      ]);
+      setUser(sessionData);
+      if (propostasRes.success && propostasRes.propostas) {
+        const lista = propostasRes.propostas as any[];
+        setPropostas(lista);
+        if (lista.length === 0 && (sessionData as any)?.role === "COMPRADOR") {
+          router.replace("/comprador/buscar");
+        }
+      }
+    };
+    init();
+  }, []);
 
   const handleConfirmarComprador = async (propostaId: number) => {
     setErro("");
@@ -60,7 +67,8 @@ export default function CompradorHome() {
       const res = await confirmarComprador(propostaId, uploadData.url);
       if (!res.success) setErro(res.error || "Erro ao confirmar.");
       setUploadFile(null);
-      carregarPropostas();
+      const res2 = await getPropostasComprador();
+      if (res2.success && res2.propostas) setPropostas(res2.propostas as any[]);
     } catch { setErro("Erro ao processar."); }
     setUploadingId(null);
   };
