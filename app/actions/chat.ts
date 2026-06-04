@@ -13,6 +13,7 @@ export async function getMensagens(propostaId: number) {
     select: {
       compradorId: true,
       vendedorId: true,
+      funcionarioId: true,
       servico: true,
       status: true,
       Comprador: { select: { name: true } },
@@ -22,9 +23,15 @@ export async function getMensagens(propostaId: number) {
 
   if (!proposta) return { success: false, error: "Proposta não encontrada" };
 
+  const isFuncionarioAtribuido =
+    session.role === "FUNCIONARIO" &&
+    session.funcionarioVendedorId != null &&
+    proposta.funcionarioId === session.funcionarioVendedorId;
+
   const isParticipant =
     proposta.compradorId === session.id || proposta.vendedorId === session.id;
-  if (!isParticipant && session.role !== "ADMIN")
+
+  if (!isParticipant && !isFuncionarioAtribuido && session.role !== "ADMIN")
     return { success: false, error: "Sem permissão" };
 
   const mensagens = await prisma.mensagem.findMany({
@@ -60,6 +67,7 @@ export async function enviarMensagem(propostaId: number, texto: string) {
     select: {
       compradorId: true,
       vendedorId: true,
+      funcionarioId: true,
       status: true,
       primeiraRespostaVendedorAt: true,
       createdAt: true,
@@ -70,9 +78,16 @@ export async function enviarMensagem(propostaId: number, texto: string) {
   if (proposta.status === "CANCELADA")
     return { success: false, error: "Proposta cancelada" };
 
+  const isFuncionarioAtribuido =
+    session.role === "FUNCIONARIO" &&
+    session.funcionarioVendedorId != null &&
+    proposta.funcionarioId === session.funcionarioVendedorId;
+
   const isParticipant =
     proposta.compradorId === session.id || proposta.vendedorId === session.id;
-  if (!isParticipant) return { success: false, error: "Sem permissão" };
+
+  if (!isParticipant && !isFuncionarioAtribuido)
+    return { success: false, error: "Sem permissão" };
 
   const mensagem = await prisma.mensagem.create({
     data: {
@@ -83,16 +98,16 @@ export async function enviarMensagem(propostaId: number, texto: string) {
     include: { Remetente: { select: { id: true, name: true, role: true } } },
   });
 
-  // Registrar primeira resposta do vendedor para cálculo de rank
-  const isVendedor = proposta.vendedorId === session.id;
-  if (isVendedor && !proposta.primeiraRespostaVendedorAt) {
+  // Registrar primeira resposta do vendedor (ou funcionário) para cálculo de rank
+  const isVendedorSide =
+    proposta.vendedorId === session.id || isFuncionarioAtribuido;
+  if (isVendedorSide && !proposta.primeiraRespostaVendedorAt) {
     await prisma.proposta.update({
       where: { id: propostaId },
       data: { primeiraRespostaVendedorAt: new Date() },
     });
-    if (proposta.vendedorId) {
-      await atualizarRank(proposta.vendedorId);
-    }
+    const vidId = proposta.vendedorId ?? session.vendedorPaiId;
+    if (vidId) await atualizarRank(vidId);
   }
 
   // Notificar o outro participante
@@ -134,15 +149,28 @@ export async function getMinhasConversas() {
   const session = await getSession();
   if (!session) return { success: false, conversas: [] };
 
-  const propostas = await prisma.proposta.findMany({
-    where: {
+  let whereClause: any;
+
+  if (session.role === "FUNCIONARIO") {
+    // Funcionário vê apenas chats atribuídos a ele
+    whereClause = {
+      funcionarioId: session.funcionarioVendedorId,
+      status: { not: "CANCELADA" },
+    };
+  } else {
+    whereClause = {
       OR: [{ compradorId: session.id }, { vendedorId: session.id }],
       status: { not: "CANCELADA" },
-    },
+    };
+  }
+
+  const propostas = await prisma.proposta.findMany({
+    where: whereClause,
     include: {
       Listagem: { select: { titulo: true, isoTipo: true } },
       Comprador: { select: { name: true, image: true } },
       Vendedor: { select: { name: true, image: true, rankTier: true } },
+      FuncionarioResponsavel: { select: { id: true, nome: true, linkedUserId: true } },
       mensagens: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -167,6 +195,9 @@ export async function getMinhasConversas() {
         vendedorImagem: p.Vendedor?.image || null,
         vendedorRankTier: p.Vendedor?.rankTier || "BRONZE",
         status: p.status,
+        funcionario: p.FuncionarioResponsavel
+          ? { id: p.FuncionarioResponsavel.id, nome: p.FuncionarioResponsavel.nome }
+          : null,
         ultimaMensagem: p.mensagens[0]
           ? { texto: p.mensagens[0].texto, remetente: p.mensagens[0].Remetente.name, createdAt: p.mensagens[0].createdAt }
           : null,

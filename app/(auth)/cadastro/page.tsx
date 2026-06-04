@@ -23,15 +23,16 @@ function formatCNPJ(v: string) {
 const inputStyle: React.CSSProperties = { width: "100%", padding: "13px 16px", border: "1.5px solid #E5E7EB", borderRadius: "12px", fontSize: "15px", outline: "none", boxSizing: "border-box" };
 const labelStyle: React.CSSProperties = { fontSize: "13px", fontWeight: 600, color: "#555", display: "block", marginBottom: "6px" };
 
+type IsoCert = { validade: string; arquivo: File | null };
+
 export default function CadastroPage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState({
     razaoSocial: "", cnpj: "", email: "", telefone: "", cidade: "",
-    nomeContato: "", cargoContato: "",
-    validadeCertificado: "", mensagem: "",
+    nomeContato: "", cargoContato: "", mensagem: "",
   });
   const [selectedISOs, setSelectedISOs] = useState<string[]>([]);
-  const [file, setFile] = useState<File | null>(null);
+  const [isoCerts, setIsoCerts] = useState<Record<string, IsoCert>>({});
   const [uploading, setUploading] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -43,13 +44,24 @@ export default function CadastroPage() {
     else setForm((p) => ({ ...p, [name]: value }));
   };
 
-  const toggleISO = (iso: string) => setSelectedISOs((p) => p.includes(iso) ? p.filter((i) => i !== iso) : [...p, iso]);
+  const toggleISO = (iso: string) => {
+    setSelectedISOs((prev) => {
+      if (prev.includes(iso)) {
+        setIsoCerts((c) => { const n = { ...c }; delete n[iso]; return n; });
+        return prev.filter((i) => i !== iso);
+      }
+      setIsoCerts((c) => ({ ...c, [iso]: { validade: "", arquivo: null } }));
+      return [...prev, iso];
+    });
+  };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0];
-    if (!f) return;
-    if (f.size > 5 * 1024 * 1024) { setErro("Arquivo muito grande. Máximo: 5MB."); return; }
-    setFile(f); setErro("");
+  const setIsoCertValidade = (iso: string, validade: string) =>
+    setIsoCerts((c) => ({ ...c, [iso]: { ...c[iso], validade } }));
+
+  const setIsoCertArquivo = (iso: string, arquivo: File | null) => {
+    if (arquivo && arquivo.size > 5 * 1024 * 1024) { setErro(`Arquivo de ${iso} muito grande. Máximo: 5MB.`); return; }
+    setIsoCerts((c) => ({ ...c, [iso]: { ...c[iso], arquivo } }));
+    setErro("");
   };
 
   const validarStep1 = () => {
@@ -59,40 +71,58 @@ export default function CadastroPage() {
     setErro(""); return true;
   };
 
+  const uploadFile = async (file: File): Promise<string> => {
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/upload", { method: "POST", body: fd });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || "Erro no upload");
+    return data.url;
+  };
+
   const handleSubmit = async () => {
     setErro("");
     if (selectedISOs.length === 0) { setErro("Selecione pelo menos uma ISO."); return; }
-    if (!form.validadeCertificado) { setErro("Informe a validade do certificado."); return; }
-    if (!file) { setErro("Envie o documento comprovante do certificado."); return; }
+    for (const iso of selectedISOs) {
+      if (!isoCerts[iso]?.validade) { setErro(`Informe a validade do certificado para ${iso}.`); return; }
+      if (!isoCerts[iso]?.arquivo) { setErro(`Envie o documento comprovante para ${iso}.`); return; }
+    }
 
     setLoading(true);
+    setUploading(true);
 
-    let documentoUrl = "";
     try {
-      setUploading(true);
-      const fd = new FormData();
-      fd.append("file", file);
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: fd });
-      const uploadData = await uploadRes.json();
-      if (!uploadData.success) { setErro(uploadData.error || "Erro no upload."); setLoading(false); setUploading(false); return; }
-      documentoUrl = uploadData.url;
+      const uploads: Record<string, string> = {};
+      for (const iso of selectedISOs) {
+        const arquivo = isoCerts[iso]?.arquivo;
+        if (arquivo) uploads[iso] = await uploadFile(arquivo);
+      }
       setUploading(false);
-    } catch { setErro("Erro ao enviar documento."); setLoading(false); setUploading(false); return; }
 
-    const res = await solicitarCadastro({
-      nome: form.razaoSocial, cnpj: form.cnpj, email: form.email,
-      telefone: form.telefone, cidade: form.cidade,
-      nomeContato: form.nomeContato || undefined,
-      cargoContato: form.cargoContato || undefined,
-      isosVendidas: selectedISOs.join(","),
-      validadeCertificado: form.validadeCertificado,
-      documentoComprovante: documentoUrl,
-      mensagem: form.mensagem || undefined,
-    });
+      const certData = selectedISOs.map((iso) => ({
+        iso,
+        validade: isoCerts[iso]?.validade || "",
+        documento: uploads[iso] || "",
+      }));
 
-    setLoading(false);
-    if (res.success) setEnviado(true);
-    else setErro(res.error || "Erro ao enviar.");
+      const res = await solicitarCadastro({
+        nome: form.razaoSocial, cnpj: form.cnpj, email: form.email,
+        telefone: form.telefone, cidade: form.cidade,
+        nomeContato: form.nomeContato || undefined,
+        cargoContato: form.cargoContato || undefined,
+        isosVendidas: selectedISOs.join(","),
+        certificacoesISO: JSON.stringify(certData),
+        mensagem: form.mensagem || undefined,
+      });
+
+      setLoading(false);
+      if (res.success) setEnviado(true);
+      else setErro(res.error || "Erro ao enviar.");
+    } catch (err: any) {
+      setErro(err.message || "Erro ao enviar documentos.");
+      setLoading(false);
+      setUploading(false);
+    }
   };
 
   const progresso = step === 1 ? 50 : 100;
@@ -204,7 +234,7 @@ export default function CadastroPage() {
 
         {/* ── ETAPA 2 ── */}
         {step === 2 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             {/* ISOs */}
             <div>
               <label style={labelStyle}>Quais ISOs a empresa certifica? *</label>
@@ -220,34 +250,51 @@ export default function CadastroPage() {
               {selectedISOs.length > 0 && <p style={{ fontSize: "12px", color: "#6001D3", marginTop: "8px", fontWeight: 600 }}>{selectedISOs.length} ISO{selectedISOs.length > 1 ? "s" : ""} selecionada{selectedISOs.length > 1 ? "s" : ""}</p>}
             </div>
 
-            {/* Validade */}
-            <div>
-              <label style={labelStyle}>Validade do certificado ISO *</label>
-              <p style={{ fontSize: "12px", color: "#999", margin: "0 0 8px" }}>Data de vencimento do certificado que autoriza as certificações.</p>
-              <input name="validadeCertificado" type="date" value={form.validadeCertificado} onChange={handleChange} style={inputStyle} min={new Date().toISOString().split("T")[0]} />
-            </div>
-
-            {/* Documento */}
-            <div>
-              <label style={labelStyle}>Documento comprovante *</label>
-              <p style={{ fontSize: "11px", color: "#999", margin: "0 0 10px" }}>Certificado ISO da empresa (PDF, PNG, JPG — máx. 5MB)</p>
-              <div style={{ border: file ? "2px solid #22C55E" : "2px dashed #D5D5D5", borderRadius: "14px", padding: "24px", textAlign: "center", background: file ? "#F0FFF4" : "#FAFAFA", cursor: "pointer", transition: "all 0.2s", position: "relative" }}>
-                <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" onChange={handleFileChange} style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer" }} />
-                {file ? (
-                  <div>
-                    <div style={{ fontSize: "28px", marginBottom: "8px" }}>📄</div>
-                    <p style={{ fontSize: "14px", fontWeight: 700, color: "#22C55E", margin: "0 0 4px" }}>{file.name}</p>
-                    <p style={{ fontSize: "11px", color: "#888", margin: 0 }}>{(file.size / 1024 / 1024).toFixed(2)} MB · Clique para trocar</p>
-                  </div>
-                ) : (
-                  <div>
-                    <div style={{ fontSize: "28px", marginBottom: "8px" }}>📎</div>
-                    <p style={{ fontSize: "14px", color: "#888", margin: "0 0 4px" }}>Clique ou arraste para enviar</p>
-                    <p style={{ fontSize: "11px", color: "#bbb", margin: 0 }}>PDF, PNG, JPG ou WebP</p>
-                  </div>
-                )}
+            {/* Campos por ISO */}
+            {selectedISOs.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "13px", fontWeight: 700, color: "#374151" }}>
+                  Informe o certificado para cada ISO selecionada:
+                </p>
+                {selectedISOs.map((isoValue) => {
+                  const isoMeta = ISO_OPTIONS.find((o) => o.value === isoValue);
+                  const cert = isoCerts[isoValue] || { validade: "", arquivo: null };
+                  return (
+                    <div key={isoValue} style={{ border: "1.5px solid #E5E7EB", borderRadius: "14px", padding: "16px 18px", background: "#FAFAFA" }}>
+                      <p style={{ margin: "0 0 12px", fontSize: "13px", fontWeight: 800, color: "#6001D3" }}>
+                        {isoValue} <span style={{ fontWeight: 500, color: "#6B7280" }}>— {isoMeta?.desc}</span>
+                      </p>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", alignItems: "start" }}>
+                        <div>
+                          <label style={labelStyle}>Validade do certificado *</label>
+                          <input
+                            type="date"
+                            value={cert.validade}
+                            onChange={(e) => setIsoCertValidade(isoValue, e.target.value)}
+                            style={inputStyle}
+                            min={new Date().toISOString().split("T")[0]}
+                          />
+                        </div>
+                        <div>
+                          <label style={labelStyle}>Documento comprovante *</label>
+                          <div style={{ border: cert.arquivo ? "2px solid #22C55E" : "2px dashed #D1D5DB", borderRadius: "10px", padding: "10px 14px", textAlign: "center", background: cert.arquivo ? "#F0FFF4" : "#fff", cursor: "pointer", position: "relative", minHeight: "48px", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp" onChange={(e) => setIsoCertArquivo(isoValue, e.target.files?.[0] || null)} style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer" }} />
+                            {cert.arquivo ? (
+                              <div style={{ overflow: "hidden" }}>
+                                <p style={{ fontSize: "12px", fontWeight: 700, color: "#22C55E", margin: "0 0 2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "160px" }}>{cert.arquivo.name}</p>
+                                <p style={{ fontSize: "10px", color: "#888", margin: 0 }}>{(cert.arquivo.size / 1024 / 1024).toFixed(1)} MB · trocar</p>
+                              </div>
+                            ) : (
+                              <p style={{ fontSize: "12px", color: "#9CA3AF", margin: 0 }}>📎 PDF, PNG, JPG</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
+            )}
 
             {/* Mensagem */}
             <div>
@@ -255,14 +302,14 @@ export default function CadastroPage() {
               <textarea name="mensagem" value={form.mensagem} onChange={handleChange} placeholder="Informações adicionais sobre a empresa..." rows={3} style={{ ...inputStyle, resize: "vertical" }} />
             </div>
 
-            <div style={{ display: "flex", gap: "12px", marginTop: "8px" }}>
+            <div style={{ display: "flex", gap: "12px", marginTop: "4px" }}>
               <button type="button" onClick={() => { setErro(""); setStep(1); }}
                 style={{ flex: 1, padding: "14px", border: "1.5px solid #E5E7EB", background: "transparent", borderRadius: "14px", fontWeight: 700, fontSize: "15px", color: "#555", cursor: "pointer" }}>
                 ← Voltar
               </button>
               <button type="button" onClick={handleSubmit} disabled={loading}
                 style={{ flex: 2, padding: "14px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", borderRadius: "14px", fontWeight: 800, fontSize: "15px", border: "none", cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1 }}>
-                {uploading ? "Enviando documento..." : loading ? "Enviando..." : "Solicitar Cadastro"}
+                {uploading ? "Enviando documentos..." : loading ? "Enviando..." : "Solicitar Cadastro"}
               </button>
             </div>
           </div>

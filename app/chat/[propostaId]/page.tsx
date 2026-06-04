@@ -46,6 +46,7 @@ export default function ChatPage() {
   const [mensagens, setMensagens] = useState<Mensagem[]>([]);
   const [proposta, setProposta] = useState<PropostaInfo | null>(null);
   const [sessionId, setSessionId] = useState<string>("");
+  const [sessionRole, setSessionRole] = useState<string>("");
   const [texto, setTexto] = useState("");
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState("");
@@ -67,6 +68,7 @@ export default function ChatPage() {
     setMensagens((res.mensagens as Mensagem[]) ?? []);
     setProposta(res.proposta ?? null);
     setSessionId(res.sessionId ?? "");
+    setSessionRole((res as any).sessionRole ?? "");
     setLoading(false);
     if (scroll) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     await marcarMensagensLidas(propostaId);
@@ -216,34 +218,45 @@ export default function ChatPage() {
 
       {/* Input area */}
       <div style={{ padding: "16px 32px 24px", background: "rgba(0,0,0,0.15)", backdropFilter: "blur(8px)", flexShrink: 0 }}>
-        {erro && (
-          <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: "8px", padding: "8px 12px", color: "#B91C1C", fontSize: "12px", marginBottom: "10px" }}>
-            {erro}
-          </div>
-        )}
-        {proposta?.status === "CANCELADA" ? (
-          <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)", fontSize: "13px", padding: "12px" }}>
-            Esta proposta foi cancelada. O chat está encerrado.
+        {sessionRole === "ADMIN" ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "12px 20px", background: "rgba(255,255,255,0.1)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.2)" }}>
+            <span style={{ fontSize: "16px" }}>👁️</span>
+            <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "13px", fontWeight: 600 }}>
+              Você está visualizando este chat como administrador — somente leitura.
+            </span>
           </div>
         ) : (
-          <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>
-            <textarea
-              ref={inputRef}
-              value={texto}
-              onChange={(e) => setTexto(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Digite uma mensagem… (Enter para enviar, Shift+Enter para nova linha)"
-              rows={2}
-              style={{ flex: 1, padding: "12px 16px", borderRadius: "14px", border: "none", fontSize: "14px", resize: "none", outline: "none", background: "rgba(255,255,255,0.95)", color: "#111", lineHeight: 1.5, fontFamily: "inherit" }}
-            />
-            <button
-              onClick={handleEnviar}
-              disabled={enviando || !texto.trim()}
-              style={{ padding: "12px 24px", background: texto.trim() ? "#fff" : "rgba(255,255,255,0.3)", color: texto.trim() ? "#6001D3" : "rgba(255,255,255,0.5)", border: "none", borderRadius: "14px", fontWeight: 800, fontSize: "14px", cursor: texto.trim() ? "pointer" : "not-allowed", transition: "all 0.2s", whiteSpace: "nowrap", height: "fit-content" }}
-            >
-              {enviando ? "..." : "Enviar ↑"}
-            </button>
-          </div>
+          <>
+            {erro && (
+              <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: "8px", padding: "8px 12px", color: "#B91C1C", fontSize: "12px", marginBottom: "10px" }}>
+                {erro}
+              </div>
+            )}
+            {proposta?.status === "CANCELADA" ? (
+              <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)", fontSize: "13px", padding: "12px" }}>
+                Esta proposta foi cancelada. O chat está encerrado.
+              </div>
+            ) : (
+              <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>
+                <textarea
+                  ref={inputRef}
+                  value={texto}
+                  onChange={(e) => setTexto(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Digite uma mensagem… (Enter para enviar, Shift+Enter para nova linha)"
+                  rows={2}
+                  style={{ flex: 1, padding: "12px 16px", borderRadius: "14px", border: "none", fontSize: "14px", resize: "none", outline: "none", background: "rgba(255,255,255,0.95)", color: "#111", lineHeight: 1.5, fontFamily: "inherit" }}
+                />
+                <button
+                  onClick={handleEnviar}
+                  disabled={enviando || !texto.trim()}
+                  style={{ padding: "12px 24px", background: texto.trim() ? "#fff" : "rgba(255,255,255,0.3)", color: texto.trim() ? "#6001D3" : "rgba(255,255,255,0.5)", border: "none", borderRadius: "14px", fontWeight: 800, fontSize: "14px", cursor: texto.trim() ? "pointer" : "not-allowed", transition: "all 0.2s", whiteSpace: "nowrap", height: "fit-content" }}
+                >
+                  {enviando ? "..." : "Enviar ↑"}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

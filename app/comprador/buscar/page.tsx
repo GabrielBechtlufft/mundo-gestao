@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { consultarServicos } from "@/app/actions/servicos";
-import { CIDADES } from "@/app/lib/cidades";
+import { ISOS_DISPONIVEIS, ESTADOS, ESTADOS_CIDADES } from "@/app/lib/estados";
 import CompradorSidebar from "@/app/components/layout/CompradorSidebar";
 
 type Servico = {
@@ -20,30 +21,52 @@ const RANK_BADGE: Record<string, { icon: string; label: string; bg: string; text
 
 export default function CompradorBuscarPage() {
   const router = useRouter();
-  const [servicos, setServicos] = useState<Servico[]>([]);
-  const [wizardStep, setWizardStep] = useState<1 | 2 | 3 | 4>(1);
-  const [wizardServico, setWizardServico] = useState("");
-  const [wizardCidade, setWizardCidade] = useState("");
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
+  const [iso, setIso] = useState("");
+  const [estado, setEstado] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [servicos, setServicos] = useState<Servico[]>([]);
+
+  const cidadesDoPorEstado = estado ? ESTADOS_CIDADES[estado] ?? [] : [];
+
   const scrollCarousel = (dir: "left" | "right") => {
-    if (carouselRef.current) carouselRef.current.scrollBy({ left: dir === "left" ? -360 : 360, behavior: "smooth" });
+    carouselRef.current?.scrollBy({ left: dir === "left" ? -360 : 360, behavior: "smooth" });
   };
 
-  const handleWizardNext = async () => {
-    if (wizardStep === 1 && wizardServico.trim()) {
-      setWizardStep(2);
-    } else if (wizardStep === 2 && wizardCidade) {
-      setWizardStep(3);
-      setTimeout(async () => {
-        const res = await consultarServicos(wizardServico, wizardCidade);
-        if (res.success) setServicos(res.servicos as Servico[]);
-        setWizardStep(4);
-      }, 2000);
+  const handleSelectIso = (label: string) => {
+    setIso(label);
+    setEstado("");
+    setCidade("");
+    setStep(2);
+  };
+
+  const handleSelectEstado = (est: string) => {
+    setEstado(est);
+    setCidade("");
+    const cidades = ESTADOS_CIDADES[est] ?? [];
+    if (cidades.length === 1) {
+      setCidade(cidades[0]);
+      buscar(iso, cidades[0]);
+    } else {
+      setStep(3);
     }
   };
 
-  const resetWizard = () => { setWizardStep(1); setWizardServico(""); setWizardCidade(""); setServicos([]); };
+  const handleSelectCidade = (c: string) => {
+    setCidade(c);
+    buscar(iso, c);
+  };
+
+  const buscar = async (isoVal: string, cidadeVal: string) => {
+    setStep(4);
+    const res = await consultarServicos(isoVal, cidadeVal);
+    if (res.success) setServicos(res.servicos as Servico[]);
+    setStep(5);
+  };
+
+  const reset = () => { setStep(1); setIso(""); setEstado(""); setCidade(""); setServicos([]); };
 
   return (
     <div style={{ padding: "8px 56px 32px", height: "100%", display: "flex", flexDirection: "column" }}>
@@ -55,59 +78,112 @@ export default function CompradorBuscarPage() {
       <div style={{ display: "flex", gap: "24px", alignItems: "stretch", flex: 1, minHeight: 0 }}>
         <CompradorSidebar />
 
-        {/* Conteúdo do wizard */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflowY: "auto" }}>
-          {wizardStep < 4 ? (
-            /* Wizard centralizado dentro da área de conteúdo */
+          {step < 5 ? (
             <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "24px 0" }}>
-              <div style={{ width: "100%", maxWidth: "640px" }}>
+              <div style={{ width: "100%", maxWidth: "720px" }}>
 
-                {wizardStep === 1 && (
+                {/* Step 1 — ISO */}
+                {step === 1 && (
                   <div className="animate-fade-in">
-                    <h2 style={{ fontSize: "clamp(1.6rem,3vw,2.4rem)", fontWeight: 800, color: "#fff", marginBottom: "32px", lineHeight: 1.2 }}>
-                      Qual serviço deseja consultar?
+                    <h2 style={{ fontSize: "clamp(1.5rem,3vw,2.2rem)", fontWeight: 800, color: "#fff", marginBottom: "28px", lineHeight: 1.2 }}>
+                      Qual certificação você procura?
                     </h2>
-                    <input
-                      type="text" autoFocus value={wizardServico}
-                      onChange={(e) => setWizardServico(e.target.value.toUpperCase())}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleWizardNext(); }}
-                      placeholder="Ex: ISO 9001"
-                      style={{ width: "100%", padding: "18px 28px", borderRadius: "16px", border: "none", fontSize: "1.3rem", background: "#fff", color: "#111", outline: "none", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", boxSizing: "border-box" as const }}
-                    />
-                    <button onClick={handleWizardNext} disabled={!wizardServico.trim()}
-                      style={{ marginTop: "24px", padding: "14px 40px", background: "#fff", color: "#6001D3", border: "none", borderRadius: "14px", fontSize: "1rem", fontWeight: 800, cursor: wizardServico.trim() ? "pointer" : "not-allowed", opacity: wizardServico.trim() ? 1 : 0.5, boxShadow: "0 6px 20px rgba(0,0,0,0.15)" }}>
-                      Próximo →
-                    </button>
-                  </div>
-                )}
-
-                {wizardStep === 2 && (
-                  <div className="animate-fade-in">
-                    <h2 style={{ fontSize: "clamp(1.6rem,3vw,2.4rem)", fontWeight: 800, color: "#fff", marginBottom: "32px", lineHeight: 1.2 }}>
-                      De qual cidade está falando?
-                    </h2>
-                    <select autoFocus value={wizardCidade} onChange={(e) => setWizardCidade(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleWizardNext(); }}
-                      style={{ width: "100%", padding: "18px 28px", borderRadius: "16px", border: "none", fontSize: "1.3rem", background: "#fff", color: wizardCidade ? "#111" : "#9CA3AF", outline: "none", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", appearance: "none" as const, cursor: "pointer" }}>
-                      <option value="" disabled>Selecione uma cidade</option>
-                      {CIDADES.map((c) => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                    <div style={{ display: "flex", gap: "12px", marginTop: "24px" }}>
-                      <button onClick={() => setWizardStep(1)}
-                        style={{ padding: "14px 28px", background: "rgba(255,255,255,0.15)", color: "#fff", border: "2px solid rgba(255,255,255,0.3)", borderRadius: "14px", fontWeight: 700, cursor: "pointer" }}>
-                        ← Voltar
-                      </button>
-                      <button onClick={handleWizardNext} disabled={!wizardCidade}
-                        style={{ padding: "14px 40px", background: "#fff", color: "#6001D3", border: "none", borderRadius: "14px", fontWeight: 800, fontSize: "1rem", cursor: wizardCidade ? "pointer" : "not-allowed", opacity: wizardCidade ? 1 : 0.5, boxShadow: "0 6px 20px rgba(0,0,0,0.15)" }}>
-                        Buscar
-                      </button>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "12px" }}>
+                      {ISOS_DISPONIVEIS.map((item) => (
+                        <button key={item.label} onClick={() => handleSelectIso(item.label)}
+                          style={{
+                            background: "#fff", border: "2px solid transparent", borderRadius: "16px",
+                            padding: "16px 12px", cursor: "pointer", textAlign: "left",
+                            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                            transition: "transform 0.15s, box-shadow 0.15s",
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.2)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)"; }}
+                        >
+                          <div style={{ fontSize: "15px", fontWeight: 800, color: "#6001D3" }}>{item.label}</div>
+                          <div style={{ fontSize: "12px", color: "#6B7280", marginTop: "4px" }}>{item.sub}</div>
+                        </button>
+                      ))}
                     </div>
                   </div>
                 )}
 
-                {wizardStep === 3 && (
+                {/* Step 2 — Estado */}
+                {step === 2 && (
+                  <div className="animate-fade-in">
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+                      <button onClick={() => setStep(1)}
+                        style={{ background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.3)", color: "#fff", borderRadius: "10px", padding: "6px 14px", fontWeight: 600, fontSize: "13px", cursor: "pointer" }}>
+                        ← Voltar
+                      </button>
+                      <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px" }}>
+                        <strong style={{ color: "#fff" }}>{iso}</strong>
+                      </span>
+                    </div>
+                    <h2 style={{ fontSize: "clamp(1.5rem,3vw,2.2rem)", fontWeight: 800, color: "#fff", margin: "20px 0 28px", lineHeight: 1.2 }}>
+                      Em qual estado?
+                    </h2>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: "10px" }}>
+                      {ESTADOS.map((est) => (
+                        <button key={est} onClick={() => handleSelectEstado(est)}
+                          style={{
+                            background: "#fff", border: "2px solid transparent", borderRadius: "14px",
+                            padding: "14px 16px", cursor: "pointer", textAlign: "left",
+                            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                            transition: "transform 0.15s, box-shadow 0.15s",
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.2)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)"; }}
+                        >
+                          <span style={{ fontSize: "14px", fontWeight: 700, color: "#111" }}>{est}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 3 — Cidade */}
+                {step === 3 && (
+                  <div className="animate-fade-in">
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+                      <button onClick={() => setStep(2)}
+                        style={{ background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.3)", color: "#fff", borderRadius: "10px", padding: "6px 14px", fontWeight: 600, fontSize: "13px", cursor: "pointer" }}>
+                        ← Voltar
+                      </button>
+                      <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px" }}>
+                        <strong style={{ color: "#fff" }}>{iso}</strong>
+                        <span style={{ margin: "0 6px" }}>·</span>
+                        <strong style={{ color: "#fff" }}>{estado.split(" — ")[0]}</strong>
+                      </span>
+                    </div>
+                    <h2 style={{ fontSize: "clamp(1.5rem,3vw,2.2rem)", fontWeight: 800, color: "#fff", margin: "20px 0 28px", lineHeight: 1.2 }}>
+                      Em qual cidade?
+                    </h2>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "10px" }}>
+                      {cidadesDoPorEstado.map((c) => (
+                        <button key={c} onClick={() => handleSelectCidade(c)}
+                          style={{
+                            background: "#fff", border: "2px solid transparent", borderRadius: "14px",
+                            padding: "16px 20px", cursor: "pointer", textAlign: "left",
+                            fontSize: "15px", fontWeight: 700, color: "#111",
+                            boxShadow: "0 4px 16px rgba(0,0,0,0.12)",
+                            transition: "transform 0.15s, box-shadow 0.15s",
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.2)"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)"; }}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Step 4 — Loading */}
+                {step === 4 && (
                   <div className="animate-fade-in" style={{ textAlign: "center" }}>
-                    <h2 className="animate-pulse" style={{ fontSize: "clamp(1.6rem,3vw,2.4rem)", fontWeight: 800, color: "#fff" }}>
+                    <h2 className="animate-pulse" style={{ fontSize: "clamp(1.5rem,3vw,2.2rem)", fontWeight: 800, color: "#fff" }}>
                       Consultando...
                     </h2>
                   </div>
@@ -119,9 +195,9 @@ export default function CompradorBuscarPage() {
             <div style={{ paddingBottom: "32px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
                 <h2 style={{ fontSize: "18px", fontWeight: 800, color: "#fff", margin: 0 }}>
-                  Resultados para <span style={{ color: "rgba(255,255,255,0.8)" }}>{wizardServico}</span> em <span style={{ color: "rgba(255,255,255,0.8)" }}>{wizardCidade}</span>
+                  Resultados para <span style={{ color: "rgba(255,255,255,0.8)" }}>{iso}</span> em <span style={{ color: "rgba(255,255,255,0.8)" }}>{cidade}</span>
                 </h2>
-                <button onClick={resetWizard}
+                <button onClick={reset}
                   style={{ padding: "8px 18px", background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "10px", fontWeight: 600, fontSize: "13px", cursor: "pointer" }}>
                   Nova busca
                 </button>
@@ -132,7 +208,7 @@ export default function CompradorBuscarPage() {
                   <div style={{ fontSize: "48px", marginBottom: "12px" }}>🔍</div>
                   <p style={{ color: "#374151", fontSize: "16px", fontWeight: 700, margin: "0 0 8px" }}>Nenhum resultado encontrado</p>
                   <p style={{ color: "#9CA3AF", fontSize: "13px", margin: "0 0 24px" }}>Tente buscar por outro tipo de ISO ou cidade.</p>
-                  <button onClick={resetWizard} style={{ background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", padding: "12px 28px", borderRadius: "12px", fontWeight: 700, border: "none", cursor: "pointer" }}>
+                  <button onClick={reset} style={{ background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", padding: "12px 28px", borderRadius: "12px", fontWeight: 700, border: "none", cursor: "pointer" }}>
                     Tentar novamente
                   </button>
                 </div>

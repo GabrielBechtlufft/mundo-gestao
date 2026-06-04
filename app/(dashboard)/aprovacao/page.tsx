@@ -11,6 +11,7 @@ type Solicitacao = {
   id: number; nome: string; cnpj: string | null; email: string; telefone: string;
   cidade: string; mensagem: string | null; isosVendidas: string;
   validadeCertificado: string | null; documentoComprovante: string | null;
+  certificacoesISO: string | null;
   nomeContato: string | null; cargoContato: string | null;
   status: string; motivoRejeicao: string | null; createdAt: string;
 };
@@ -360,29 +361,70 @@ export default function AprovacaoPage() {
               <p style={{ margin: 0, fontSize: "13px", color: "#555", fontStyle: "italic" }}>"{selectedSol.mensagem}"</p>
             </div>
           )}
-          {selectedSol.isosVendidas && (
-            <div style={{ marginBottom: "20px" }}>
-              <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111", marginTop: 0, marginBottom: "10px" }}>📋 ISOs que pretende vender:</h3>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {selectedSol.isosVendidas.split(",").map((iso) => (
-                  <span key={iso} style={{ background: "#EDE9FE", color: "#6001D3", fontSize: "13px", fontWeight: 700, padding: "6px 14px", borderRadius: "10px" }}>{iso.trim()}</span>
-                ))}
+          {/* Certificações por ISO (novo formato) */}
+          {selectedSol.certificacoesISO ? (() => {
+            let certs: { iso: string; validade: string; documento: string }[] = [];
+            try { certs = JSON.parse(selectedSol.certificacoesISO); } catch { /* ignora */ }
+            return certs.length > 0 ? (
+              <div style={{ marginBottom: "20px" }}>
+                <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111", marginTop: 0, marginBottom: "12px" }}>📋 Certificações por ISO:</h3>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {certs.map((cert) => (
+                    <div key={cert.iso} style={{ border: "1.5px solid #E5E7EB", borderRadius: "12px", padding: "14px 16px" }}>
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "8px" }}>
+                        <span style={{ background: "#EDE9FE", color: "#6001D3", fontSize: "13px", fontWeight: 700, padding: "4px 12px", borderRadius: "8px" }}>{cert.iso}</span>
+                        {cert.validade && (
+                          <span style={{ fontSize: "12px", color: "#6B7280" }}>
+                            Válido até: <strong style={{ color: "#374151" }}>{new Date(cert.validade + "T12:00:00").toLocaleDateString("pt-BR")}</strong>
+                          </span>
+                        )}
+                      </div>
+                      {cert.documento && (
+                        <div style={{ marginTop: "8px" }}>
+                          <a href={cert.documento} target="_blank" rel="noopener noreferrer"
+                            style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#F0F9FF", border: "1px solid #BAE6FD", padding: "6px 14px", borderRadius: "8px", color: "#0369A1", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
+                            📎 Ver comprovante
+                          </a>
+                          {cert.documento.match(/\.(png|jpg|jpeg|webp)$/i) && (
+                            <div style={{ marginTop: "8px", borderRadius: "8px", overflow: "hidden", border: "1px solid #E5E7EB" }}>
+                              <img src={cert.documento} alt={`Comprovante ${cert.iso}`} style={{ width: "100%", maxHeight: "200px", objectFit: "contain" }} />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-          {selectedSol.documentoComprovante && (
-            <div style={{ marginBottom: "24px" }}>
-              <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111", marginTop: 0, marginBottom: "10px" }}>📄 Documento comprovante:</h3>
-              <a href={selectedSol.documentoComprovante} target="_blank" rel="noopener noreferrer"
-                style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#F0F9FF", border: "1.5px solid #BAE6FD", padding: "10px 18px", borderRadius: "10px", color: "#0369A1", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
-                📎 Visualizar / Download
-              </a>
-              {selectedSol.documentoComprovante.match(/\.(png|jpg|jpeg|webp)$/i) && (
-                <div style={{ marginTop: "12px", borderRadius: "10px", overflow: "hidden", border: "1px solid #E5E7EB" }}>
-                  <img src={selectedSol.documentoComprovante} alt="Comprovante" style={{ width: "100%", maxHeight: "300px", objectFit: "contain" }} />
+            ) : null;
+          })() : (
+            /* Formato antigo: ISO badges + documento único */
+            <>
+              {selectedSol.isosVendidas && (
+                <div style={{ marginBottom: "20px" }}>
+                  <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111", marginTop: 0, marginBottom: "10px" }}>📋 ISOs que pretende vender:</h3>
+                  <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                    {selectedSol.isosVendidas.split(",").map((iso) => (
+                      <span key={iso} style={{ background: "#EDE9FE", color: "#6001D3", fontSize: "13px", fontWeight: 700, padding: "6px 14px", borderRadius: "10px" }}>{iso.trim()}</span>
+                    ))}
+                  </div>
                 </div>
               )}
-            </div>
+              {selectedSol.documentoComprovante && (
+                <div style={{ marginBottom: "24px" }}>
+                  <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111", marginTop: 0, marginBottom: "10px" }}>📄 Documento comprovante:</h3>
+                  <a href={selectedSol.documentoComprovante} target="_blank" rel="noopener noreferrer"
+                    style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#F0F9FF", border: "1.5px solid #BAE6FD", padding: "10px 18px", borderRadius: "10px", color: "#0369A1", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
+                    📎 Visualizar / Download
+                  </a>
+                  {selectedSol.documentoComprovante.match(/\.(png|jpg|jpeg|webp)$/i) && (
+                    <div style={{ marginTop: "12px", borderRadius: "10px", overflow: "hidden", border: "1px solid #E5E7EB" }}>
+                      <img src={selectedSol.documentoComprovante} alt="Comprovante" style={{ width: "100%", maxHeight: "300px", objectFit: "contain" }} />
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
           )}
           <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <button onClick={handleAprovarVend} disabled={processandoVend} style={{ padding: "14px", background: "linear-gradient(90deg,#22C55E,#16A34A)", color: "#fff", border: "none", borderRadius: "12px", fontSize: "15px", fontWeight: 700, cursor: "pointer" }}>

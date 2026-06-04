@@ -16,6 +16,7 @@ export async function solicitarCadastro(data: {
   isosVendidas: string;
   validadeCertificado?: string;
   documentoComprovante?: string;
+  certificacoesISO?: string;
 }) {
   try {
     if (!data.nome || !data.email || !data.telefone || !data.cidade) {
@@ -40,6 +41,16 @@ export async function solicitarCadastro(data: {
       return { success: false, error: "Já existe uma solicitação pendente para este e-mail." };
     }
 
+    // Se enviou certificações por ISO, extrai a menor validade como validadeCertificado global
+    let validadeCertificadoFinal = data.validadeCertificado || null;
+    if (data.certificacoesISO) {
+      try {
+        const certs: { iso: string; validade: string; documento: string }[] = JSON.parse(data.certificacoesISO);
+        const validades = certs.map(c => c.validade).filter(Boolean).sort();
+        if (validades.length > 0) validadeCertificadoFinal = validades[0];
+      } catch { /* ignora JSON inválido */ }
+    }
+
     await prisma.solicitacaoCadastro.create({
       data: {
         nome: data.nome,
@@ -51,8 +62,9 @@ export async function solicitarCadastro(data: {
         cargoContato: data.cargoContato || null,
         mensagem: data.mensagem || null,
         isosVendidas: data.isosVendidas,
-        validadeCertificado: data.validadeCertificado || null,
+        validadeCertificado: validadeCertificadoFinal,
         documentoComprovante: data.documentoComprovante || null,
+        certificacoesISO: data.certificacoesISO || null,
       },
     });
 

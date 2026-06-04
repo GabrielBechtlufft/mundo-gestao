@@ -42,6 +42,20 @@ export const authOptions: NextAuthOptions = {
 
         if (!passwordValid) return null;
 
+        // Para funcionários, buscar o ID do registro FuncionarioVendedor
+        let funcionarioVendedorId: number | null = null;
+        let vendedorPaiId: string | null = null;
+        if (user.role === "FUNCIONARIO") {
+          const perfil = await prisma.funcionarioVendedor.findUnique({
+            where: { linkedUserId: user.id },
+            select: { id: true, userId: true },
+          });
+          if (perfil) {
+            funcionarioVendedorId = perfil.id;
+            vendedorPaiId = perfil.userId;
+          }
+        }
+
         return {
           id: user.id,
           name: user.name,
@@ -51,6 +65,8 @@ export const authOptions: NextAuthOptions = {
           statusVendedor: user.statusVendedor,
           trocarSenha: user.trocarSenha,
           image: user.image,
+          funcionarioVendedorId,
+          vendedorPaiId,
         };
       },
     }),
@@ -112,8 +128,9 @@ export const authOptions: NextAuthOptions = {
         token.statusVendedor = (user as any).statusVendedor;
         token.trocarSenha = (user as any).trocarSenha;
         token.picture = (user as any).image ?? null;
+        token.funcionarioVendedorId = (user as any).funcionarioVendedorId ?? null;
+        token.vendedorPaiId = (user as any).vendedorPaiId ?? null;
       }
-      // Atualiza a foto quando o perfil é salvo via update()
       if (trigger === "update" && session?.image !== undefined) {
         token.picture = session.image;
       }
@@ -126,6 +143,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).login = token.login;
         (session.user as any).statusVendedor = token.statusVendedor;
         (session.user as any).trocarSenha = token.trocarSenha;
+        (session.user as any).funcionarioVendedorId = token.funcionarioVendedorId ?? null;
+        (session.user as any).vendedorPaiId = token.vendedorPaiId ?? null;
         session.user.image = (token.picture as string | null) ?? null;
       }
       return session;

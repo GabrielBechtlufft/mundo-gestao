@@ -38,7 +38,11 @@ export default function CompradorHome() {
 
   const carregarPropostas = async () => {
     const res = await getPropostasComprador();
-    if (res.success && res.propostas) setPropostas(res.propostas as any);
+    if (res.success && res.propostas) {
+      const lista = res.propostas as any[];
+      setPropostas(lista);
+      if (lista.length === 0) router.replace("/comprador/buscar");
+    }
   };
 
   useEffect(() => { carregarPropostas(); getSession().then(setUser); }, []);

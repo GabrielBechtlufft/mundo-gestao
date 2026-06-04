@@ -41,6 +41,12 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/vendedor/home', request.url));
     }
 
+    // Funcionário can only access /vendedor/chat and /chat/*
+    if (role === 'FUNCIONARIO') {
+      const allowed = pathname.startsWith('/vendedor/chat') || pathname.startsWith('/chat/');
+      if (!allowed) return NextResponse.redirect(new URL('/vendedor/chat', request.url));
+    }
+
     // Comprador restricted from admin and vendor routes
     const rotasAdmin = ['/propostas', '/aprovacao', '/vendedores', '/pagamentos', '/configuracoes', '/home'];
     if (role === 'COMPRADOR' && rotasAdmin.some((r) => pathname.startsWith(r))) {
@@ -62,6 +68,7 @@ export async function middleware(request: NextRequest) {
     if (pathname === '/login') {
       if (role === 'VENDEDOR') return NextResponse.redirect(new URL('/vendedor/home', request.url));
       if (role === 'COMPRADOR') return NextResponse.redirect(new URL('/comprador/home', request.url));
+      if (role === 'FUNCIONARIO') return NextResponse.redirect(new URL('/vendedor/chat', request.url));
       return NextResponse.redirect(new URL('/home', request.url));
     }
   }

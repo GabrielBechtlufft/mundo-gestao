@@ -173,6 +173,7 @@ export default function PropostasPage() {
   const [loading, setLoading] = useState(true);
   const [modalProposta, setModalProposta] = useState<PropostaAdmin | null>(null);
   const [filtro, setFiltro] = useState<"todas" | "ativas" | "concluidas" | "canceladas">("todas");
+  const [busca, setBusca] = useState("");
 
   useEffect(() => {
     getTodasPropostas().then((res) => {
@@ -182,9 +183,19 @@ export default function PropostasPage() {
   }, []);
 
   const lista = propostas.filter((p) => {
-    if (filtro === "ativas") return !["CONCLUIDA", "CANCELADA"].includes(p.status);
-    if (filtro === "concluidas") return p.status === "CONCLUIDA";
-    if (filtro === "canceladas") return p.status === "CANCELADA";
+    if (filtro === "ativas" && ["CONCLUIDA", "CANCELADA"].includes(p.status)) return false;
+    if (filtro === "concluidas" && p.status !== "CONCLUIDA") return false;
+    if (filtro === "canceladas" && p.status !== "CANCELADA") return false;
+
+    if (busca.trim()) {
+      const t = busca.toLowerCase();
+      const compradorNome = (p.Comprador?.name || p.solicitante).toLowerCase();
+      const vendedorNome = (p.Vendedor?.razaoSocial || p.Vendedor?.name || "").toLowerCase();
+      const isoTipo = (p.Listagem?.isoTipo || "").toLowerCase();
+      const titulo = (p.Listagem?.titulo || p.servico).toLowerCase();
+      if (!compradorNome.includes(t) && !vendedorNome.includes(t) && !isoTipo.includes(t) && !titulo.includes(t)) return false;
+    }
+
     return true;
   });
 
@@ -219,6 +230,23 @@ export default function PropostasPage() {
                 <span style={{ fontSize: "13px", fontWeight: 600, color: filtro === c.key ? c.color : "#374151" }}>{c.label}</span>
               </button>
             ))}
+          </div>
+
+          {/* Barra de busca */}
+          <div style={{ position: "relative" }}>
+            <span style={{ position: "absolute", left: "16px", top: "50%", transform: "translateY(-50%)", fontSize: "16px", pointerEvents: "none" }}>🔍</span>
+            <input
+              type="text"
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              placeholder="Buscar por comprador, certificadora, ISO ou título..."
+              style={{ width: "100%", padding: "12px 16px 12px 44px", borderRadius: "14px", border: "1.5px solid #E5E7EB", fontSize: "14px", outline: "none", boxSizing: "border-box", background: "#fff", boxShadow: "0 2px 8px rgba(80,0,160,0.06)" }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "#6001D3"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; }}
+            />
+            {busca && (
+              <button onClick={() => setBusca("")} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontSize: "16px", color: "#9CA3AF", lineHeight: 1 }}>✕</button>
+            )}
           </div>
 
           {/* Lista de cards */}

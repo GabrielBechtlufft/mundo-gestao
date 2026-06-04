@@ -16,6 +16,8 @@ export async function getSession() {
     login: (session.user as any).login,
     statusVendedor: (session.user as any).statusVendedor,
     image: session.user.image,
+    funcionarioVendedorId: (session.user as any).funcionarioVendedorId as number | null,
+    vendedorPaiId: (session.user as any).vendedorPaiId as string | null,
   };
 }
 

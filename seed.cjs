@@ -1,14 +1,9 @@
 const { PrismaClient } = require('@prisma/client');
-const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-const path = require('path');
+const { PrismaPg } = require('@prisma/adapter-pg');
 
 require('dotenv').config();
 
-const databaseUrl = process.env.DATABASE_URL || 'file:./prisma/dev.db';
-const dbFile = databaseUrl.replace(/^file:/, '');
-const dbPath = path.isAbsolute(dbFile) ? dbFile : path.resolve(process.cwd(), dbFile);
-
-const adapter = new PrismaBetterSqlite3({ url: dbPath });
+const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 async function calcularRank(vendedorId) {
@@ -85,6 +80,33 @@ async function main() {
     },
   });
 
+  // Usuário FUNCIONARIO vinculado ao vendedor
+  const funcionarioUser = await prisma.user.upsert({
+    where: { login: 'funcionario1' },
+    update: {},
+    create: {
+      name: 'Lucas Funcionário',
+      login: 'funcionario1',
+      email: 'funcionario1@email.com',
+      password: 'funcionario',
+      role: 'FUNCIONARIO',
+      statusVendedor: 'APROVADO',
+    },
+  });
+
+  await prisma.funcionarioVendedor.upsert({
+    where: { linkedUserId: funcionarioUser.id },
+    update: {},
+    create: {
+      userId: vendor.id,
+      linkedUserId: funcionarioUser.id,
+      nome: 'Lucas Funcionário',
+      email: 'funcionario1@email.com',
+      cargo: 'Consultor',
+      ativo: true,
+    },
+  });
+
   console.log('✅ Usuários criados/atualizados');
 
   // ── Listagens ─────────────────────────────────────────────────────────────
@@ -94,9 +116,7 @@ async function main() {
       titulo: 'Consultoria Completa ISO 9001 – Gestão da Qualidade',
       descricao: 'Implementação e certificação ISO 9001:2015. Inclui diagnóstico inicial, treinamento da equipe, elaboração completa da documentação (manual de qualidade, procedimentos, formulários) e suporte até a obtenção do certificado. Acompanhamento pré-auditoria e auditoria final incluídos.',
       cidade: 'São Paulo',
-      preco: 4800, precoOriginal: 6000, descontoOff: 20,
       destaque: 'MAIS CONTRATADO',
-      contato: '(11) 99999-0001',
       status: 'ATIVA',
       userId: vendor.id,
     },
@@ -105,9 +125,7 @@ async function main() {
       titulo: 'Implementação ISO 14001 – Gestão Ambiental',
       descricao: 'Estruture o sistema de gestão ambiental da sua organização com foco em sustentabilidade e conformidade legal. Realizamos o levantamento dos aspectos e impactos ambientais, criação de procedimentos, treinamentos e suporte completo até a certificação.',
       cidade: 'Rio de Janeiro',
-      preco: 5500, precoOriginal: null, descontoOff: 0,
       destaque: null,
-      contato: '(21) 99999-0002',
       status: 'ATIVA',
       userId: vendor.id,
     },
@@ -116,9 +134,7 @@ async function main() {
       titulo: 'Auditoria ISO 45001 – Saúde e Segurança Ocupacional',
       descricao: 'Auditoria completa do sistema de gestão de saúde e segurança ocupacional. Identificamos não-conformidades, elaboramos plano de ação corretivo e acompanhamos a implementação das melhorias necessárias para certificação.',
       cidade: 'Belo Horizonte',
-      preco: 3200, precoOriginal: 4000, descontoOff: 20,
       destaque: 'MAIS CONTRATADO',
-      contato: '(31) 99999-0003',
       status: 'ATIVA',
       userId: vendor.id,
     },
@@ -127,9 +143,7 @@ async function main() {
       titulo: 'Certificação ISO 27001 – Segurança da Informação',
       descricao: 'Proteja os ativos de informação da sua empresa com a ISO 27001. Nossa equipe especializada conduz a implementação do SGSI (Sistema de Gestão da Segurança da Informação), análise de riscos e adequação aos controles do Anexo A.',
       cidade: 'São Paulo',
-      preco: 7200, precoOriginal: 9000, descontoOff: 20,
       destaque: 'MAIS CONTRATADO',
-      contato: '(11) 99999-0004',
       status: 'ATIVA',
       userId: vendor.id,
     },
@@ -138,9 +152,7 @@ async function main() {
       titulo: 'ISO 37001 – Sistema de Gestão Antissuborno',
       descricao: 'Demonstre o compromisso da sua empresa com a ética e a integridade. Implementamos o sistema de gestão antissuborno conforme ISO 37001, incluindo análise de riscos de suborno, políticas, controles e treinamentos para todos os níveis.',
       cidade: 'Curitiba',
-      preco: 6500, precoOriginal: null, descontoOff: 0,
       destaque: null,
-      contato: '(41) 99999-0005',
       status: 'ATIVA',
       userId: vendor.id,
     },
@@ -149,9 +161,7 @@ async function main() {
       titulo: 'ISO 50001 – Gestão de Energia para Indústrias',
       descricao: 'Reduza consumo energético e custos operacionais com a ISO 50001. Realizamos diagnóstico energético, definição de metas e indicadores de desempenho energético (IDE), implementação do sistema e suporte até a certificação.',
       cidade: 'Porto Alegre',
-      preco: 4200, precoOriginal: 5000, descontoOff: 16,
       destaque: null,
-      contato: '(51) 99999-0006',
       status: 'ATIVA',
       userId: vendor.id,
     },
@@ -160,9 +170,7 @@ async function main() {
       titulo: 'Manutenção de Certificado ISO 9001 – Renovação Anual',
       descricao: 'Serviço de manutenção do sistema de gestão da qualidade para empresas já certificadas. Inclui auditoria interna anual, análise crítica pela direção, atualização de documentos e suporte na auditoria de manutenção do organismo certificador.',
       cidade: 'São Paulo',
-      preco: 2800, precoOriginal: 3500, descontoOff: 20,
       destaque: 'MAIS CONTRATADO',
-      contato: '(11) 99999-0007',
       status: 'ATIVA',
       userId: vendor.id,
     },
@@ -171,9 +179,7 @@ async function main() {
       titulo: 'Diagnóstico Ambiental ISO 14001 – Primeira Etapa',
       descricao: 'Diagnóstico inicial para empresas que desejam iniciar a jornada de certificação ambiental. Avaliamos a situação atual, mapeamos os aspectos e impactos ambientais e entregamos um plano de implementação detalhado.',
       cidade: 'Campinas',
-      preco: 1800, precoOriginal: null, descontoOff: 0,
       destaque: null,
-      contato: '(19) 99999-0008',
       status: 'ATIVA',
       userId: vendor.id,
     },
@@ -304,9 +310,10 @@ async function main() {
 
   console.log('\n✅ Seed concluído com sucesso!');
   console.log('\n📋 Contas para teste:');
-  console.log('  Comprador → login: comprador  | senha: comprador');
-  console.log('  Vendedor  → login: vendedor1  | senha: vendedor');
-  console.log('  Admin     → login: admin      | senha: admin');
+  console.log('  Admin       → login: admin        | senha: admin');
+  console.log('  Vendedor    → login: vendedor1    | senha: vendedor');
+  console.log('  Comprador   → login: comprador    | senha: comprador');
+  console.log('  Funcionário → login: funcionario1 | senha: funcionario');
 
   await prisma.$disconnect();
 }
