@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Mundo Gestão
 
-## Getting Started
+Marketplace de consultoria ISO que conecta empresas certificadoras a compradores. Certificadoras publicam seus serviços, recebem propostas e negociam contratos via chat integrado — tudo em uma única plataforma.
 
-First, run the development server:
+## Tecnologias
+
+- **Next.js 16** (App Router) · **React 19** · **TypeScript**
+- **Prisma 7** + PostgreSQL (Neon)
+- **NextAuth 4** — Credentials e Google OAuth
+- **TailwindCSS 4** · GSAP
+
+## Funcionalidades
+
+- Autenticação com fluxo de aprovação manual para certificadoras
+- Busca de certificadoras por ISO, estado e cidade (wizard com chips clicáveis)
+- Sistema de propostas com status e confirmação bilateral
+- Chat em tempo real por proposta
+- Gestão de equipe: criação de contas para funcionários com atribuição de chats individuais
+- Sistema de ranking de reputação (Bronze → Platina) baseado em avaliações e tempo de resposta
+- Painel administrativo para aprovação de cadastros e moderação de listagens
+- Upload de arquivos e foto de perfil
+
+## Rodando localmente
 
 ```bash
+npm install
+npx prisma migrate dev
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Crie um `.env` com as seguintes variáveis:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+DATABASE_URL="postgresql://..."        # URL com pooling (Neon)
+DIRECT_URL="postgresql://..."          # URL direta sem -pooler (para migrações)
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="sua-chave-secreta"
+GOOGLE_CLIENT_ID="..."                 # Opcional
+GOOGLE_CLIENT_SECRET="..."             # Opcional
+SMTP_HOST="smtp.gmail.com"             # Opcional
+SMTP_PORT="587"
+SMTP_USER="..."
+SMTP_PASS="..."
+```
