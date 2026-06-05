@@ -25,6 +25,9 @@ model User {
   cnpj                String?
   razaoSocial         String?
   validadeCertificado DateTime?            // Validade do certificado ISO da empresa
+  // Sessão
+  sessionVersion      Int                  @default(0)
+  primeiroAcesso      Boolean              @default(true)
   // Ranking
   rankScore           Float                @default(0)
   rankTier            String               @default("BRONZE") // "BRONZE", "PRATA", "OURO", "PLATINA"

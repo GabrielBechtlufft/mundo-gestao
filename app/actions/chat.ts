@@ -57,10 +57,14 @@ export async function getMensagens(propostaId: number) {
   };
 }
 
+const MAX_MENSAGEM = 2000;
+
 export async function enviarMensagem(propostaId: number, texto: string) {
   const session = await getSession();
   if (!session) return { success: false, error: "Não autenticado" };
   if (!texto.trim()) return { success: false, error: "Mensagem vazia" };
+  if (texto.trim().length > MAX_MENSAGEM)
+    return { success: false, error: `Mensagem muito longa (máximo ${MAX_MENSAGEM} caracteres).` };
 
   const proposta = await prisma.proposta.findUnique({
     where: { id: propostaId },
@@ -132,6 +136,24 @@ export async function enviarMensagem(propostaId: number, texto: string) {
 export async function marcarMensagensLidas(propostaId: number) {
   const session = await getSession();
   if (!session) return { success: false };
+
+  const proposta = await prisma.proposta.findUnique({
+    where: { id: propostaId },
+    select: { compradorId: true, vendedorId: true, funcionarioId: true },
+  });
+
+  if (!proposta) return { success: false };
+
+  const isFuncionarioAtribuido =
+    session.role === "FUNCIONARIO" &&
+    session.funcionarioVendedorId != null &&
+    proposta.funcionarioId === session.funcionarioVendedorId;
+
+  const isParticipant =
+    proposta.compradorId === session.id || proposta.vendedorId === session.id;
+
+  if (!isParticipant && !isFuncionarioAtribuido && session.role !== "ADMIN")
+    return { success: false };
 
   await prisma.mensagem.updateMany({
     where: {

@@ -20,19 +20,27 @@ export async function middleware(request: NextRequest) {
   if (token) {
     const role = token.role as string;
     const trocarSenha = token.trocarSenha as boolean;
+    const primeiroAcesso = (token.primeiroAcesso as boolean) ?? true;
 
     // Força troca de senha antes de qualquer outra coisa
     if (trocarSenha && pathname !== '/trocar-senha') {
       return NextResponse.redirect(new URL('/trocar-senha', request.url));
     }
 
-    // Allow logged-in users to see the landing page
-    if (pathname === '/') {
+    // Não aplica restrições de role enquanto estiver na página de troca de senha
+    if (pathname === '/trocar-senha') {
       return NextResponse.next();
     }
 
-    // Não aplica restrições de role enquanto estiver na página de troca de senha
-    if (pathname === '/trocar-senha') {
+    // Landing page: redireciona cada perfil para seu home
+    // Comprador só é redirecionado após o primeiro acesso
+    if (pathname === '/') {
+      if (role === 'ADMIN') return NextResponse.redirect(new URL('/home', request.url));
+      if (role === 'VENDEDOR') return NextResponse.redirect(new URL('/vendedor/home', request.url));
+      if (role === 'FUNCIONARIO') return NextResponse.redirect(new URL('/vendedor/chat', request.url));
+      if (role === 'COMPRADOR' && !primeiroAcesso) {
+        return NextResponse.redirect(new URL('/comprador/home', request.url));
+      }
       return NextResponse.next();
     }
 
@@ -67,7 +75,11 @@ export async function middleware(request: NextRequest) {
     // Already logged in trying to access /login
     if (pathname === '/login') {
       if (role === 'VENDEDOR') return NextResponse.redirect(new URL('/vendedor/home', request.url));
-      if (role === 'COMPRADOR') return NextResponse.redirect(new URL('/comprador/home', request.url));
+      if (role === 'COMPRADOR') {
+        return primeiroAcesso
+          ? NextResponse.redirect(new URL('/', request.url))
+          : NextResponse.redirect(new URL('/comprador/home', request.url));
+      }
       if (role === 'FUNCIONARIO') return NextResponse.redirect(new URL('/vendedor/chat', request.url));
       return NextResponse.redirect(new URL('/home', request.url));
     }

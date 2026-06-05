@@ -1,17 +1,11 @@
 "use server";
 
 import { prisma } from "@/app/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
+import { getSession } from "./auth";
 import { atualizarRank } from "./ranking";
 
 async function getSessionUser() {
-  const session = await getServerSession(authOptions);
-  const id = (session?.user as any)?.id;
-  if (!id) return null;
-  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true } });
-  if (!user) return null;
-  return { id: user.id, role: user.role };
+  return await getSession();
 }
 
 // ─── CERTIFICADORA ─────────────────────────────────────────────

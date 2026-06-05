@@ -1,17 +1,13 @@
 "use server";
 
 import { prisma } from "@/app/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
+import { getSession } from "./auth";
 import bcrypt from "bcryptjs";
 
 async function getVendedorId() {
-  const session = await getServerSession(authOptions);
-  const id = (session?.user as any)?.id;
-  if (!id) return null;
-  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, role: true } });
-  if (!user || user.role !== "VENDEDOR") return null;
-  return user.id;
+  const session = await getSession();
+  if (!session || session.role !== "VENDEDOR") return null;
+  return session.id;
 }
 
 export async function listarFuncionarios() {
@@ -114,6 +110,13 @@ export async function criarContaFuncionario(funcionarioId: number) {
 
   if (funcionario.linkedUserId) {
     return { success: false, error: "Este funcionário já possui uma conta." };
+  }
+
+  if (funcionario.email) {
+    const emailExistente = await prisma.user.findUnique({ where: { email: funcionario.email } });
+    if (emailExistente) {
+      return { success: false, error: "Este e-mail já está em uso por outro usuário." };
+    }
   }
 
   // Gera login único baseado no nome

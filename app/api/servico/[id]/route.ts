@@ -13,7 +13,7 @@ export async function GET(
       include: { User: { select: { name: true, rankTier: true } } },
     });
 
-    if (!listagem) {
+    if (!listagem || listagem.status !== "ATIVA") {
       return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
     }
 

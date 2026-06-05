@@ -8,13 +8,27 @@ import { prisma } from "@/app/lib/prisma";
 export async function getSession() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return null;
+
+  const id = (session.user as any).id as string | undefined;
+  if (!id) return null;
+
+  const tokenVersion = (session.user as any).sessionVersion ?? 0;
+
+  const dbUser = await prisma.user.findUnique({
+    where: { id },
+    select: { sessionVersion: true, statusVendedor: true, role: true, trocarSenha: true },
+  });
+
+  if (!dbUser || dbUser.sessionVersion !== tokenVersion) return null;
+
   return {
-    id: (session.user as any).id,
+    id,
     name: session.user.name,
     email: session.user.email,
-    role: (session.user as any).role,
+    role: dbUser.role,
     login: (session.user as any).login,
-    statusVendedor: (session.user as any).statusVendedor,
+    statusVendedor: dbUser.statusVendedor,
+    trocarSenha: dbUser.trocarSenha,
     image: session.user.image,
     funcionarioVendedorId: (session.user as any).funcionarioVendedorId as number | null,
     vendedorPaiId: (session.user as any).vendedorPaiId as string | null,

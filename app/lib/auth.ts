@@ -65,6 +65,8 @@ export const authOptions: NextAuthOptions = {
           statusVendedor: user.statusVendedor,
           trocarSenha: user.trocarSenha,
           image: user.image,
+          sessionVersion: user.sessionVersion,
+          primeiroAcesso: user.primeiroAcesso,
           funcionarioVendedorId,
           vendedorPaiId,
         };
@@ -117,6 +119,8 @@ export const authOptions: NextAuthOptions = {
         (user as any).role = dbUser.role;
         (user as any).login = dbUser.login;
         (user as any).statusVendedor = dbUser.statusVendedor;
+        (user as any).sessionVersion = dbUser.sessionVersion;
+        (user as any).primeiroAcesso = dbUser.primeiroAcesso;
       }
       return true;
     },
@@ -128,11 +132,20 @@ export const authOptions: NextAuthOptions = {
         token.statusVendedor = (user as any).statusVendedor;
         token.trocarSenha = (user as any).trocarSenha;
         token.picture = (user as any).image ?? null;
+        token.sessionVersion = (user as any).sessionVersion ?? 0;
+        token.primeiroAcesso = (user as any).primeiroAcesso ?? true;
         token.funcionarioVendedorId = (user as any).funcionarioVendedorId ?? null;
         token.vendedorPaiId = (user as any).vendedorPaiId ?? null;
       }
-      if (trigger === "update" && session?.image !== undefined) {
-        token.picture = session.image;
+      if (trigger === "update") {
+        if (session?.image !== undefined) token.picture = session.image;
+        if (session?.primeiroAcesso === false && token.primeiroAcesso !== false) {
+          await prisma.user.update({
+            where: { id: token.id as string },
+            data: { primeiroAcesso: false },
+          });
+          token.primeiroAcesso = false;
+        }
       }
       return token;
     },
@@ -143,6 +156,8 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).login = token.login;
         (session.user as any).statusVendedor = token.statusVendedor;
         (session.user as any).trocarSenha = token.trocarSenha;
+        (session.user as any).sessionVersion = token.sessionVersion ?? 0;
+        (session.user as any).primeiroAcesso = token.primeiroAcesso ?? true;
         (session.user as any).funcionarioVendedorId = token.funcionarioVendedorId ?? null;
         (session.user as any).vendedorPaiId = token.vendedorPaiId ?? null;
         session.user.image = (token.picture as string | null) ?? null;

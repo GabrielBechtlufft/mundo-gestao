@@ -99,6 +99,10 @@ export async function confirmarComprador(propostaId: number, documentoCompra: st
     return { success: false, error: "É obrigatório enviar o comprovante da compra." };
   }
 
+  if (!documentoCompra.startsWith("/uploads/")) {
+    return { success: false, error: "Comprovante inválido." };
+  }
+
   const proposta = await prisma.proposta.findUnique({ where: { id: propostaId } });
   if (!proposta) return { success: false, error: "Proposta não encontrada" };
   if (proposta.compradorId !== session.id) return { success: false, error: "Sem permissão" };

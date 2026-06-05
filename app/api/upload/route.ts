@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { writeFile, mkdir } from "fs/promises";
 import { randomUUID } from "crypto";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/app/lib/auth";
 
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -13,7 +15,31 @@ const ALLOWED_TYPES = [
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
+function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
+  if (mimeType === "application/pdf") {
+    return buffer.slice(0, 4).toString("ascii") === "%PDF";
+  }
+  if (mimeType === "image/png") {
+    return buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+  }
+  if (mimeType === "image/jpeg" || mimeType === "image/jpg") {
+    return buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+  if (mimeType === "image/webp") {
+    return (
+      buffer.slice(0, 4).toString("ascii") === "RIFF" &&
+      buffer.slice(8, 12).toString("ascii") === "WEBP"
+    );
+  }
+  return false;
+}
+
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ success: false, error: "Não autenticado." }, { status: 401 });
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -25,7 +51,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file type
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json(
         { success: false, error: "Tipo de arquivo não permitido. Envie PDF, PNG, JPG ou WebP." },
@@ -33,7 +58,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate file size
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
         { success: false, error: "Arquivo muito grande. Tamanho máximo: 5MB." },
@@ -41,17 +65,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Sanitize filename
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
+
+    if (!validateMagicBytes(buffer, file.type)) {
+      return NextResponse.json(
+        { success: false, error: "Conteúdo do arquivo não corresponde ao tipo informado." },
+        { status: 400 }
+      );
+    }
+
     const ext = path.extname(file.name).toLowerCase();
     const safeName = `${randomUUID()}${ext}`;
 
-    // Ensure upload directory exists
     const uploadDir = path.join(process.cwd(), "public", "uploads");
     await mkdir(uploadDir, { recursive: true });
 
-    // Write file
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
     const filePath = path.join(uploadDir, safeName);
     await writeFile(filePath, buffer);
 
