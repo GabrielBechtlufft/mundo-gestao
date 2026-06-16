@@ -3,12 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/app/actions/auth";
-import { getPropostasComprador, confirmarNegociacao, cancelarProposta } from "@/app/actions/negociacao";
+import { getPropostasComprador, confirmarNegociacao, cancelarProposta, aceitarProposta, recusarProposta } from "@/app/actions/negociacao";
 import CompradorSidebar from "@/app/components/layout/CompradorSidebar";
 
 type PropostaDB = {
   id: number; solicitante: string; servico: string; status: string;
-  documentoProposta: string | null; createdAt: string;
+  documentoProposta: string | null; motivoRecusa: string | null; createdAt: string;
   vendedorConfirmou: boolean; compradorConfirmou: boolean;
   Listagem: { isoTipo: string; titulo: string } | null;
   Vendedor: { name: string } | null;
@@ -19,6 +19,7 @@ const statusConfig: Record<string, { bg: string; text: string; label: string }> 
   CONTATO_SOLICITADO: { bg: "#FEF3C7", text: "#92400E", label: "Contato Solicitado" },
   EM_CONTATO:         { bg: "#DBEAFE", text: "#1E40AF", label: "Em Contato" },
   PROPOSTA_ENVIADA:   { bg: "#EDE9FE", text: "#6001D3", label: "Proposta Enviada" },
+  PROPOSTA_RECUSADA:  { bg: "#FEE2E2", text: "#991B1B", label: "Proposta Recusada" },
   EM_NEGOCIACAO:      { bg: "#FDE68A", text: "#92400E", label: "Em Negociação" },
   PROPOSTA_FECHADA:   { bg: "#DCFCE7", text: "#166534", label: "Proposta Fechada" },
   CANCELADA:          { bg: "#FEE2E2", text: "#991B1B", label: "Cancelada" },
@@ -42,6 +43,9 @@ export default function CompradorHome() {
   const [loadingAcao, setLoadingAcao] = useState(false);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("TODOS");
+  const [recusaModal, setRecusaModal] = useState(false);
+  const [motivoRecusa, setMotivoRecusa] = useState("");
+  const [erroRecusa, setErroRecusa] = useState("");
 
   const carregar = async () => {
     const [sessionData, propostasRes] = await Promise.all([getSession(), getPropostasComprador()]);
@@ -56,6 +60,27 @@ export default function CompradorHome() {
   };
 
   useEffect(() => { carregar(); }, []);
+
+  const handleAceitar = async (id: number) => {
+    setLoadingAcao(true);
+    await aceitarProposta(id);
+    setLoadingAcao(false);
+    setDetalhes(null);
+    carregar();
+  };
+
+  const handleRecusar = async (id: number) => {
+    if (!motivoRecusa.trim()) { setErroRecusa("Informe o motivo da recusa."); return; }
+    setLoadingAcao(true);
+    const res = await recusarProposta(id, motivoRecusa);
+    setLoadingAcao(false);
+    if (!res.success) { setErroRecusa(res.error || "Erro ao recusar."); return; }
+    setRecusaModal(false);
+    setMotivoRecusa("");
+    setErroRecusa("");
+    setDetalhes(null);
+    carregar();
+  };
 
   const handleConfirmar = async (id: number) => {
     setLoadingAcao(true);
@@ -169,6 +194,17 @@ export default function CompradorHome() {
                       <span style={{ background: sc.bg, color: sc.text, fontSize: "12px", fontWeight: 700, padding: "5px 14px", borderRadius: "20px", flexShrink: 0 }}>
                         {sc.label}
                       </span>
+                      {p.documentoProposta && (
+                        <button
+                          onClick={() => window.open(p.documentoProposta!, "_blank")}
+                          title="Visualizar proposta enviada"
+                          style={{ display: "flex", alignItems: "center", gap: "5px", padding: "7px 12px", borderRadius: "8px", background: "#F0FDF4", color: "#059669", border: "1.5px solid #BBF7D0", fontWeight: 700, fontSize: "12px", cursor: "pointer", flexShrink: 0 }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                          </svg>
+                          Ver proposta
+                        </button>
+                      )}
                       <button onClick={() => setDetalhes(p)}
                         style={{ position: "relative", padding: "7px 16px", borderRadius: "8px", background: "#EDE9FE", color: "#6001D3", border: "1.5px solid #DDD6FE", fontWeight: 700, fontSize: "12px", cursor: "pointer", flexShrink: 0 }}>
                         Detalhes
@@ -188,11 +224,12 @@ export default function CompradorHome() {
       </div>
 
       {/* Modal de Detalhes */}
-      {detalhes && (() => {
+      {detalhes && !recusaModal && (() => {
         const sc = statusConfig[detalhes.status] ?? { bg: "#FEF3C7", text: "#92400E", label: "Pendente" };
         const finalizado = ["PROPOSTA_FECHADA", "CANCELADA"].includes(detalhes.status);
-        const podeConfirmar = !finalizado && !detalhes.compradorConfirmou &&
-          ["PROPOSTA_ENVIADA", "EM_NEGOCIACAO"].includes(detalhes.status);
+        const podeAceitar = detalhes.status === "PROPOSTA_ENVIADA";
+        const podeRecusar = detalhes.status === "PROPOSTA_ENVIADA";
+        const podeConfirmar = !finalizado && !detalhes.compradorConfirmou && detalhes.status === "EM_NEGOCIACAO";
         const podeCancelar = !finalizado;
         return (
           <Modal onClose={() => setDetalhes(null)}>
@@ -227,7 +264,13 @@ export default function CompradorHome() {
                   {new Date(detalhes.createdAt).toLocaleDateString("pt-BR")}
                 </span>
               </div>
-              {detalhes.vendedorConfirmou && (
+              {detalhes.status === "PROPOSTA_RECUSADA" && detalhes.motivoRecusa && (
+                <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", padding: "12px 14px" }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "11px", fontWeight: 700, color: "#991B1B" }}>MOTIVO DA RECUSA</p>
+                  <p style={{ margin: 0, fontSize: "13px", color: "#7F1D1D", lineHeight: 1.5 }}>{detalhes.motivoRecusa}</p>
+                </div>
+              )}
+              {detalhes.vendedorConfirmou && detalhes.status === "EM_NEGOCIACAO" && (
                 <div style={{ background: "#ECFDF5", border: "1px solid #BBF7D0", borderRadius: "10px", padding: "10px 14px", fontSize: "12px", color: "#166534", fontWeight: 600 }}>
                   ✅ A certificadora já confirmou o encerramento
                 </div>
@@ -236,9 +279,27 @@ export default function CompradorHome() {
 
             {detalhes.documentoProposta && (
               <button onClick={() => window.open(detalhes.documentoProposta!, "_blank")}
-                style={{ display: "flex", alignItems: "center", gap: "8px", background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "10px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#6001D3", cursor: "pointer", width: "100%", marginBottom: "20px" }}>
+                style={{ display: "flex", alignItems: "center", gap: "8px", background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "10px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#6001D3", cursor: "pointer", width: "100%", marginBottom: "16px" }}>
                 📄 Ver proposta enviada
               </button>
+            )}
+
+            {podeAceitar && (
+              <div style={{ background: "#F0FDF4", border: "1px solid #BBF7D0", borderRadius: "12px", padding: "14px 16px", marginBottom: "16px" }}>
+                <p style={{ margin: "0 0 12px", fontSize: "13px", color: "#166534", fontWeight: 600 }}>
+                  📋 Analise a proposta enviada e indique sua decisão:
+                </p>
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button onClick={() => handleAceitar(detalhes.id)} disabled={loadingAcao}
+                    style={{ flex: 1, padding: "11px", borderRadius: "10px", background: "linear-gradient(90deg,#059669,#34D399)", color: "#fff", border: "none", fontWeight: 700, fontSize: "13px", cursor: "pointer", opacity: loadingAcao ? 0.7 : 1 }}>
+                    ✅ Aceitar Proposta
+                  </button>
+                  <button onClick={() => { setRecusaModal(true); setMotivoRecusa(""); setErroRecusa(""); }} disabled={loadingAcao}
+                    style={{ flex: 1, padding: "11px", borderRadius: "10px", background: "transparent", color: "#EF4444", border: "1.5px solid #EF4444", fontWeight: 700, fontSize: "13px", cursor: "pointer", opacity: loadingAcao ? 0.7 : 1 }}>
+                    ✕ Recusar Proposta
+                  </button>
+                </div>
+              </div>
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
@@ -255,11 +316,11 @@ export default function CompradorHome() {
               {podeConfirmar && (
                 <button onClick={() => handleConfirmar(detalhes.id)} disabled={loadingAcao}
                   style={{ width: "100%", padding: "13px", borderRadius: "10px", background: "linear-gradient(90deg,#059669,#34D399)", color: "#fff", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer", opacity: loadingAcao ? 0.7 : 1 }}>
-                  ✅ Confirmar Negociação
+                  ✅ Confirmar Encerramento
                 </button>
               )}
 
-              {podeCancelar && (
+              {podeCancelar && !podeAceitar && !podeRecusar && (
                 <button onClick={() => handleCancelar(detalhes.id)} disabled={loadingAcao}
                   style={{ width: "100%", padding: "13px", borderRadius: "10px", background: "transparent", color: "#EF4444", border: "1.5px solid #EF4444", fontWeight: 700, fontSize: "14px", cursor: "pointer", opacity: loadingAcao ? 0.7 : 1 }}>
                   ✕ Cancelar Proposta
@@ -269,6 +330,44 @@ export default function CompradorHome() {
           </Modal>
         );
       })()}
+
+      {/* Modal de Recusa */}
+      {detalhes && recusaModal && (
+        <Modal onClose={() => { setRecusaModal(false); setMotivoRecusa(""); setErroRecusa(""); }}>
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+            <div style={{ fontSize: "48px", marginBottom: "12px" }}>✕</div>
+            <h2 style={{ fontSize: "20px", fontWeight: 800, color: "#111", margin: "0 0 8px" }}>Recusar Proposta</h2>
+            <p style={{ color: "#666", fontSize: "13px", margin: 0, lineHeight: 1.6 }}>
+              Explique o motivo da recusa para que a certificadora possa revisar e enviar uma nova proposta.
+            </p>
+          </div>
+          <div style={{ marginBottom: "16px" }}>
+            <label style={{ fontSize: "13px", fontWeight: 600, color: "#374151", display: "block", marginBottom: "8px" }}>
+              Motivo da recusa *
+            </label>
+            <textarea
+              value={motivoRecusa}
+              onChange={(e) => { setMotivoRecusa(e.target.value); setErroRecusa(""); }}
+              placeholder="Ex: O prazo de entrega está muito longo, gostaríamos de reduzir para 30 dias. Também precisamos incluir treinamento da equipe no escopo..."
+              rows={5}
+              style={{ width: "100%", padding: "12px 14px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "13px", resize: "vertical", boxSizing: "border-box", lineHeight: 1.6, outline: "none" }}
+            />
+            {erroRecusa && (
+              <p style={{ margin: "6px 0 0", fontSize: "12px", color: "#EF4444", fontWeight: 600 }}>{erroRecusa}</p>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: "10px" }}>
+            <button onClick={() => { setRecusaModal(false); setMotivoRecusa(""); setErroRecusa(""); }}
+              style={{ flex: 1, padding: "13px", borderRadius: "10px", background: "transparent", border: "1.5px solid #E5E7EB", color: "#555", fontWeight: 700, fontSize: "14px", cursor: "pointer" }}>
+              Voltar
+            </button>
+            <button onClick={() => handleRecusar(detalhes.id)} disabled={loadingAcao || !motivoRecusa.trim()}
+              style={{ flex: 1, padding: "13px", borderRadius: "10px", background: motivoRecusa.trim() ? "#EF4444" : "#E5E7EB", color: motivoRecusa.trim() ? "#fff" : "#9CA3AF", border: "none", fontWeight: 700, fontSize: "14px", cursor: motivoRecusa.trim() ? "pointer" : "not-allowed", opacity: loadingAcao ? 0.7 : 1 }}>
+              {loadingAcao ? "Enviando..." : "Confirmar Recusa"}
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

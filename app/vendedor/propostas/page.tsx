@@ -8,7 +8,7 @@ import { getSession } from "@/app/actions/auth";
 
 type PropostaVendedor = {
   id: number; solicitante: string; servico: string; status: string;
-  documentoProposta: string | null; createdAt: string;
+  documentoProposta: string | null; motivoRecusa: string | null; createdAt: string;
   vendedorConfirmou: boolean; compradorConfirmou: boolean;
   Comprador: { name: string; email: string } | null;
   Listagem: { isoTipo: string; titulo: string } | null;
@@ -19,6 +19,7 @@ const statusConfig: Record<string, { bg: string; text: string; label: string }> 
   CONTATO_SOLICITADO: { bg: "#FEF3C7", text: "#92400E", label: "Contato Solicitado" },
   EM_CONTATO:         { bg: "#DBEAFE", text: "#1E40AF", label: "Em Contato" },
   PROPOSTA_ENVIADA:   { bg: "#EDE9FE", text: "#6001D3", label: "Proposta Enviada" },
+  PROPOSTA_RECUSADA:  { bg: "#FEE2E2", text: "#991B1B", label: "Proposta Recusada" },
   EM_NEGOCIACAO:      { bg: "#FDE68A", text: "#92400E", label: "Em Negociação" },
   PROPOSTA_FECHADA:   { bg: "#DCFCE7", text: "#166534", label: "Proposta Fechada" },
   CANCELADA:          { bg: "#FEE2E2", text: "#991B1B", label: "Cancelada" },
@@ -189,6 +190,12 @@ export default function VendedorPropostasPage() {
                             <span style={{ background: cfg.bg, color: cfg.text, fontSize: "11px", fontWeight: 700, padding: "5px 12px", borderRadius: "20px", whiteSpace: "nowrap" }}>
                               {cfg.label}
                             </span>
+                            {["CONTATO_SOLICITADO", "EM_CONTATO", "PROPOSTA_RECUSADA"].includes(p.status) && (
+                              <button onClick={() => { setDetalhes(p); setErro(""); setUploadFile(null); setEnvioModal(true); }}
+                                style={{ padding: "7px 14px", borderRadius: "8px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", fontWeight: 700, fontSize: "12px", cursor: "pointer", whiteSpace: "nowrap" }}>
+                                📎 Enviar Proposta
+                              </button>
+                            )}
                             <button onClick={() => { setDetalhes(p); setErro(""); setUploadFile(null); }}
                               style={{ position: "relative", padding: "7px 16px", borderRadius: "8px", background: "#EDE9FE", color: "#6001D3", border: "1.5px solid #DDD6FE", fontWeight: 700, fontSize: "12px", cursor: "pointer" }}>
                               Detalhes
@@ -214,7 +221,7 @@ export default function VendedorPropostasPage() {
       {detalhes && !envioModal && (() => {
         const cfg = statusConfig[detalhes.status] ?? { bg: "#FEF3C7", text: "#92400E", label: "Pendente" };
         const finalizado = ["PROPOSTA_FECHADA", "CANCELADA"].includes(detalhes.status);
-        const podeEnviar = !["PROPOSTA_ENVIADA", "EM_NEGOCIACAO", "PROPOSTA_FECHADA", "CANCELADA"].includes(detalhes.status);
+        const podeEnviar = ["CONTATO_SOLICITADO", "EM_CONTATO", "PROPOSTA_RECUSADA"].includes(detalhes.status);
         const podeConfirmar = !finalizado && !detalhes.vendedorConfirmou &&
           ["PROPOSTA_ENVIADA", "EM_NEGOCIACAO"].includes(detalhes.status);
         const podeCancelar = !["PROPOSTA_FECHADA", "CANCELADA", "EM_NEGOCIACAO", "PROPOSTA_ENVIADA"].includes(detalhes.status);
@@ -264,10 +271,20 @@ export default function VendedorPropostasPage() {
               )}
             </div>
 
+            {detalhes.status === "PROPOSTA_RECUSADA" && detalhes.motivoRecusa && (
+              <div style={{ background: "#FEF2F2", border: "1.5px solid #FECACA", borderRadius: "12px", padding: "14px 16px", marginBottom: "16px" }}>
+                <p style={{ margin: "0 0 6px", fontSize: "11px", fontWeight: 800, color: "#991B1B", letterSpacing: "0.5px" }}>MOTIVO DA RECUSA PELO COMPRADOR</p>
+                <p style={{ margin: "0 0 10px", fontSize: "13px", color: "#7F1D1D", lineHeight: 1.6 }}>{detalhes.motivoRecusa}</p>
+                <p style={{ margin: 0, fontSize: "12px", color: "#B91C1C", fontWeight: 600 }}>
+                  📎 Revise as mudanças solicitadas e envie uma nova proposta abaixo.
+                </p>
+              </div>
+            )}
+
             {detalhes.documentoProposta && (
               <button onClick={() => window.open(detalhes.documentoProposta!, "_blank")}
-                style={{ display: "flex", alignItems: "center", gap: "8px", background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "10px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#6001D3", cursor: "pointer", width: "100%", marginBottom: "20px" }}>
-                📄 Ver proposta enviada
+                style={{ display: "flex", alignItems: "center", gap: "8px", background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "10px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#6001D3", cursor: "pointer", width: "100%", marginBottom: "16px" }}>
+                {detalhes.status === "PROPOSTA_RECUSADA" ? "📄 Ver proposta anterior" : "📄 Ver proposta enviada"}
               </button>
             )}
 

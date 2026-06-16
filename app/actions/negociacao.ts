@@ -101,6 +101,62 @@ export async function fecharProposta(propostaId: number) {
   return { success: true };
 }
 
+export async function aceitarProposta(propostaId: number) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Não autenticado" };
+
+  const proposta = await prisma.proposta.findUnique({ where: { id: propostaId } });
+  if (!proposta) return { success: false, error: "Proposta não encontrada" };
+  if (proposta.compradorId !== session.id) return { success: false, error: "Sem permissão" };
+  if (proposta.status !== "PROPOSTA_ENVIADA") return { success: false, error: "Status inválido para aceite" };
+
+  await prisma.proposta.update({
+    where: { id: propostaId },
+    data: { status: "EM_NEGOCIACAO", motivoRecusa: null, updatedAt: new Date() },
+  });
+
+  if (proposta.vendedorId) {
+    await prisma.notificacao.create({
+      data: {
+        userId: proposta.vendedorId,
+        mensagem: `O comprador aceitou sua proposta para "${proposta.servico}". A negociação está em andamento!`,
+        tipo: "INFO",
+      },
+    });
+  }
+
+  return { success: true };
+}
+
+export async function recusarProposta(propostaId: number, motivo: string) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Não autenticado" };
+
+  if (!motivo || !motivo.trim()) return { success: false, error: "Informe o motivo da recusa." };
+
+  const proposta = await prisma.proposta.findUnique({ where: { id: propostaId } });
+  if (!proposta) return { success: false, error: "Proposta não encontrada" };
+  if (proposta.compradorId !== session.id) return { success: false, error: "Sem permissão" };
+  if (proposta.status !== "PROPOSTA_ENVIADA") return { success: false, error: "Status inválido para recusa" };
+
+  await prisma.proposta.update({
+    where: { id: propostaId },
+    data: { status: "PROPOSTA_RECUSADA", motivoRecusa: motivo.trim(), updatedAt: new Date() },
+  });
+
+  if (proposta.vendedorId) {
+    await prisma.notificacao.create({
+      data: {
+        userId: proposta.vendedorId,
+        mensagem: `O comprador recusou a proposta para "${proposta.servico}". Acesse os detalhes para ver o motivo e enviar uma nova proposta.`,
+        tipo: "REJEICAO",
+      },
+    });
+  }
+
+  return { success: true };
+}
+
 export async function cancelarProposta(propostaId: number) {
   const session = await getSession();
   if (!session) return { success: false, error: "Não autenticado" };

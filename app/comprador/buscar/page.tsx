@@ -116,7 +116,7 @@ export default function CompradorBuscarPage() {
                 {step === 1 && (
                   <div className="animate-fade-in">
                     <h2 style={{ fontSize: "clamp(1.5rem,3vw,2.2rem)", fontWeight: 800, color: "#fff", marginBottom: "28px", lineHeight: 1.2 }}>
-                      Qual tipo de serviço você precisa?
+                      Qual serviço você procura?
                     </h2>
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "16px" }}>
                       {TIPOS_SERVICO.map((t) => (

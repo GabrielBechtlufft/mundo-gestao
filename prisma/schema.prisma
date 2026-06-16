@@ -80,11 +80,12 @@ model Proposta {
   id                          Int       @id @default(autoincrement())
   solicitante                 String
   servico                     String
-  status                      String    @default("CONTATO_SOLICITADO") // "CONTATO_SOLICITADO", "EM_CONTATO", "PROPOSTA_ENVIADA", "EM_NEGOCIACAO", "PROPOSTA_FECHADA", "CANCELADA"
+  status                      String    @default("CONTATO_SOLICITADO") // "CONTATO_SOLICITADO", "EM_CONTATO", "PROPOSTA_ENVIADA", "PROPOSTA_RECUSADA", "EM_NEGOCIACAO", "PROPOSTA_FECHADA", "CANCELADA"
   vendedorConfirmou           Boolean   @default(false)
   compradorConfirmou          Boolean   @default(false)
   documentoCompra             String?   // Documento de pagamento (arquivado pelo admin)
   documentoProposta           String?   // Arquivo de proposta enviado pela certificadora
+  motivoRecusa                String?   // Motivo de recusa informado pelo comprador
   primeiraRespostaVendedorAt  DateTime? // Para cálculo de tempo de resposta no ranking
   userId                      String?
   User                        User?     @relation(fields: [userId], references: [id])

@@ -5,6 +5,7 @@ import Sidebar from "@/app/components/layout/Sidebar";
 import {
   getSolicitacoes, aprovarVendedor, rejeitarVendedor,
   getNormasPendentes, aprovarListagem, rejeitarListagem,
+  getVendedoresSuspensos, reativarVendedor,
 } from "@/app/actions/admin";
 
 type Solicitacao = {
@@ -21,6 +22,12 @@ type ListagemPendente = {
   imagem: string | null; destaque: string | null;
   status: string; createdAt: string;
   User: { id: string; name: string; email: string | null; razaoSocial: string | null; rankTier: string } | null;
+};
+
+type VendedorSuspenso = {
+  id: string; name: string; email: string | null; razaoSocial: string | null;
+  cnpj: string | null; isosVendidas: string | null; validadeCertificado: Date | null;
+  _count: { normas: number };
 };
 
 type VendedorModalStep = "aprovacao" | "confirmado" | "motivo" | "recusado" | null;
@@ -51,6 +58,11 @@ export default function AprovacaoPage() {
   const [motivoVendErro, setMotivoVendErro] = useState("");
   const [processandoVend, setProcessandoVend] = useState(false);
 
+  // Suspensas
+  const [suspensas, setSuspensas] = useState<VendedorSuspenso[]>([]);
+  const [loadingSusp, setLoadingSusp] = useState(true);
+  const [reativando, setReativando] = useState<string | null>(null);
+
   // Normas
   const [normas, setNormas] = useState<ListagemPendente[]>([]);
   const [loadingList, setLoadingList] = useState(true);
@@ -74,7 +86,22 @@ export default function AprovacaoPage() {
     setLoadingList(false);
   };
 
-  useEffect(() => { carregarVendedores(); carregarNormas(); }, []);
+  const carregarSuspensas = async () => {
+    setLoadingSusp(true);
+    const res = await getVendedoresSuspensos();
+    if (res.success) setSuspensas(res.vendedores as any);
+    setLoadingSusp(false);
+  };
+
+  const handleReativar = async (id: string) => {
+    if (!confirm("Deseja reativar esta certificadora?")) return;
+    setReativando(id);
+    await reativarVendedor(id);
+    setReativando(null);
+    carregarSuspensas();
+  };
+
+  useEffect(() => { carregarVendedores(); carregarNormas(); carregarSuspensas(); }, []);
 
   // ── Vendedor handlers ──
   const closeVend = () => { setVendedorModal(null); setSelectedVendId(null); setMotivoVend(""); setMotivoVendErro(""); };
@@ -125,6 +152,7 @@ export default function AprovacaoPage() {
 
   const pendentesVend = solicitacoes.filter(s => s.status === "PENDENTE").length;
   const pendentesNormas = normas.length;
+  const totalSuspensas = suspensas.length;
 
   return (
     <>
@@ -176,6 +204,7 @@ export default function AprovacaoPage() {
                     { label: "Pendentes", value: solicitacoes.filter(s => s.status === "PENDENTE").length, color: "#F59E0B" },
                     { label: "Aprovados", value: solicitacoes.filter(s => s.status === "APROVADO").length, color: "#22C55E" },
                     { label: "Rejeitados", value: solicitacoes.filter(s => s.status === "REJEITADO").length, color: "#EF4444" },
+                    { label: "Suspensas", value: suspensas.length, color: "#6B7280" },
                   ].map((c) => (
                     <div key={c.label} style={{ borderLeft: `4px solid ${c.color}`, borderRadius: "12px", padding: "10px 18px", minWidth: "100px", boxShadow: "3px 5px 4px rgba(80,0,160,0.2)" }}>
                       <div style={{ fontSize: "26px", fontWeight: 900, color: c.color }}>{c.value}</div>

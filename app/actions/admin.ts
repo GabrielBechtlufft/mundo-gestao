@@ -129,6 +129,21 @@ export async function getVendedoresAtivos() {
   return { success: true, vendedores };
 }
 
+export async function getVendedoresSuspensos() {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão", vendedores: [] };
+
+  const vendedores = await prisma.user.findMany({
+    where: { role: "VENDEDOR", statusVendedor: "SUSPENSO" },
+    select: {
+      id: true, name: true, email: true, razaoSocial: true, cnpj: true,
+      isosVendidas: true, validadeCertificado: true,
+      _count: { select: { normas: true } },
+    },
+    orderBy: { name: "asc" },
+  });
+  return { success: true, vendedores };
+}
+
 export async function suspenderVendedor(vendedorId: string) {
   if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
 
