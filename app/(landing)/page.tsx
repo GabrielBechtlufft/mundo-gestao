@@ -69,7 +69,10 @@ export default function LandingPage() {
 
       // Simulando tempo para a animação
       setTimeout(async () => {
-        const res = await consultarServicos(servicoInput, cidadeInput);
+        const res = await consultarServicos({
+          normas: servicoInput ? [servicoInput] : undefined,
+          cidades: cidadeInput ? [cidadeInput] : undefined,
+        });
         if (res.success && res.servicos) {
           setResultados(res.servicos);
         }

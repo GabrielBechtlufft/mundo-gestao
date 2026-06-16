@@ -16,6 +16,9 @@ export async function getMensagens(propostaId: number) {
       funcionarioId: true,
       servico: true,
       status: true,
+      vendedorConfirmou: true,
+      compradorConfirmou: true,
+      listagemId: true,
       Comprador: { select: { name: true } },
       Vendedor: { select: { name: true, rankTier: true } },
     },
@@ -51,6 +54,10 @@ export async function getMensagens(propostaId: number) {
       compradorNome: proposta.Comprador?.name ?? "Comprador",
       vendedorNome: proposta.Vendedor?.name ?? "Vendedor",
       vendedorRankTier: proposta.Vendedor?.rankTier ?? "BRONZE",
+      vendedorConfirmou: proposta.vendedorConfirmou,
+      compradorConfirmou: proposta.compradorConfirmou,
+      listagemId: proposta.listagemId,
+      compradorId: proposta.compradorId,
     },
     sessionId: session.id,
     sessionRole: session.role,
@@ -79,8 +86,8 @@ export async function enviarMensagem(propostaId: number, texto: string) {
   });
 
   if (!proposta) return { success: false, error: "Proposta não encontrada" };
-  if (proposta.status === "CANCELADA")
-    return { success: false, error: "Proposta cancelada" };
+  if (proposta.status === "CANCELADA" || proposta.status === "PROPOSTA_FECHADA")
+    return { success: false, error: "Proposta encerrada" };
 
   const isFuncionarioAtribuido =
     session.role === "FUNCIONARIO" &&
@@ -102,9 +109,10 @@ export async function enviarMensagem(propostaId: number, texto: string) {
     include: { Remetente: { select: { id: true, name: true, role: true } } },
   });
 
-  // Registrar primeira resposta do vendedor (ou funcionário) para cálculo de rank
   const isVendedorSide =
     proposta.vendedorId === session.id || isFuncionarioAtribuido;
+
+  // Registrar primeira resposta do vendedor para cálculo de rank
   if (isVendedorSide && !proposta.primeiraRespostaVendedorAt) {
     await prisma.proposta.update({
       where: { id: propostaId },
@@ -112,6 +120,20 @@ export async function enviarMensagem(propostaId: number, texto: string) {
     });
     const vidId = proposta.vendedorId ?? session.vendedorPaiId;
     if (vidId) await atualizarRank(vidId);
+  }
+
+  // Auto-transições de status via chat
+  let novoStatus: string | null = null;
+  if (proposta.status === "CONTATO_SOLICITADO" && isVendedorSide) {
+    novoStatus = "EM_CONTATO";
+  } else if (proposta.status === "PROPOSTA_ENVIADA") {
+    novoStatus = "EM_NEGOCIACAO";
+  }
+  if (novoStatus) {
+    await prisma.proposta.update({
+      where: { id: propostaId },
+      data: { status: novoStatus, updatedAt: new Date() },
+    });
   }
 
   // Notificar o outro participante

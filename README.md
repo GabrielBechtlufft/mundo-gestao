@@ -1,4 +1,4 @@
-# Mundo Gestão
+﻿# Mundo Gestão
 
 Marketplace de consultoria ISO que conecta empresas certificadoras a compradores. Certificadoras publicam seus serviços, recebem propostas e negociam contratos via chat integrado — tudo em uma única plataforma.
 
@@ -17,7 +17,7 @@ Marketplace de consultoria ISO que conecta empresas certificadoras a compradores
 - Chat em tempo real por proposta
 - Gestão de equipe: criação de contas para funcionários com atribuição de chats individuais
 - Sistema de ranking de reputação (Bronze → Platina) baseado em avaliações e tempo de resposta
-- Painel administrativo para aprovação de cadastros e moderação de listagens
+- Painel administrativo para aprovação de cadastros e moderação de normas
 - Upload de arquivos e foto de perfil
 
 ## Rodando localmente

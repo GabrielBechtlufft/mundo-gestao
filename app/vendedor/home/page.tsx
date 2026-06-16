@@ -1,16 +1,16 @@
-"use client";
+﻿"use client";
 
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getSession, getVendedorCertificado } from "@/app/actions/auth";
 import { getVendedorMetrics } from "@/app/actions/dashboard";
+import VendedorSidebar from "@/app/components/layout/VendedorSidebar";
 
 type VendedorMetrics = {
   totalPropostas: number;
   concluidas: number;
   pendentes: number;
   totalVisualizacoes: number;
-  listagensAtivas: number;
+  normasAtivas: number;
   totalVendas: number;
   isoCount: Record<string, number>;
 };
@@ -83,7 +83,7 @@ export default function VendedorHomePage() {
   const certProximoVencer = certificado?.diasRestantes !== null && certificado?.diasRestantes !== undefined && certificado.diasRestantes >= 0 && certificado.diasRestantes <= 30;
 
   return (
-    <div style={{ padding: "8px 32px 32px", height: "100%", overflowY: "auto" }}>
+    <div style={{ padding: "8px 32px 32px", height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Banner certificado expirado */}
       {certExpirado && (
         <div style={{
@@ -96,6 +96,7 @@ export default function VendedorHomePage() {
           alignItems: "flex-start",
           gap: "16px",
           boxShadow: "0 4px 20px rgba(220,38,38,0.4)",
+          flexShrink: 0,
         }}>
           <div style={{ fontSize: "32px", flexShrink: 0 }}>🔒</div>
           <div>
@@ -131,6 +132,7 @@ export default function VendedorHomePage() {
           alignItems: "flex-start",
           gap: "16px",
           boxShadow: "0 4px 20px rgba(217,119,6,0.4)",
+          flexShrink: 0,
         }}>
           <div style={{ fontSize: "32px", flexShrink: 0 }}>⚠️</div>
           <div>
@@ -154,58 +156,56 @@ export default function VendedorHomePage() {
       )}
 
       {/* Saudação */}
-      <h1 style={{ color: "#fff", fontSize: "42px", fontWeight: 700, marginBottom: "28px", marginTop: "8px", letterSpacing: "-0.5px" }}>
+      <h1 style={{ color: "#fff", fontSize: "42px", fontWeight: 700, marginBottom: "28px", marginTop: "8px", letterSpacing: "-0.5px", flexShrink: 0 }}>
         Olá, {firstName}
       </h1>
 
-      {/* Card de métricas */}
-      <div style={{ background: "#fff", borderRadius: "20px", padding: "28px 36px", marginBottom: "20px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", display: "flex", alignItems: "center", gap: "0" }}>
-        {metricsCards.map((m, i) => (
-          <div key={i} style={{ flex: 1, textAlign: "center", borderRight: i < metricsCards.length - 1 ? "1px solid #f0e6ff" : "none", padding: "0 24px" }}>
-            <div style={{ fontSize: "28px", fontWeight: 800, color: "#16A34A", lineHeight: 1.1, marginBottom: "6px" }}>{m.value}</div>
-            <div style={{ fontSize: "11px", color: "#16A34A", fontWeight: 500 }}>{m.label}</div>
-          </div>
-        ))}
-      </div>
+      <div style={{ display: "flex", gap: "20px", alignItems: "stretch", flex: 1, minHeight: 0 }}>
+        <VendedorSidebar role={user?.role} />
 
-      {/* Gráficos */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
-        <div style={{ background: "#fff", borderRadius: "20px", padding: "20px 24px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", display: "flex", flexDirection: "column", minHeight: "220px" }}>
-          <p style={{ fontSize: "12px", fontWeight: 600, color: "#333", margin: "0 0 8px" }}>Minhas Listagens por ISO</p>
-          <div style={{ marginTop: "auto" }}>
-            <HorizontalBarChart data={metrics?.isoCount || {}} />
+        <div style={{ flex: 1, overflowY: "auto" }}>
+          {/* Card de métricas */}
+          <div style={{ background: "#fff", borderRadius: "20px", padding: "28px 36px", marginBottom: "20px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", display: "flex", alignItems: "center", gap: "0" }}>
+            {metricsCards.map((m, i) => (
+              <div key={i} style={{ flex: 1, textAlign: "center", borderRight: i < metricsCards.length - 1 ? "1px solid #f0e6ff" : "none", padding: "0 24px" }}>
+                <div style={{ fontSize: "28px", fontWeight: 800, color: "#00C2C7", lineHeight: 1.1, marginBottom: "6px" }}>{m.value}</div>
+                <div style={{ fontSize: "11px", color: "#00C2C7", fontWeight: 500 }}>{m.label}</div>
+              </div>
+            ))}
           </div>
-        </div>
-        <div style={{ background: "#fff", borderRadius: "20px", padding: "20px 24px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", display: "flex", flexDirection: "column", minHeight: "220px" }}>
-          <p style={{ fontSize: "12px", fontWeight: 600, color: "#333", margin: "0 0 8px" }}>Resumo</p>
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: "16px", padding: "16px 0" }}>
-            {metrics && (
-              <>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "13px", color: "#666" }}>Listagens Ativas</span>
-                  <span style={{ fontSize: "20px", fontWeight: 800, color: "#22C55E" }}>{metrics.listagensAtivas}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "13px", color: "#666" }}>Propostas Pendentes</span>
-                  <span style={{ fontSize: "20px", fontWeight: 800, color: "#F59E0B" }}>{metrics.pendentes}</span>
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontSize: "13px", color: "#666" }}>Negociações Concluídas</span>
-                  <span style={{ fontSize: "20px", fontWeight: 800, color: "#7B00D4" }}>{metrics.concluidas}</span>
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
 
-      {/* Botão Minhas Listagens */}
-      <div
-        style={{ background: "#fff", borderRadius: "20px", padding: "22px 36px", textAlign: "center", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", cursor: "pointer", transition: "opacity 0.2s", fontSize: "15px", fontWeight: 500, color: "#222" }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-      >
-        <Link href="/vendedor/listagens">Minhas Listagens</Link>
+          {/* Gráficos */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
+            <div style={{ background: "#fff", borderRadius: "20px", padding: "20px 24px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", display: "flex", flexDirection: "column", minHeight: "220px" }}>
+              <p style={{ fontSize: "12px", fontWeight: 600, color: "#333", margin: "0 0 8px" }}>Minhas Normas por ISO</p>
+              <div style={{ marginTop: "auto" }}>
+                <HorizontalBarChart data={metrics?.isoCount || {}} />
+              </div>
+            </div>
+            <div style={{ background: "#fff", borderRadius: "20px", padding: "20px 24px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", display: "flex", flexDirection: "column", minHeight: "220px" }}>
+              <p style={{ fontSize: "12px", fontWeight: 600, color: "#333", margin: "0 0 8px" }}>Resumo</p>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: "16px", padding: "16px 0" }}>
+                {metrics && (
+                  <>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "13px", color: "#666" }}>Normas Ativas</span>
+                      <span style={{ fontSize: "20px", fontWeight: 800, color: "#22C55E" }}>{metrics.normasAtivas}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "13px", color: "#666" }}>Propostas Pendentes</span>
+                      <span style={{ fontSize: "20px", fontWeight: 800, color: "#F59E0B" }}>{metrics.pendentes}</span>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={{ fontSize: "13px", color: "#666" }}>Negociações Concluídas</span>
+                      <span style={{ fontSize: "20px", fontWeight: 800, color: "#7B00D4" }}>{metrics.concluidas}</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   );

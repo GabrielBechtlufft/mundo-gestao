@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getAvaliacoes, criarAvaliacao } from "@/app/actions/avaliacoes";
+import { getAvaliacoes } from "@/app/actions/avaliacoes";
 import { solicitarOrcamento } from "@/app/actions/negociacao";
 import { getSession } from "@/app/actions/auth";
 import Link from "next/link";
@@ -95,12 +95,6 @@ export default function ServicoPage() {
 
   // Avaliações
   const [avaliacoes, setAvaliacoes] = useState<Avaliacao[]>([]);
-  const [nome, setNome] = useState("");
-  const [nota, setNota] = useState(0);
-  const [comentario, setComentario] = useState("");
-  const [enviando, setEnviando] = useState(false);
-  const [feedbackMsg, setFeedbackMsg] = useState("");
-  const [erroFeedback, setErroFeedback] = useState("");
 
   const carregarAvaliacoes = async (lid: number) => {
     const res = await getAvaliacoes(lid);
@@ -138,25 +132,6 @@ export default function ServicoPage() {
       router.push(`/chat/${res.propostaId}`);
     } else {
       setErroSolicitacao("Erro ao criar proposta. Tente novamente.");
-    }
-  };
-
-  const handleEnviarAvaliacao = async () => {
-    setErroFeedback("");
-    if (!nome.trim()) { setErroFeedback("Informe seu nome."); return; }
-    if (nota === 0) { setErroFeedback("Selecione uma nota de 1 a 5 estrelas."); return; }
-    if (!comentario.trim()) { setErroFeedback("Escreva um comentário."); return; }
-    setEnviando(true);
-    const res = await criarAvaliacao(Number(id), nome, nota, comentario);
-    setEnviando(false);
-    if (res.success) {
-      setFeedbackMsg("Avaliação enviada com sucesso! Obrigado pelo feedback.");
-      setNome("");
-      setNota(0);
-      setComentario("");
-      carregarAvaliacoes(Number(id));
-    } else {
-      setErroFeedback(res.error || "Erro ao enviar avaliação.");
     }
   };
 
@@ -323,82 +298,15 @@ export default function ServicoPage() {
               </div>
             )}
 
-            {/* Divisor */}
-            <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, #EDE9FE, transparent)", marginBottom: "32px" }} />
-
-            {/* Formulário de avaliação */}
-            <div>
-              <h3 style={{ fontSize: "17px", fontWeight: 700, color: "#111", marginBottom: "20px", marginTop: 0 }}>
-                Deixe sua avaliação
-              </h3>
-
-              {feedbackMsg ? (
-                <div style={{ background: "#F0FDF4", border: "2px solid #22C55E", borderRadius: "14px", padding: "20px 24px", textAlign: "center" }}>
-                  <p style={{ fontSize: "16px", color: "#166534", fontWeight: 700, margin: "0 0 8px" }}>✅ {feedbackMsg}</p>
-                  <button
-                    onClick={() => setFeedbackMsg("")}
-                    style={{ background: "transparent", border: "none", color: "#6001D3", cursor: "pointer", fontSize: "13px", fontWeight: 600, textDecoration: "underline" }}
-                  >
-                    Avaliar novamente
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                  {/* Nome */}
-                  <div>
-                    <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#444", marginBottom: "6px" }}>Seu nome *</label>
-                    <input
-                      id="avaliacao-nome"
-                      type="text"
-                      value={nome}
-                      onChange={(e) => setNome(e.target.value)}
-                      placeholder="Ex: João Silva"
-                      style={{ width: "100%", border: "1.5px solid #E5E7EB", borderRadius: "12px", padding: "12px 16px", fontSize: "14px", boxSizing: "border-box", outline: "none", transition: "border-color 0.2s" }}
-                      onFocus={(e) => (e.target.style.borderColor = "#6001D3")}
-                      onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
-                    />
-                  </div>
-
-                  {/* Nota */}
-                  <div>
-                    <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#444", marginBottom: "8px" }}>Sua nota *</label>
-                    <StarRating value={nota} onChange={setNota} />
-                    {nota > 0 && (
-                      <span style={{ fontSize: "12px", color: "#888", marginTop: "4px", display: "block" }}>
-                        {["", "Péssimo", "Ruim", "Regular", "Bom", "Excelente"][nota]}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Comentário */}
-                  <div>
-                    <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#444", marginBottom: "6px" }}>Comentário *</label>
-                    <textarea
-                      id="avaliacao-comentario"
-                      value={comentario}
-                      onChange={(e) => setComentario(e.target.value)}
-                      rows={4}
-                      placeholder="Conte sobre sua experiência com este serviço ISO..."
-                      style={{ width: "100%", border: "1.5px solid #E5E7EB", borderRadius: "12px", padding: "12px 16px", fontSize: "14px", resize: "vertical", boxSizing: "border-box", outline: "none", transition: "border-color 0.2s", fontFamily: "inherit" }}
-                      onFocus={(e) => (e.target.style.borderColor = "#6001D3")}
-                      onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
-                    />
-                  </div>
-
-                  {erroFeedback && (
-                    <p style={{ margin: 0, color: "#EF4444", fontSize: "13px", fontWeight: 600 }}>⚠ {erroFeedback}</p>
-                  )}
-
-                  <button
-                    id="btn-enviar-avaliacao"
-                    onClick={handleEnviarAvaliacao}
-                    disabled={enviando}
-                    style={{ padding: "16px", background: "linear-gradient(90deg, #6001D3, #A872F0)", color: "#fff", border: "none", borderRadius: "14px", fontSize: "15px", fontWeight: 700, cursor: enviando ? "not-allowed" : "pointer", opacity: enviando ? 0.7 : 1, transition: "opacity 0.2s", boxShadow: "0 6px 20px rgba(96,1,211,0.3)" }}
-                  >
-                    {enviando ? "Enviando..." : "✉ Enviar Avaliação"}
-                  </button>
-                </div>
-              )}
+            {/* Nota sobre avaliação */}
+            <div style={{ background: "#F5F0FF", border: "1.5px solid #EDE9FE", borderRadius: "14px", padding: "16px 20px", display: "flex", alignItems: "flex-start", gap: "12px" }}>
+              <span style={{ fontSize: "20px", flexShrink: 0 }}>💬</span>
+              <div>
+                <p style={{ margin: 0, fontSize: "13px", color: "#6001D3", fontWeight: 700 }}>Quer avaliar este serviço?</p>
+                <p style={{ margin: "4px 0 0", fontSize: "12px", color: "#7C3AED", lineHeight: 1.5 }}>
+                  As avaliações ficam disponíveis após a conclusão de uma negociação. Solicite um orçamento e, ao encerrar o atendimento no chat, você poderá avaliar a certificadora.
+                </p>
+              </div>
             </div>
           </div>
 

@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { prisma } from "@/app/lib/prisma";
 
@@ -37,12 +37,12 @@ export async function atualizarRank(vendedorId: string) {
     const vendedor = await prisma.user.findUnique({
       where: { id: vendedorId },
       include: {
-        listagens: {
+        normas: {
           where: { status: { not: "REMOVIDA" } },
           include: { avaliacoes: true },
         },
         propostasVendedor: {
-          where: { status: "CONCLUIDA" },
+          where: { status: "PROPOSTA_FECHADA" },
         },
       },
     });
@@ -60,7 +60,7 @@ export async function atualizarRank(vendedorId: string) {
       if (nota === 2) return -5;
       return -10;
     };
-    const ptsAvaliacoes = vendedor.listagens
+    const ptsAvaliacoes = vendedor.normas
       .flatMap((l) => l.avaliacoes)
       .reduce((acc, a) => acc + notaParaPontos(a.nota), 0);
 

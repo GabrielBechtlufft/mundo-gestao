@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { prisma } from "@/app/lib/prisma";
 import { getSession } from "./auth";
@@ -14,7 +14,7 @@ export async function getPerfilVendedor() {
   const s = await getSessionUser();
   if (!s || s.role !== "VENDEDOR") return { success: false, error: "Não autorizado", perfil: null };
 
-  // Recalcula o rank para garantir que o perfil e as listagens mostrem o mesmo valor
+  // Recalcula o rank para garantir que o perfil e as normas mostrem o mesmo valor
   await atualizarRank(s.id);
 
   const perfil = await prisma.user.findUnique({

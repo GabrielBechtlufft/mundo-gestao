@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import Sidebar from "@/app/components/layout/Sidebar";
 import {
   getSolicitacoes, aprovarVendedor, rejeitarVendedor,
-  getListagensPendentes, aprovarListagem, rejeitarListagem,
+  getNormasPendentes, aprovarListagem, rejeitarListagem,
 } from "@/app/actions/admin";
 
 type Solicitacao = {
@@ -40,7 +40,7 @@ const statusColor: Record<string, string> = { PENDENTE: "#F59E0B", APROVADO: "#2
 const statusLabel: Record<string, string> = { PENDENTE: "Pendente", APROVADO: "Aprovado", REJEITADO: "Rejeitado" };
 
 export default function AprovacaoPage() {
-  const [aba, setAba] = useState<"vendedores" | "listagens">("vendedores");
+  const [aba, setAba] = useState<"vendedores" | "normas">("vendedores");
 
   // Vendedores
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
@@ -51,8 +51,8 @@ export default function AprovacaoPage() {
   const [motivoVendErro, setMotivoVendErro] = useState("");
   const [processandoVend, setProcessandoVend] = useState(false);
 
-  // Listagens
-  const [listagens, setListagens] = useState<ListagemPendente[]>([]);
+  // Normas
+  const [normas, setNormas] = useState<ListagemPendente[]>([]);
   const [loadingList, setLoadingList] = useState(true);
   const [listagemModal, setListagemModal] = useState<ListagemModalStep>(null);
   const [selectedListId, setSelectedListId] = useState<number | null>(null);
@@ -67,14 +67,14 @@ export default function AprovacaoPage() {
     setLoadingVend(false);
   };
 
-  const carregarListagens = async () => {
+  const carregarNormas = async () => {
     setLoadingList(true);
-    const res = await getListagensPendentes();
-    if (res.success) setListagens(res.listagens as any);
+    const res = await getNormasPendentes();
+    if (res.success) setNormas(res.normas as any);
     setLoadingList(false);
   };
 
-  useEffect(() => { carregarVendedores(); carregarListagens(); }, []);
+  useEffect(() => { carregarVendedores(); carregarNormas(); }, []);
 
   // ── Vendedor handlers ──
   const closeVend = () => { setVendedorModal(null); setSelectedVendId(null); setMotivoVend(""); setMotivoVendErro(""); };
@@ -107,7 +107,7 @@ export default function AprovacaoPage() {
     await aprovarListagem(selectedListId);
     setProcessandoList(false);
     setListagemModal("confirmado");
-    carregarListagens();
+    carregarNormas();
   };
 
   const handleRejeitarList = async () => {
@@ -117,14 +117,14 @@ export default function AprovacaoPage() {
     await rejeitarListagem(selectedListId, motivoList);
     setProcessandoList(false);
     setListagemModal("recusado");
-    carregarListagens();
+    carregarNormas();
   };
 
   const selectedSol = solicitacoes.find((s) => s.id === selectedVendId);
-  const selectedList = listagens.find((l) => l.id === selectedListId);
+  const selectedList = normas.find((l) => l.id === selectedListId);
 
   const pendentesVend = solicitacoes.filter(s => s.status === "PENDENTE").length;
-  const pendentesListagens = listagens.length;
+  const pendentesNormas = normas.length;
 
   return (
     <>
@@ -144,7 +144,7 @@ export default function AprovacaoPage() {
             <div style={{ display: "flex", gap: "4px", marginBottom: "28px", background: "#F3F4F6", borderRadius: "12px", padding: "4px", flexShrink: 0 }}>
               {([
                 { key: "vendedores", label: "Cadastros de Certificadoras", count: pendentesVend },
-                { key: "listagens", label: "Listagens de ISO", count: pendentesListagens },
+                { key: "normas", label: "Normas de ISO", count: pendentesNormas },
               ] as const).map((tab) => (
                 <button
                   key={tab.key}
@@ -241,8 +241,8 @@ export default function AprovacaoPage() {
               </div>
             )}
 
-            {/* ── ABA LISTAGENS ── */}
-            {aba === "listagens" && (
+            {/* ── ABA NORMAS ── */}
+            {aba === "normas" && (
               <div style={{ flex: 1 }}>
                 <div style={{ marginBottom: "20px" }}>
                   <p style={{ margin: 0, fontSize: "13px", color: "#6B7280" }}>
@@ -252,7 +252,7 @@ export default function AprovacaoPage() {
 
                 {loadingList ? (
                   <p style={{ color: "#888", padding: "40px 0", textAlign: "center" }}>Carregando...</p>
-                ) : listagens.length === 0 ? (
+                ) : normas.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "60px 0" }}>
                     <div style={{ fontSize: "48px", marginBottom: "12px" }}>✅</div>
                     <p style={{ color: "#6B7280", fontSize: "15px", fontWeight: 600 }}>Nenhuma listagem aguardando aprovação.</p>
@@ -260,7 +260,7 @@ export default function AprovacaoPage() {
                   </div>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                    {listagens.map((l) => (
+                    {normas.map((l) => (
                       <div
                         key={l.id}
                         style={{ border: "1.5px solid #E5E7EB", borderRadius: "16px", padding: "20px 24px", display: "flex", gap: "16px", alignItems: "flex-start" }}
@@ -456,7 +456,7 @@ export default function AprovacaoPage() {
           <div style={{ textAlign: "center", padding: "20px 0" }}>
             <div style={{ fontSize: "64px", marginBottom: "16px" }}>✅</div>
             <h2 style={{ fontSize: "24px", fontWeight: 800, color: "#111", marginBottom: "12px" }}>Certificadora Aprovada!</h2>
-            <p style={{ color: "#666", marginBottom: "28px" }}>A certificadora receberá as credenciais de acesso e já poderá criar suas listagens.</p>
+            <p style={{ color: "#666", marginBottom: "28px" }}>A certificadora receberá as credenciais de acesso e já poderá criar suas normas.</p>
             <button onClick={closeVend} style={{ padding: "12px 32px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", borderRadius: "12px", fontWeight: 700, cursor: "pointer" }}>Fechar</button>
           </div>
         </Overlay>

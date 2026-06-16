@@ -42,10 +42,12 @@ export async function getVendedorCertificado() {
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { validadeCertificado: true, razaoSocial: true, cnpj: true },
+    select: { validadeCertificado: true, razaoSocial: true, cnpj: true, statusVendedor: true },
   });
 
-  if (!user?.validadeCertificado) return { validade: null, diasRestantes: null };
+  if (!user) return null;
+
+  if (!user.validadeCertificado) return { validade: null, diasRestantes: null, statusVendedor: user.statusVendedor };
 
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
@@ -60,6 +62,7 @@ export async function getVendedorCertificado() {
     diasRestantes,
     razaoSocial: user.razaoSocial,
     cnpj: user.cnpj,
+    statusVendedor: user.statusVendedor,
   };
 }
 

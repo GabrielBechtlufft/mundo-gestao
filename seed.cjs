@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+﻿const { PrismaClient } = require('@prisma/client');
 const { PrismaPg } = require('@prisma/adapter-pg');
 
 require('dotenv').config();
@@ -10,7 +10,7 @@ async function calcularRank(vendedorId) {
   const vendedor = await prisma.user.findUnique({
     where: { id: vendedorId },
     include: {
-      listagens: { include: { avaliacoes: true } },
+      normas: { include: { avaliacoes: true } },
       propostasVendedor: { where: { status: 'CONCLUIDA' } },
     },
   });
@@ -25,7 +25,7 @@ async function calcularRank(vendedorId) {
     if (nota === 2) return -5;
     return -10;
   };
-  const ptsAvaliacoes = vendedor.listagens
+  const ptsAvaliacoes = vendedor.normas
     .flatMap((l) => l.avaliacoes)
     .reduce((acc, a) => acc + notaParaPontos(a.nota), 0);
 
@@ -109,8 +109,8 @@ async function main() {
 
   console.log('✅ Usuários criados/atualizados');
 
-  // ── Listagens ─────────────────────────────────────────────────────────────
-  const listagens = [
+  // ── Normas ─────────────────────────────────────────────────────────────
+  const normas = [
     {
       isoTipo: 'ISO 9001',
       titulo: 'Consultoria Completa ISO 9001 – Gestão da Qualidade',
@@ -185,7 +185,7 @@ async function main() {
     },
   ];
 
-  for (const listagem of listagens) {
+  for (const listagem of normas) {
     const existing = await prisma.listagem.findFirst({
       where: { titulo: listagem.titulo, userId: vendor.id },
     });
@@ -194,22 +194,22 @@ async function main() {
     }
   }
 
-  const todasListagens = await prisma.listagem.findMany({ where: { userId: vendor.id } });
-  console.log(`✅ ${todasListagens.length} listagens garantidas`);
+  const todasNormas = await prisma.listagem.findMany({ where: { userId: vendor.id } });
+  console.log(`✅ ${todasNormas.length} normas garantidas`);
 
   // ── Avaliações ────────────────────────────────────────────────────────────
   const avalExistentes = await prisma.avaliacao.count();
   if (avalExistentes === 0) {
     const avaliacoes = [
-      { listagemId: todasListagens[0]?.id, nomeAvaliador: 'Carlos Mendes', nota: 5, comentario: 'Excelente consultoria! A equipe da Alpha foi muito profissional e nos ajudou a obter a certificação ISO 9001 em tempo recorde. Super recomendo!' },
-      { listagemId: todasListagens[0]?.id, nomeAvaliador: 'Maria Santos', nota: 5, comentario: 'Serviço impecável do início ao fim. A documentação entregue foi completa e a preparação para auditoria foi decisiva. 5 estrelas merecidas.' },
-      { listagemId: todasListagens[0]?.id, nomeAvaliador: 'Roberto Alves', nota: 4, comentario: 'Ótimo atendimento e suporte técnico de qualidade. Aprovamos na primeira auditoria. Prazo um pouco longo, mas o resultado compensou.' },
-      { listagemId: todasListagens[1]?.id, nomeAvaliador: 'Ana Lima', nota: 5, comentario: 'A Consultoria Alpha transformou nossa visão sobre gestão ambiental. Processo claro, equipe dedicada e resultado excelente.' },
-      { listagemId: todasListagens[1]?.id, nomeAvaliador: 'Paulo Costa', nota: 4, comentario: 'Bom trabalho na implementação da ISO 14001. Equipe conhece bem a norma e o processo foi bem conduzido.' },
-      { listagemId: todasListagens[2]?.id, nomeAvaliador: 'Fernanda Rocha', nota: 5, comentario: 'Auditoria detalhada e muito bem conduzida. Encontraram pontos de melhoria que nunca tínhamos percebido. Fundamental para nossa certificação.' },
-      { listagemId: todasListagens[3]?.id, nomeAvaliador: 'Lucas Ferreira', nota: 5, comentario: 'ISO 27001 implementada com excelência. A análise de riscos foi muito criteriosa e os controles bem definidos. Nossa empresa está muito mais segura.' },
-      { listagemId: todasListagens[3]?.id, nomeAvaliador: 'Juliana Melo', nota: 4, comentario: 'Serviço muito profissional. A equipe tem domínio completo da norma. Aprovamos em primeira auditoria!' },
-      { listagemId: todasListagens[6]?.id, nomeAvaliador: 'Diego Pinto', nota: 5, comentario: 'Renovação feita com tranquilidade. A equipe cuida de tudo e a auditoria de manutenção passou sem nenhuma não-conformidade.' },
+      { listagemId: todasNormas[0]?.id, nomeAvaliador: 'Carlos Mendes', nota: 5, comentario: 'Excelente consultoria! A equipe da Alpha foi muito profissional e nos ajudou a obter a certificação ISO 9001 em tempo recorde. Super recomendo!' },
+      { listagemId: todasNormas[0]?.id, nomeAvaliador: 'Maria Santos', nota: 5, comentario: 'Serviço impecável do início ao fim. A documentação entregue foi completa e a preparação para auditoria foi decisiva. 5 estrelas merecidas.' },
+      { listagemId: todasNormas[0]?.id, nomeAvaliador: 'Roberto Alves', nota: 4, comentario: 'Ótimo atendimento e suporte técnico de qualidade. Aprovamos na primeira auditoria. Prazo um pouco longo, mas o resultado compensou.' },
+      { listagemId: todasNormas[1]?.id, nomeAvaliador: 'Ana Lima', nota: 5, comentario: 'A Consultoria Alpha transformou nossa visão sobre gestão ambiental. Processo claro, equipe dedicada e resultado excelente.' },
+      { listagemId: todasNormas[1]?.id, nomeAvaliador: 'Paulo Costa', nota: 4, comentario: 'Bom trabalho na implementação da ISO 14001. Equipe conhece bem a norma e o processo foi bem conduzido.' },
+      { listagemId: todasNormas[2]?.id, nomeAvaliador: 'Fernanda Rocha', nota: 5, comentario: 'Auditoria detalhada e muito bem conduzida. Encontraram pontos de melhoria que nunca tínhamos percebido. Fundamental para nossa certificação.' },
+      { listagemId: todasNormas[3]?.id, nomeAvaliador: 'Lucas Ferreira', nota: 5, comentario: 'ISO 27001 implementada com excelência. A análise de riscos foi muito criteriosa e os controles bem definidos. Nossa empresa está muito mais segura.' },
+      { listagemId: todasNormas[3]?.id, nomeAvaliador: 'Juliana Melo', nota: 4, comentario: 'Serviço muito profissional. A equipe tem domínio completo da norma. Aprovamos em primeira auditoria!' },
+      { listagemId: todasNormas[6]?.id, nomeAvaliador: 'Diego Pinto', nota: 5, comentario: 'Renovação feita com tranquilidade. A equipe cuida de tudo e a auditoria de manutenção passou sem nenhuma não-conformidade.' },
     ].filter((a) => a.listagemId);
 
     await prisma.avaliacao.createMany({ data: avaliacoes });
@@ -220,7 +220,7 @@ async function main() {
 
   // ── Propostas e mensagens ─────────────────────────────────────────────────
   const propostasExistentes = await prisma.proposta.count();
-  if (propostasExistentes === 0 && todasListagens.length >= 3) {
+  if (propostasExistentes === 0 && todasNormas.length >= 3) {
     const agora = new Date();
     const ha2h = new Date(agora.getTime() - 2 * 3600000);
     const ha1d = new Date(agora.getTime() - 24 * 3600000);
@@ -231,9 +231,9 @@ async function main() {
     const p1 = await prisma.proposta.create({
       data: {
         solicitante: comprador.name,
-        servico: `${todasListagens[0].isoTipo} - ${todasListagens[0].titulo}`,
+        servico: `${todasNormas[0].isoTipo} - ${todasNormas[0].titulo}`,
         status: 'PENDENTE',
-        listagemId: todasListagens[0].id,
+        listagemId: todasNormas[0].id,
         compradorId: comprador.id,
         vendedorId: vendor.id,
         userId: vendor.id,
@@ -255,12 +255,12 @@ async function main() {
     const p2 = await prisma.proposta.create({
       data: {
         solicitante: comprador.name,
-        servico: `${todasListagens[1].isoTipo} - ${todasListagens[1].titulo}`,
+        servico: `${todasNormas[1].isoTipo} - ${todasNormas[1].titulo}`,
         status: 'CONCLUIDA',
         vendedorConfirmou: true,
         compradorConfirmou: true,
         documentoCompra: 'https://example.com/comprovante.pdf',
-        listagemId: todasListagens[1].id,
+        listagemId: todasNormas[1].id,
         compradorId: comprador.id,
         vendedorId: vendor.id,
         userId: vendor.id,
@@ -283,9 +283,9 @@ async function main() {
     const p3 = await prisma.proposta.create({
       data: {
         solicitante: comprador.name,
-        servico: `${todasListagens[3].isoTipo} - ${todasListagens[3].titulo}`,
+        servico: `${todasNormas[3].isoTipo} - ${todasNormas[3].titulo}`,
         status: 'PENDENTE',
-        listagemId: todasListagens[3].id,
+        listagemId: todasNormas[3].id,
         compradorId: comprador.id,
         vendedorId: vendor.id,
         userId: vendor.id,

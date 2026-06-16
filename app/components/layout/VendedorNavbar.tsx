@@ -15,57 +15,45 @@ export default function VendedorNavbar() {
     setLoggingOut(true);
     await signOut({ callbackUrl: "/login" });
   };
+
   return (
     <header
       className="flex items-center justify-between px-10 py-4 z-20 relative shrink-0"
       style={{ background: "transparent" }}
     >
-      {/* Logo + texto */}
       <Link href="/vendedor/home" className="no-underline transition-transform active:scale-95">
         <Logo size="sm" />
       </Link>
 
-      {/* Links centrais */}
-      <nav className="flex items-center gap-15">
-        <nav className="flex items-center gap-8">
-          <Link
-            href="/vendedor/propostas"
-            className="text-white text-sm font-medium hover:text-white/80 transition-colors duration-200"
-            style={{ textDecoration: "none" }}
-          >
-            Minhas Propostas
-          </Link>
-          <Link
-            href="/vendedor/propostas"  // Na nova tela, contratos finalizados estão na outra aba!
-            className="text-white text-sm font-medium hover:text-white/80 transition-colors duration-200"
-            style={{ textDecoration: "none" }}
-          >
-            Contratos Finalizados
-          </Link>
-        </nav>
-
-        {/* Avatar */}
-        <button
-          onClick={() => setProfileOpen(true)}
-          className="flex items-center justify-center rounded-full overflow-hidden transition-opacity hover:opacity-80"
-          style={{
-            width: "48px", height: "48px", borderRadius: "50%",
-            background: user?.image ? "transparent" : "rgba(200,200,220,0.85)",
-            border: "none", cursor: "pointer", overflow: "hidden",
-          }}
-          aria-label="Perfil do usuário"
-          id="navbar-avatar-btn"
+      {/* Avatar */}
+      <button
+        onClick={() => setProfileOpen(true)}
+        className="flex items-center justify-center rounded-full overflow-hidden transition-opacity hover:opacity-80"
+        style={{
+          width: "48px",
+          height: "48px",
+          background: "rgba(200,200,220,0.85)",
+          border: "none",
+          cursor: "pointer",
+        }}
+        aria-label="Perfil do usuário"
+        id="navbar-avatar-btn"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#888"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          {user?.image ? (
-            <img src={user.image} alt="Foto" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          )}
-        </button>
-      </nav>
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </button>
 
       {/* Overlay */}
       {profileOpen && (
@@ -120,14 +108,12 @@ export default function VendedorNavbar() {
         {/* Avatar */}
         <div style={{
           width: "72px", height: "72px", borderRadius: "22px",
-          background: user?.image ? "transparent" : "linear-gradient(135deg, #6001D3, #A872F0)",
+          background: "linear-gradient(135deg, #6001D3, #A872F0)",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: "30px", color: "#fff", margin: "0 auto 16px",
-          boxShadow: "0 8px 24px rgba(96,1,211,0.25)", overflow: "hidden",
+          boxShadow: "0 8px 24px rgba(96,1,211,0.25)",
         }}>
-          {user?.image
-            ? <img src={user.image} alt="Foto" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : (user?.name ? user.name.charAt(0).toUpperCase() : "C")}
+          {user?.name ? user.name.charAt(0).toUpperCase() : "C"}
         </div>
 
         {/* Name & role */}
@@ -159,15 +145,6 @@ export default function VendedorNavbar() {
             <span style={{ fontSize: "13px", color: "#22C55E", fontWeight: 700 }}>● Ativo</span>
           </div>
         </div>
-
-        {/* Link para perfil */}
-        <Link
-          href="/vendedor/perfil"
-          onClick={() => setProfileOpen(false)}
-          style={{ display: "block", textAlign: "center", padding: "10px", background: "#F9F5FF", border: "1.5px solid #EDE9FE", borderRadius: "12px", color: "#6001D3", fontWeight: 700, fontSize: "13px", textDecoration: "none", marginBottom: "10px", transition: "background 0.2s" }}
-        >
-          Editar Perfil
-        </Link>
 
         {/* Logout button */}
         <button

@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
-import Link from "next/link";
 import { useState, useEffect } from "react";
+import Sidebar from "@/app/components/layout/Sidebar";
 import { getSession } from "@/app/actions/auth";
 import { getAdminMetrics, getAdminChartData } from "@/app/actions/dashboard";
 
@@ -12,7 +12,7 @@ type Metrics = {
   pendentes: number;
   canceladas: number;
   totalVendedores: number;
-  totalListagens: number;
+  totalNormas: number;
   solicitacoesPendentes: number;
   propostasMes: number;
 };
@@ -99,18 +99,22 @@ export default function AdminHomePage() {
   ];
 
   return (
-    <div style={{ padding: "8px 32px 32px", height: "100%", overflowY: "auto" }}>
+    <div style={{ padding: "8px 32px 32px", height: "100%", display: "flex", flexDirection: "column" }}>
       {/* Saudação */}
-      <h1 style={{ color: "#fff", fontSize: "42px", fontWeight: 700, marginBottom: "28px", marginTop: "8px", letterSpacing: "-0.5px" }}>
+      <h1 style={{ color: "#fff", fontSize: "42px", fontWeight: 700, marginBottom: "28px", marginTop: "8px", letterSpacing: "-0.5px", flexShrink: 0 }}>
         Olá, {firstName}
       </h1>
 
+      <div style={{ display: "flex", gap: "20px", alignItems: "stretch", flex: 1, minHeight: 0 }}>
+        <Sidebar />
+
+        <div style={{ flex: 1, overflowY: "auto" }}>
       {/* Card de métricas */}
       <div style={{ background: "#fff", borderRadius: "20px", padding: "28px 36px", marginBottom: "20px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", display: "flex", alignItems: "center", gap: "0" }}>
         {metricsCards.map((m, i) => (
           <div key={i} style={{ flex: 1, textAlign: "center", borderRight: i < metricsCards.length - 1 ? "1px solid #f0e6ff" : "none", padding: "0 24px" }}>
-            <div style={{ fontSize: "28px", fontWeight: 800, color: "#16A34A", lineHeight: 1.1, marginBottom: "6px" }}>{m.value}</div>
-            <div style={{ fontSize: "11px", color: "#16A34A", fontWeight: 500 }}>{m.label}</div>
+            <div style={{ fontSize: "28px", fontWeight: 800, color: "#00C2C7", lineHeight: 1.1, marginBottom: "6px" }}>{m.value}</div>
+            <div style={{ fontSize: "11px", color: "#00C2C7", fontWeight: 500 }}>{m.label}</div>
           </div>
         ))}
       </div>
@@ -143,19 +147,12 @@ export default function AdminHomePage() {
             <div style={{ fontSize: "12px", color: "#888", fontWeight: 500 }}>Negociações Concluídas</div>
           </div>
           <div style={{ background: "#fff", borderRadius: "20px", padding: "22px 28px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)" }}>
-            <div style={{ fontSize: "32px", fontWeight: 900, color: "#F59E0B", marginBottom: "4px" }}>{metrics.totalListagens}</div>
-            <div style={{ fontSize: "12px", color: "#888", fontWeight: 500 }}>Listagens Ativas</div>
+            <div style={{ fontSize: "32px", fontWeight: 900, color: "#F59E0B", marginBottom: "4px" }}>{metrics.totalNormas}</div>
+            <div style={{ fontSize: "12px", color: "#888", fontWeight: 500 }}>Normas Ativas</div>
           </div>
         </div>
       )}
-
-      {/* Painel Administrativo */}
-      <div
-        style={{ background: "#fff", borderRadius: "20px", padding: "22px 36px", textAlign: "center", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", cursor: "pointer", transition: "opacity 0.2s", fontSize: "15px", fontWeight: 500, color: "#222" }}
-        onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-        onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-      >
-        <Link href="/propostas">Painel Administrativo</Link>
+        </div>
       </div>
     </div>
   );

@@ -29,55 +29,35 @@ export default function Navbar() {
         <Logo size="sm" />
       </Link>
 
-      {/* Links centrais */}
-      <nav className="flex items-center gap-15">
-        <nav className="flex items-center gap-8">
-          <Link
-            href="/propostas"
-            className="text-white text-sm font-medium hover:text-white/80 transition-colors duration-200"
-            style={{ textDecoration: "none" }}
-          >
-            Minhas Propostas
-          </Link>
-          <Link
-            href="/aprovacao"
-            className="text-white text-sm font-medium hover:text-white/80 transition-colors duration-200"
-            style={{ textDecoration: "none" }}
-          >
-            Contratos Finalizados
-          </Link>
-        </nav>
-
-        {/* Avatar */}
-        <button
-          onClick={() => setProfileOpen(true)}
-          className="flex items-center justify-center rounded-full overflow-hidden transition-opacity hover:opacity-80"
-          style={{
-            width: "48px",
-            height: "48px",
-            background: "rgba(200,200,220,0.85)",
-            border: "none",
-            cursor: "pointer",
-          }}
-          aria-label="Perfil do usuário"
-          id="navbar-avatar-btn"
+      {/* Avatar */}
+      <button
+        onClick={() => setProfileOpen(true)}
+        className="flex items-center justify-center rounded-full overflow-hidden transition-opacity hover:opacity-80"
+        style={{
+          width: "48px",
+          height: "48px",
+          background: "rgba(200,200,220,0.85)",
+          border: "none",
+          cursor: "pointer",
+        }}
+        aria-label="Perfil do usuário"
+        id="navbar-avatar-btn"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#888"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#888"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        </button>
-      </nav>
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </button>
 
       {/* Overlay */}
       {profileOpen && (

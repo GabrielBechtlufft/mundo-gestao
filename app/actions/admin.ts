@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
@@ -122,7 +122,7 @@ export async function getVendedoresAtivos() {
     select: {
       id: true, name: true, email: true, statusVendedor: true,
       razaoSocial: true, cnpj: true, isosVendidas: true, validadeCertificado: true,
-      _count: { select: { listagens: true } },
+      _count: { select: { normas: true } },
     },
     orderBy: { name: "asc" },
   });
@@ -144,17 +144,17 @@ export async function reativarVendedor(vendedorId: string) {
   return { success: true };
 }
 
-export async function getListagensPendentes() {
-  if (!await requireAdmin()) return { success: false, error: "Sem permissão", listagens: [] };
+export async function getNormasPendentes() {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão", normas: [] };
 
-  const listagens = await prisma.listagem.findMany({
+  const normas = await prisma.listagem.findMany({
     where: { status: "PENDENTE_APROVACAO" },
     include: {
       User: { select: { id: true, name: true, email: true, razaoSocial: true, rankTier: true } },
     },
     orderBy: { createdAt: "desc" },
   });
-  return { success: true, listagens };
+  return { success: true, normas };
 }
 
 export async function aprovarListagem(id: number) {

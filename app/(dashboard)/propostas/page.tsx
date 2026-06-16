@@ -7,8 +7,8 @@ import { getTodasPropostas } from "@/app/actions/negociacao";
 
 type PropostaAdmin = {
   id: number; solicitante: string; servico: string; status: string;
-  vendedorConfirmou: boolean; compradorConfirmou: boolean;
-  documentoCompra: string | null; createdAt: string; updatedAt: string;
+  documentoCompra: string | null; documentoProposta: string | null;
+  createdAt: string; updatedAt: string;
   primeiraRespostaVendedorAt: string | null;
   Comprador: { name: string; email: string; image: string | null } | null;
   Vendedor: { name: string; email: string | null; image: string | null; razaoSocial: string | null } | null;
@@ -16,28 +16,30 @@ type PropostaAdmin = {
 };
 
 const STATUS_CFG: Record<string, { bg: string; text: string; label: string; cor: string }> = {
-  PENDENTE:            { bg: "#FEF3C7", text: "#92400E", label: "Pendente",               cor: "#F59E0B" },
-  VENDEDOR_CONFIRMOU:  { bg: "#DBEAFE", text: "#1E40AF", label: "Certificadora confirmou", cor: "#3B82F6" },
-  COMPRADOR_CONFIRMOU: { bg: "#FDE68A", text: "#92400E", label: "Comprador confirmou",     cor: "#F59E0B" },
-  CONCLUIDA:           { bg: "#DCFCE7", text: "#166534", label: "Concluída",               cor: "#16A34A" },
-  CANCELADA:           { bg: "#FEE2E2", text: "#991B1B", label: "Cancelada",               cor: "#EF4444" },
+  CONTATO_SOLICITADO: { bg: "#FEF3C7", text: "#92400E", label: "Contato Solicitado", cor: "#F59E0B" },
+  EM_CONTATO:         { bg: "#DBEAFE", text: "#1E40AF", label: "Em Contato",         cor: "#3B82F6" },
+  PROPOSTA_ENVIADA:   { bg: "#EDE9FE", text: "#6001D3", label: "Proposta Enviada",   cor: "#7B00D4" },
+  EM_NEGOCIACAO:      { bg: "#FDE68A", text: "#92400E", label: "Em Negociação",      cor: "#F59E0B" },
+  PROPOSTA_FECHADA:   { bg: "#DCFCE7", text: "#166534", label: "Proposta Fechada",   cor: "#16A34A" },
+  CANCELADA:          { bg: "#FEE2E2", text: "#991B1B", label: "Cancelada",          cor: "#EF4444" },
 };
 
-// As etapas em ordem cronológica
 const ETAPAS = [
-  { key: "CRIADA",             label: "Proposta criada",           desc: "Comprador enviou a solicitação de orçamento." },
-  { key: "VENDEDOR_CONFIRMOU", label: "Certificadora confirmou",   desc: "A certificadora aceitou e confirmou interesse." },
-  { key: "COMPRADOR_CONFIRMOU",label: "Comprador confirmou",       desc: "O comprador enviou o comprovante de pagamento." },
-  { key: "CONCLUIDA",          label: "Negociação concluída",      desc: "Ambas as partes concluíram a negociação." },
+  { key: "CONTATO_SOLICITADO", label: "Contato Solicitado", desc: "Comprador solicitou contato com a certificadora." },
+  { key: "EM_CONTATO",         label: "Em Contato",         desc: "Certificadora iniciou o atendimento via chat." },
+  { key: "PROPOSTA_ENVIADA",   label: "Proposta Enviada",   desc: "Certificadora enviou a proposta comercial." },
+  { key: "EM_NEGOCIACAO",      label: "Em Negociação",      desc: "As partes estão negociando os termos." },
+  { key: "PROPOSTA_FECHADA",   label: "Proposta Fechada",   desc: "Negociação concluída e pagamento arquivado." },
 ];
 
 function etapasPassadas(proposta: PropostaAdmin) {
-  const { status, vendedorConfirmou, compradorConfirmou } = proposta;
-  if (status === "CANCELADA") return -1; // especial
-  if (status === "CONCLUIDA") return 3;
-  if (compradorConfirmou) return 2;
-  if (vendedorConfirmou) return 1;
-  return 0;
+  const { status } = proposta;
+  if (status === "CANCELADA") return -1;
+  if (status === "PROPOSTA_FECHADA") return 4;
+  if (status === "EM_NEGOCIACAO") return 3;
+  if (status === "PROPOSTA_ENVIADA") return 2;
+  if (status === "EM_CONTATO") return 1;
+  return 0; // CONTATO_SOLICITADO
 }
 
 function dataFormatada(iso: string) {
@@ -59,10 +61,11 @@ function ModalHistorico({ proposta, onClose }: { proposta: PropostaAdmin; onClos
   const etapaAtual = etapasPassadas(proposta);
 
   const timestampEtapa = (idx: number): string | null => {
-    if (idx === 0) return proposta.createdAt;
-    if (idx === 1) return proposta.primeiraRespostaVendedorAt ?? null;
-    if (idx === 2) return null; // não temos timestamp para quando comprador confirmou
-    if (idx === 3) return proposta.updatedAt;
+    if (idx === 0) return proposta.createdAt;                          // CONTATO_SOLICITADO
+    if (idx === 1) return proposta.primeiraRespostaVendedorAt ?? null; // EM_CONTATO
+    if (idx === 2) return null;                                        // PROPOSTA_ENVIADA
+    if (idx === 3) return null;                                        // EM_NEGOCIACAO
+    if (idx === 4) return proposta.status === "PROPOSTA_FECHADA" ? proposta.updatedAt : null; // PROPOSTA_FECHADA
     return null;
   };
 
@@ -144,12 +147,22 @@ function ModalHistorico({ proposta, onClose }: { proposta: PropostaAdmin; onClos
           )}
         </div>
 
-        {/* Comprovante */}
-        {proposta.documentoCompra && (
-          <div style={{ background: "#F0F9FF", border: "1px solid #BAE6FD", borderRadius: "12px", padding: "12px 16px", marginBottom: "20px", display: "flex", alignItems: "center", gap: "10px" }}>
+        {/* Proposta enviada */}
+        {proposta.documentoProposta && (
+          <div style={{ background: "#F5F3FF", border: "1px solid #DDD6FE", borderRadius: "12px", padding: "12px 16px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "10px" }}>
             <span style={{ fontSize: "18px" }}>📄</span>
             <div style={{ flex: 1 }}>
-              <p style={{ margin: "0 0 2px", fontSize: "12px", fontWeight: 700, color: "#0284C7" }}>Comprovante de pagamento</p>
+              <p style={{ margin: "0 0 2px", fontSize: "12px", fontWeight: 700, color: "#6001D3" }}>Proposta enviada pela certificadora</p>
+              <a href={proposta.documentoProposta} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#6001D3" }}>Visualizar proposta ↗</a>
+            </div>
+          </div>
+        )}
+        {/* Documento de pagamento */}
+        {proposta.documentoCompra && (
+          <div style={{ background: "#F0F9FF", border: "1px solid #BAE6FD", borderRadius: "12px", padding: "12px 16px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "10px" }}>
+            <span style={{ fontSize: "18px" }}>💰</span>
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: "0 0 2px", fontSize: "12px", fontWeight: 700, color: "#0284C7" }}>Documento de pagamento</p>
               <a href={proposta.documentoCompra} target="_blank" rel="noopener noreferrer" style={{ fontSize: "12px", color: "#0369A1" }}>Visualizar documento ↗</a>
             </div>
           </div>
@@ -183,8 +196,8 @@ export default function PropostasPage() {
   }, []);
 
   const lista = propostas.filter((p) => {
-    if (filtro === "ativas" && ["CONCLUIDA", "CANCELADA"].includes(p.status)) return false;
-    if (filtro === "concluidas" && p.status !== "CONCLUIDA") return false;
+    if (filtro === "ativas" && ["PROPOSTA_FECHADA", "CANCELADA"].includes(p.status)) return false;
+    if (filtro === "concluidas" && p.status !== "PROPOSTA_FECHADA") return false;
     if (filtro === "canceladas" && p.status !== "CANCELADA") return false;
 
     if (busca.trim()) {
@@ -199,8 +212,8 @@ export default function PropostasPage() {
     return true;
   });
 
-  const ativas = propostas.filter(p => !["CONCLUIDA", "CANCELADA"].includes(p.status)).length;
-  const concluidas = propostas.filter(p => p.status === "CONCLUIDA").length;
+  const ativas = propostas.filter(p => !["PROPOSTA_FECHADA", "CANCELADA"].includes(p.status)).length;
+  const concluidas = propostas.filter(p => p.status === "PROPOSTA_FECHADA").length;
   const canceladas = propostas.filter(p => p.status === "CANCELADA").length;
 
   return (
@@ -262,7 +275,7 @@ export default function PropostasPage() {
                 <p style={{ color: "#9CA3AF", fontSize: "13px" }}>Nenhum resultado para o filtro selecionado.</p>
               </div>
             ) : lista.map((p) => {
-              const cfg = STATUS_CFG[p.status] ?? STATUS_CFG.PENDENTE;
+              const cfg = STATUS_CFG[p.status] ?? STATUS_CFG.CONTATO_SOLICITADO;
               const compradorNome = p.Comprador?.name || p.solicitante;
               const vendedorNome = p.Vendedor?.razaoSocial || p.Vendedor?.name || "—";
               const etapa = etapasPassadas(p);
@@ -277,8 +290,7 @@ export default function PropostasPage() {
                         <span style={{ background: "#EDE9FE", color: "#6001D3", fontSize: "11px", fontWeight: 700, padding: "3px 10px", borderRadius: "20px" }}>
                           {p.Listagem?.isoTipo || "—"}
                         </span>
-                        <span style={{ fontSize: "11px", color: "#9CA3AF" }}>#{p.id}</span>
-                        <span style={{ fontSize: "11px", color: "#9CA3AF" }}>· {new Date(p.createdAt).toLocaleDateString("pt-BR")}</span>
+                        <span style={{ fontSize: "11px", color: "#9CA3AF" }}>{new Date(p.createdAt).toLocaleDateString("pt-BR")}</span>
                       </div>
                       <h3 style={{ margin: 0, fontSize: "15px", fontWeight: 700, color: "#111" }}>
                         {p.Listagem?.titulo || p.servico}

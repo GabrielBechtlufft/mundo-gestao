@@ -3,28 +3,31 @@
 import { prisma } from "@/app/lib/prisma";
 import { atualizarRank } from "./ranking";
 
-export async function consultarServicos(tituloCuringa: string, cidade: string) {
+export async function consultarServicos(params: {
+  tipoServico?: string;
+  categoriaServico?: string;
+  normas?: string[];
+  cidades?: string[];
+}) {
+  const { tipoServico, categoriaServico, normas: normasFiltro, cidades } = params;
+
+  const whereClause: Record<string, unknown> = { status: "ATIVA" };
+  if (tipoServico)              whereClause.tipoServico      = tipoServico;
+  if (categoriaServico)         whereClause.categoriaServico = categoriaServico;
+  if (normasFiltro?.length)     whereClause.isoTipo          = { in: normasFiltro };
+  if (cidades?.length)          whereClause.cidade           = { in: cidades };
+
   try {
-    // Busca os vendedores únicos das listagens encontradas e recalcula o rank deles
-    const listagens = await prisma.listagem.findMany({
-      where: {
-        status: "ATIVA",
-        isoTipo: { contains: tituloCuringa },
-        cidade:  { contains: cidade },
-      },
+    const ids = await prisma.listagem.findMany({
+      where: whereClause,
       select: { userId: true },
     });
 
-    const vendedorIds = [...new Set(listagens.map((l) => l.userId).filter(Boolean))] as string[];
+    const vendedorIds = [...new Set(ids.map((l) => l.userId).filter(Boolean))] as string[];
     await Promise.all(vendedorIds.map((id) => atualizarRank(id)));
 
-    // Busca novamente com o rank atualizado
     const resultado = await prisma.listagem.findMany({
-      where: {
-        status: "ATIVA",
-        isoTipo: { contains: tituloCuringa },
-        cidade:  { contains: cidade },
-      },
+      where: whereClause,
       include: {
         User: { select: { name: true, rankScore: true, rankTier: true } },
       },

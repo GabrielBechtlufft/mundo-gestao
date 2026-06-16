@@ -3,11 +3,25 @@ export const ISOS_DISPONIVEIS = [
   { label: "ISO 14001", sub: "Meio Ambiente" },
   { label: "ISO 45001", sub: "Saúde e Segurança" },
   { label: "ISO 27001", sub: "Segurança da Informação" },
-  { label: "ISO 37001", sub: "Antissuborno" },
   { label: "ISO 50001", sub: "Energia" },
   { label: "ISO 22000", sub: "Alimentos" },
-  { label: "ISO 17025", sub: "Laboratórios" },
+  { label: "ISO 37001", sub: "Antissuborno" },
+  { label: "Outras",    sub: "Outras normas" },
 ];
+
+export const TIPOS_SERVICO = [
+  { label: "Certificação", icon: "🏆", desc: "Obtenção e transferência de certificados ISO" },
+  { label: "Consultoria",  icon: "💼", desc: "Apoio especializado para certificação e manutenção" },
+  { label: "Treinamento",  icon: "📚", desc: "Capacitação técnica e formação de auditores" },
+  { label: "Auditoria",    icon: "🔍", desc: "Auditorias internas e em fornecedores" },
+];
+
+export const CATEGORIAS_SERVICO: Record<string, string[]> = {
+  "Certificação": ["Nova Certificação", "Transferência de Certificação"],
+  "Consultoria":  ["Consultoria para Nova Certificação", "Consultoria para Manutenção da Certificação"],
+  "Treinamento":  ["Interpretação da Norma", "Auditor Interno", "Auditor Líder"],
+  "Auditoria":    ["Auditoria Interna", "Auditoria em Fornecedores"],
+};
 
 export const ESTADOS_CIDADES: Record<string, string[]> = {
   "AL — Alagoas":              ["Maceió"],

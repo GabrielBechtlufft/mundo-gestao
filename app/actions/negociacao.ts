@@ -16,12 +16,11 @@ export async function criarProposta(listagemId: number) {
   if (!listagem) return { success: false, error: "Listagem não encontrada" };
   if (!listagem.userId) return { success: false, error: "Listagem sem vendedor associado" };
 
-  // Check if there's already an active proposal from this buyer for this listing
   const existente = await prisma.proposta.findFirst({
     where: {
       listagemId,
       compradorId: session.id,
-      status: { notIn: ["CANCELADA", "CONCLUIDA"] },
+      status: { notIn: ["CANCELADA", "PROPOSTA_FECHADA"] },
     },
   });
 
@@ -31,7 +30,7 @@ export async function criarProposta(listagemId: number) {
     data: {
       solicitante: session.name || "Comprador",
       servico: `${listagem.isoTipo} - ${listagem.titulo}`,
-      status: "PENDENTE",
+      status: "CONTATO_SOLICITADO",
       listagemId,
       compradorId: session.id,
       vendedorId: listagem.userId,
@@ -39,11 +38,10 @@ export async function criarProposta(listagemId: number) {
     },
   });
 
-  // Notify seller
   await prisma.notificacao.create({
     data: {
       userId: listagem.userId,
-      mensagem: `Nova proposta recebida de ${session.name} para "${listagem.titulo}"`,
+      mensagem: `Nova solicitação de contato de ${session.name} para "${listagem.titulo}"`,
       tipo: "INFO",
     },
   });
@@ -51,38 +49,31 @@ export async function criarProposta(listagemId: number) {
   return { success: true, proposta };
 }
 
-export async function confirmarVendedor(propostaId: number) {
+export async function enviarPropostaVendedor(propostaId: number, documentoProposta: string) {
   const session = await getSession();
   if (!session) return { success: false, error: "Não autenticado" };
+
+  if (!documentoProposta || !documentoProposta.startsWith("/uploads/")) {
+    return { success: false, error: "É obrigatório anexar um arquivo de proposta." };
+  }
 
   const proposta = await prisma.proposta.findUnique({ where: { id: propostaId } });
   if (!proposta) return { success: false, error: "Proposta não encontrada" };
   if (proposta.vendedorId !== session.id) return { success: false, error: "Sem permissão" };
-  if (proposta.status === "CONCLUIDA" || proposta.status === "CANCELADA") {
+  if (["PROPOSTA_FECHADA", "CANCELADA"].includes(proposta.status)) {
     return { success: false, error: "Proposta já finalizada" };
   }
 
-  const novoStatus = proposta.compradorConfirmou ? "CONCLUIDA" : "VENDEDOR_CONFIRMOU";
-
   await prisma.proposta.update({
     where: { id: propostaId },
-    data: {
-      vendedorConfirmou: true,
-      status: novoStatus,
-      updatedAt: new Date(),
-    },
+    data: { documentoProposta, status: "PROPOSTA_ENVIADA", updatedAt: new Date() },
   });
 
-  if (novoStatus === "CONCLUIDA" && proposta.vendedorId) {
-    await atualizarRank(proposta.vendedorId);
-  }
-
-  // Notify buyer
   if (proposta.compradorId) {
     await prisma.notificacao.create({
       data: {
         userId: proposta.compradorId,
-        mensagem: `O vendedor confirmou a conclusão da proposta "${proposta.servico}". ${!proposta.compradorConfirmou ? "Agora é sua vez de confirmar e enviar o comprovante." : "Negociação concluída!"}`,
+        mensagem: `A certificadora enviou uma proposta para "${proposta.servico}". Acesse o chat para ver os detalhes.`,
         tipo: "INFO",
       },
     });
@@ -91,51 +82,21 @@ export async function confirmarVendedor(propostaId: number) {
   return { success: true };
 }
 
-export async function confirmarComprador(propostaId: number, documentoCompra: string) {
+export async function fecharProposta(propostaId: number) {
   const session = await getSession();
-  if (!session) return { success: false, error: "Não autenticado" };
-
-  if (!documentoCompra || documentoCompra.trim() === "") {
-    return { success: false, error: "É obrigatório enviar o comprovante da compra." };
-  }
-
-  if (!documentoCompra.startsWith("/uploads/")) {
-    return { success: false, error: "Comprovante inválido." };
-  }
+  if (!session || session.role !== "ADMIN") return { success: false, error: "Sem permissão" };
 
   const proposta = await prisma.proposta.findUnique({ where: { id: propostaId } });
   if (!proposta) return { success: false, error: "Proposta não encontrada" };
-  if (proposta.compradorId !== session.id) return { success: false, error: "Sem permissão" };
-  if (proposta.status === "CONCLUIDA" || proposta.status === "CANCELADA") {
-    return { success: false, error: "Proposta já finalizada" };
-  }
-
-  const novoStatus = proposta.vendedorConfirmou ? "CONCLUIDA" : "COMPRADOR_CONFIRMOU";
+  if (proposta.status === "PROPOSTA_FECHADA") return { success: false, error: "Proposta já fechada" };
+  if (proposta.status === "CANCELADA") return { success: false, error: "Proposta cancelada" };
 
   await prisma.proposta.update({
     where: { id: propostaId },
-    data: {
-      compradorConfirmou: true,
-      documentoCompra,
-      status: novoStatus,
-      updatedAt: new Date(),
-    },
+    data: { status: "PROPOSTA_FECHADA", updatedAt: new Date() },
   });
 
-  if (novoStatus === "CONCLUIDA" && proposta.vendedorId) {
-    await atualizarRank(proposta.vendedorId);
-  }
-
-  // Notify seller
-  if (proposta.vendedorId) {
-    await prisma.notificacao.create({
-      data: {
-        userId: proposta.vendedorId,
-        mensagem: `O comprador confirmou a conclusão da proposta "${proposta.servico}" e enviou o comprovante. ${!proposta.vendedorConfirmou ? "Agora é sua vez de confirmar." : "Negociação concluída!"}`,
-        tipo: "INFO",
-      },
-    });
-  }
+  if (proposta.vendedorId) await atualizarRank(proposta.vendedorId);
 
   return { success: true };
 }
@@ -147,13 +108,12 @@ export async function cancelarProposta(propostaId: number) {
   const proposta = await prisma.proposta.findUnique({ where: { id: propostaId } });
   if (!proposta) return { success: false, error: "Proposta não encontrada" };
 
-  // Only buyer, seller, or admin can cancel
   const isParticipant = proposta.compradorId === session.id || proposta.vendedorId === session.id;
   const isAdmin = session.role === "ADMIN";
   if (!isParticipant && !isAdmin) return { success: false, error: "Sem permissão" };
 
-  if (proposta.status === "CONCLUIDA") {
-    return { success: false, error: "Proposta já concluída, não pode ser cancelada." };
+  if (proposta.status === "PROPOSTA_FECHADA") {
+    return { success: false, error: "Proposta já fechada, não pode ser cancelada." };
   }
 
   await prisma.proposta.update({
@@ -173,6 +133,11 @@ export async function getPropostasVendedor() {
     include: {
       Listagem: { select: { isoTipo: true, titulo: true } },
       Comprador: { select: { name: true, email: true } },
+      _count: {
+        select: {
+          mensagens: { where: { lida: false, remetenteId: { not: session.id } } },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -189,6 +154,11 @@ export async function getPropostasComprador() {
     include: {
       Listagem: { select: { isoTipo: true, titulo: true } },
       Vendedor: { select: { name: true } },
+      _count: {
+        select: {
+          mensagens: { where: { lida: false, remetenteId: { not: session.id } } },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -201,7 +171,6 @@ export async function solicitarOrcamento(listagemId: number) {
   if (!session) return { success: false, error: "NAO_AUTENTICADO" };
   if (session.role !== "COMPRADOR") return { success: false, error: "APENAS_COMPRADOR" };
 
-  // Reusa proposta existente (inclusive concluída, para manter histórico do chat)
   const existente = await prisma.proposta.findFirst({
     where: {
       listagemId,
@@ -223,7 +192,7 @@ export async function solicitarOrcamento(listagemId: number) {
     data: {
       solicitante: session.name || "Comprador",
       servico: `${listagem.isoTipo} - ${listagem.titulo}`,
-      status: "PENDENTE",
+      status: "CONTATO_SOLICITADO",
       listagemId,
       compradorId: session.id,
       vendedorId: listagem.userId,
@@ -234,12 +203,81 @@ export async function solicitarOrcamento(listagemId: number) {
   await prisma.notificacao.create({
     data: {
       userId: listagem.userId,
-      mensagem: `${session.name} solicitou um orçamento para "${listagem.titulo}"`,
+      mensagem: `${session.name} solicitou contato para "${listagem.titulo}"`,
       tipo: "INFO",
     },
   });
 
   return { success: true, propostaId: proposta.id };
+}
+
+export async function confirmarNegociacao(propostaId: number) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Não autenticado" };
+
+  const proposta = await prisma.proposta.findUnique({ where: { id: propostaId } });
+  if (!proposta) return { success: false, error: "Proposta não encontrada" };
+  if (proposta.status === "PROPOSTA_FECHADA") return { success: false, error: "Negociação já concluída" };
+  if (proposta.status === "CANCELADA") return { success: false, error: "Proposta cancelada" };
+
+  const isVendedor = proposta.vendedorId === session.id;
+  const isComprador = proposta.compradorId === session.id;
+  if (!isVendedor && !isComprador) return { success: false, error: "Sem permissão" };
+
+  if (isVendedor && proposta.vendedorConfirmou) return { success: false, error: "Você já confirmou a negociação" };
+  if (isComprador && proposta.compradorConfirmou) return { success: false, error: "Você já confirmou a negociação" };
+
+  const updated = await prisma.proposta.update({
+    where: { id: propostaId },
+    data: {
+      ...(isVendedor ? { vendedorConfirmou: true } : {}),
+      ...(isComprador ? { compradorConfirmou: true } : {}),
+      updatedAt: new Date(),
+    },
+  });
+
+  const ambosConcluiram = updated.vendedorConfirmou && updated.compradorConfirmou;
+
+  if (ambosConcluiram) {
+    await prisma.proposta.update({
+      where: { id: propostaId },
+      data: { status: "PROPOSTA_FECHADA", updatedAt: new Date() },
+    });
+    if (proposta.vendedorId) await atualizarRank(proposta.vendedorId);
+
+    if (proposta.compradorId) {
+      await prisma.notificacao.create({
+        data: {
+          userId: proposta.compradorId,
+          mensagem: `Negociação concluída para "${proposta.servico}". Você já pode avaliar a certificadora!`,
+          tipo: "INFO",
+        },
+      });
+    }
+    return { success: true, fechada: true };
+  }
+
+  // Move status to EM_NEGOCIACAO regardless of current status (one party confirmed)
+  if (!["EM_NEGOCIACAO", "PROPOSTA_FECHADA", "CANCELADA"].includes(proposta.status)) {
+    await prisma.proposta.update({
+      where: { id: propostaId },
+      data: { status: "EM_NEGOCIACAO", updatedAt: new Date() },
+    });
+  }
+
+  const destinatarioId = isVendedor ? proposta.compradorId : proposta.vendedorId;
+  if (destinatarioId) {
+    const quem = isVendedor ? "A certificadora" : "O comprador";
+    await prisma.notificacao.create({
+      data: {
+        userId: destinatarioId,
+        mensagem: `${quem} confirmou o encerramento da negociação para "${proposta.servico}". Confirme para concluir.`,
+        tipo: "INFO",
+      },
+    });
+  }
+
+  return { success: true, fechada: false };
 }
 
 export async function getTodasPropostas() {

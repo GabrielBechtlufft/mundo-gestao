@@ -1,20 +1,22 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import VendedorSidebar from "@/app/components/layout/VendedorSidebar";
-import { getMinhasListagens, atualizarStatusListagem, excluirListagem } from "@/app/actions/listagens";
+import { getMinhasNormas, atualizarStatusListagem, excluirListagem } from "@/app/actions/normas";
 import { useRouter } from "next/navigation";
 
 type Listagem = { id: number; titulo: string; isoTipo: string; cidade: string; status: string; motivoRejeicao: string | null; visualizacoes: number; _count: { contatos: number } };
 
-export default function VendedorListagensPage() {
+export default function VendedorNormasPage() {
   const router = useRouter();
-  const [listagens, setListagens] = useState<Listagem[]>([]);
+  const [normas, setNormas] = useState<Listagem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busca, setBusca] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("TODOS");
 
   const carregar = async () => {
-    const res = await getMinhasListagens();
-    if (res.success) setListagens(res.listagens as any);
+    const res = await getMinhasNormas();
+    if (res.success) setNormas(res.normas as any);
     setLoading(false);
   };
 
@@ -26,7 +28,7 @@ export default function VendedorListagensPage() {
   };
 
   const handleExcluir = async (id: number) => {
-    if (!confirm("Deseja excluir esta listagem?")) return;
+    if (!confirm("Deseja excluir esta norma?")) return;
     await excluirListagem(id);
     carregar();
   };
@@ -46,15 +48,21 @@ export default function VendedorListagensPage() {
     REJEITADA: "Rejeitada",
   };
 
+  const normasFiltradas = normas.filter((l) => {
+    const q = busca.toLowerCase();
+    const textoOk = !busca || [l.titulo, l.isoTipo, l.cidade].join(" ").toLowerCase().includes(q);
+    return textoOk && (filtroStatus === "TODOS" || l.status === filtroStatus);
+  });
+
   return (
     <div style={{ padding: "8px 56px 32px", height: "100%", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px", marginTop: "8px", flexShrink: 0 }}>
-        <h1 style={{ color: "#fff", fontSize: "36px", fontWeight: 700, letterSpacing: "-0.5px", margin: 0 }}>Minhas Listagens</h1>
+        <h1 style={{ color: "#fff", fontSize: "36px", fontWeight: 700, letterSpacing: "-0.5px", margin: 0 }}>Minhas Normas</h1>
         <button
-          onClick={() => router.push("/vendedor/listagens/nova")}
+          onClick={() => router.push("/vendedor/normas/nova")}
           style={{ background: "#fff", color: "#6001D3", padding: "12px 28px", borderRadius: "12px", fontWeight: 800, fontSize: "15px", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(0,0,0,0.15)" }}
         >
-          + Nova Listagem
+          + Nova Norma
         </button>
       </div>
 
@@ -64,16 +72,45 @@ export default function VendedorListagensPage() {
         <div style={{ flex: 1, background: "#fff", borderRadius: "20px", padding: "36px 48px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", height: "100%", overflowY: "auto" }}>
           {loading ? (
             <p style={{ color: "#888", textAlign: "center", paddingTop: "40px" }}>Carregando...</p>
-          ) : listagens.length === 0 ? (
+          ) : normas.length === 0 ? (
             <div style={{ textAlign: "center", paddingTop: "60px" }}>
-              <p style={{ color: "#aaa", fontSize: "18px", marginBottom: "24px" }}>Você ainda não tem listagens publicadas.</p>
-              <button onClick={() => router.push("/vendedor/listagens/nova")} style={{ background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", padding: "14px 32px", borderRadius: "12px", fontWeight: 800, border: "none", cursor: "pointer" }}>
-                Criar primeira listagem
+              <p style={{ color: "#aaa", fontSize: "18px", marginBottom: "24px" }}>Você ainda não tem normas publicadas.</p>
+              <button onClick={() => router.push("/vendedor/normas/nova")} style={{ background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", padding: "14px 32px", borderRadius: "12px", fontWeight: 800, border: "none", cursor: "pointer" }}>
+                Criar primeira norma
               </button>
             </div>
           ) : (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px" }}>
+                <input
+                  type="text"
+                  placeholder="Buscar por título, norma ou cidade..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  style={{ padding: "10px 16px", borderRadius: "10px", border: "1.5px solid #E5E7EB", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box", color: "#111" }}
+                />
+                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                  {[
+                    { key: "TODOS", label: "Todos" },
+                    { key: "ATIVA", label: "Ativa" },
+                    { key: "PAUSADA", label: "Pausada" },
+                    { key: "PENDENTE_APROVACAO", label: "Em análise" },
+                    { key: "REJEITADA", label: "Rejeitada" },
+                    { key: "REMOVIDA", label: "Removida" },
+                  ].map((s) => (
+                    <button key={s.key} onClick={() => setFiltroStatus(s.key)}
+                      style={{ padding: "5px 14px", borderRadius: "20px", border: "1.5px solid", borderColor: filtroStatus === s.key ? "#6001D3" : "#E5E7EB", background: filtroStatus === s.key ? "#6001D3" : "transparent", color: filtroStatus === s.key ? "#fff" : "#6B7280", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {normasFiltradas.length === 0 ? (
+                <p style={{ textAlign: "center", color: "#9CA3AF", fontSize: "14px", padding: "32px 0" }}>Nenhum resultado para esta busca.</p>
+              ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {listagens.map((l) => (
+              {normasFiltradas.map((l) => (
                 <div key={l.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 24px", border: "1.5px solid #E5E7EB", borderRadius: "16px" }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
@@ -109,6 +146,8 @@ export default function VendedorListagensPage() {
                 </div>
               ))}
             </div>
+              )}
+            </>
           )}
         </div>
       </div>

@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { prisma } from "@/app/lib/prisma";
 import { getSession } from "./auth";
@@ -8,10 +8,10 @@ export async function getAdminMetrics() {
   const session = await getSession();
   if (!session || session.role !== "ADMIN") return null;
 
-  const [totalPropostas, concluidas, pendentes, canceladas, totalVendedores, totalListagens, solicitacoesPendentes] = await Promise.all([
+  const [totalPropostas, concluidas, pendentes, canceladas, totalVendedores, totalNormas, solicitacoesPendentes] = await Promise.all([
     prisma.proposta.count(),
-    prisma.proposta.count({ where: { status: "CONCLUIDA" } }),
-    prisma.proposta.count({ where: { status: "PENDENTE" } }),
+    prisma.proposta.count({ where: { status: "PROPOSTA_FECHADA" } }),
+    prisma.proposta.count({ where: { status: "CONTATO_SOLICITADO" } }),
     prisma.proposta.count({ where: { status: "CANCELADA" } }),
     prisma.user.count({ where: { role: "VENDEDOR" } }),
     prisma.listagem.count({ where: { status: "ATIVA" } }),
@@ -34,7 +34,7 @@ export async function getAdminMetrics() {
     pendentes,
     canceladas,
     totalVendedores,
-    totalListagens,
+    totalNormas,
     solicitacoesPendentes,
     propostasMes,
   };
@@ -47,23 +47,23 @@ export async function getVendedorMetrics() {
   // Mantém o rank sempre atualizado ao carregar o dashboard
   if (session.role === "VENDEDOR") await atualizarRank(session.id);
 
-  const [totalPropostas, concluidas, pendentes, listagens] = await Promise.all([
+  const [totalPropostas, concluidas, pendentes, normas] = await Promise.all([
     prisma.proposta.count({ where: { vendedorId: session.id } }),
-    prisma.proposta.count({ where: { vendedorId: session.id, status: "CONCLUIDA" } }),
-    prisma.proposta.count({ where: { vendedorId: session.id, status: "PENDENTE" } }),
+    prisma.proposta.count({ where: { vendedorId: session.id, status: "PROPOSTA_FECHADA" } }),
+    prisma.proposta.count({ where: { vendedorId: session.id, status: "CONTATO_SOLICITADO" } }),
     prisma.listagem.findMany({
       where: { userId: session.id },
       select: { visualizacoes: true, status: true, isoTipo: true },
     }),
   ]);
 
-  const totalVisualizacoes = listagens.reduce((acc, l) => acc + l.visualizacoes, 0);
-  const listagensAtivas = listagens.filter(l => l.status === "ATIVA").length;
+  const totalVisualizacoes = normas.reduce((acc, l) => acc + l.visualizacoes, 0);
+  const normasAtivas = normas.filter(l => l.status === "ATIVA").length;
   const totalVendas = concluidas;
 
   // ISO distribution
   const isoCount: Record<string, number> = {};
-  listagens.forEach(l => {
+  normas.forEach(l => {
     isoCount[l.isoTipo] = (isoCount[l.isoTipo] || 0) + 1;
   });
 
@@ -72,7 +72,7 @@ export async function getVendedorMetrics() {
     concluidas,
     pendentes,
     totalVisualizacoes,
-    listagensAtivas,
+    normasAtivas,
     totalVendas,
     isoCount,
   };
@@ -110,10 +110,11 @@ export async function getAdminChartData() {
 
   // Status distribution
   const statusCount = {
-    pendentes: await prisma.proposta.count({ where: { status: "PENDENTE" } }),
-    vendedorConfirmou: await prisma.proposta.count({ where: { status: "VENDEDOR_CONFIRMOU" } }),
-    compradorConfirmou: await prisma.proposta.count({ where: { status: "COMPRADOR_CONFIRMOU" } }),
-    concluidas: await prisma.proposta.count({ where: { status: "CONCLUIDA" } }),
+    contatoSolicitado: await prisma.proposta.count({ where: { status: "CONTATO_SOLICITADO" } }),
+    emContato: await prisma.proposta.count({ where: { status: "EM_CONTATO" } }),
+    propostaEnviada: await prisma.proposta.count({ where: { status: "PROPOSTA_ENVIADA" } }),
+    emNegociacao: await prisma.proposta.count({ where: { status: "EM_NEGOCIACAO" } }),
+    propostaFechada: await prisma.proposta.count({ where: { status: "PROPOSTA_FECHADA" } }),
     canceladas: await prisma.proposta.count({ where: { status: "CANCELADA" } }),
   };
 

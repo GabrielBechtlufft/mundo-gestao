@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
-import { writeFile, mkdir } from "fs/promises";
 import { randomUUID } from "crypto";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
 
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -35,11 +32,6 @@ function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
 }
 
 export async function POST(request: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user) {
-    return NextResponse.json({ success: false, error: "Não autenticado." }, { status: 401 });
-  }
-
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -76,17 +68,23 @@ export async function POST(request: NextRequest) {
     }
 
     const ext = path.extname(file.name).toLowerCase();
-    const safeName = `${randomUUID()}${ext}`;
+    const fileName = `${randomUUID()}${ext}`;
 
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const { put } = await import("@vercel/blob");
+      const blob = await put(`uploads/${fileName}`, buffer, {
+        access: "public",
+        contentType: file.type,
+      });
+      return NextResponse.json({ success: true, url: blob.url });
+    }
+
+    // Fallback: salva no filesystem local (desenvolvimento)
+    const { writeFile } = await import("fs/promises");
     const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, fileName), buffer);
+    return NextResponse.json({ success: true, url: `/uploads/${fileName}` });
 
-    const filePath = path.join(uploadDir, safeName);
-    await writeFile(filePath, buffer);
-
-    const url = `/uploads/${safeName}`;
-
-    return NextResponse.json({ success: true, url });
   } catch (error) {
     console.error("Erro no upload:", error);
     return NextResponse.json(

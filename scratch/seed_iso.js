@@ -1,21 +1,21 @@
-import { PrismaClient } from '../src/generated/prisma/client';
+﻿import { PrismaClient } from '../src/generated/prisma/client';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Iniciando seed de listagens...");
+  console.log("Iniciando seed de normas...");
 
-  // Busca o primeiro usuário vendedor aprovado para associar às listagens
+  // Busca o primeiro usuário vendedor aprovado para associar às normas
   const user = await prisma.user.findFirst({
     where: { role: "VENDEDOR", statusVendedor: "APROVADO" }
   });
 
   if (!user) {
-    console.log("Nenhum vendedor aprovado encontrado. As listagens ficarão sem dono (userId = null) ou você pode rodar dnv dps de criar um vendedor.");
+    console.log("Nenhum vendedor aprovado encontrado. As normas ficarão sem dono (userId = null) ou você pode rodar dnv dps de criar um vendedor.");
   }
 
   const userId = user ? user.id : null;
 
-  const listagens = [
+  const normas = [
     {
       isoTipo: "ISO 9001",
       titulo: "Consultoria e Implementação ISO 9001:2015",
@@ -72,7 +72,7 @@ async function main() {
     }
   ];
 
-  for (const listagem of listagens) {
+  for (const listagem of normas) {
     const created = await prisma.listagem.create({
       data: listagem
     });

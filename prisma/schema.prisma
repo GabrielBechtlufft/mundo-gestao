@@ -32,7 +32,7 @@ model User {
   rankScore           Float                @default(0)
   rankTier            String               @default("BRONZE") // "BRONZE", "PRATA", "OURO", "PLATINA"
   propostas           Proposta[]
-  listagens           Listagem[]
+  normas           Listagem[]
   notificacoes        Notificacao[]
   propostasVendedor   Proposta[]           @relation("PropostasVendedor")
   propostasComprador  Proposta[]           @relation("PropostasComprador")
@@ -80,10 +80,11 @@ model Proposta {
   id                          Int       @id @default(autoincrement())
   solicitante                 String
   servico                     String
-  status                      String    @default("PENDENTE") // "PENDENTE", "VENDEDOR_CONFIRMOU", "COMPRADOR_CONFIRMOU", "CONCLUIDA", "CANCELADA"
+  status                      String    @default("CONTATO_SOLICITADO") // "CONTATO_SOLICITADO", "EM_CONTATO", "PROPOSTA_ENVIADA", "EM_NEGOCIACAO", "PROPOSTA_FECHADA", "CANCELADA"
   vendedorConfirmou           Boolean   @default(false)
   compradorConfirmou          Boolean   @default(false)
-  documentoCompra             String?   // Upload do comprador comprovando a compra
+  documentoCompra             String?   // Documento de pagamento (arquivado pelo admin)
+  documentoProposta           String?   // Arquivo de proposta enviado pela certificadora
   primeiraRespostaVendedorAt  DateTime? // Para cálculo de tempo de resposta no ranking
   userId                      String?
   User                        User?     @relation(fields: [userId], references: [id])
@@ -112,9 +113,11 @@ model Mensagem {
 }
 
 model Listagem {
-  id           Int       @id @default(autoincrement())
-  isoTipo      String    // Ex: "ISO 9001", "ISO 14001"
-  titulo       String
+  id               Int       @id @default(autoincrement())
+  isoTipo          String    // Ex: "ISO 9001", "ISO 14001"
+  tipoServico      String?   // "Certificação", "Consultoria", "Treinamento", "Auditoria"
+  categoriaServico String?   // Subcategoria do tipo de serviço
+  titulo           String
   descricao    String
   cidade       String
   destaque     String?
@@ -149,11 +152,14 @@ model Notificacao {
 }
 
 model Avaliacao {
-  id          Int      @id @default(autoincrement())
-  listagemId  Int
-  Listagem    Listagem @relation(fields: [listagemId], references: [id])
+  id            Int      @id @default(autoincrement())
+  listagemId    Int
+  Listagem      Listagem @relation(fields: [listagemId], references: [id])
+  compradorId   String?  // User ID do comprador que avaliou
   nomeAvaliador String
-  nota        Int      // 1 a 5
-  comentario  String
-  createdAt   DateTime @default(now())
+  nota          Int      // 1 a 5
+  comentario    String
+  createdAt     DateTime @default(now())
+
+  @@unique([listagemId, compradorId])
 }

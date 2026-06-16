@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
+﻿const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 
 async function main() {
@@ -77,8 +77,8 @@ async function main() {
 
   console.log({ admin, vendedor, comprador, funcionarioUser, funcionario });
 
-  // Listagens associadas à vendedora
-  const listagensDados = [
+  // Normas associadas à vendedora
+  const normasDados = [
     {
       isoTipo: 'ISO 9001',
       titulo: 'Consultoria ISO 9001 — Qualidade',
@@ -113,18 +113,18 @@ async function main() {
     },
   ];
 
-  const listagens = [];
-  for (const l of listagensDados) {
+  const normas = [];
+  for (const l of normasDados) {
     const created = await prisma.listagem.create({
       data: { ...l, userId: vendedor.id },
     });
-    listagens.push(created);
+    normas.push(created);
   }
 
   // Avaliações de exemplo
   await prisma.avaliacao.create({
     data: {
-      listagemId: listagens[0].id,
+      listagemId: normas[0].id,
       nomeAvaliador: 'Empresa ABC',
       nota: 5,
       comentario: 'Excelente consultoria, muito profissional e eficiente.',
@@ -132,7 +132,7 @@ async function main() {
   });
   await prisma.avaliacao.create({
     data: {
-      listagemId: listagens[0].id,
+      listagemId: normas[0].id,
       nomeAvaliador: 'Indústria XYZ',
       nota: 4,
       comentario: 'Ótimo serviço, prazo cumprido com qualidade.',
@@ -147,7 +147,7 @@ async function main() {
       status: 'CONCLUIDA',
       vendedorConfirmou: true,
       compradorConfirmou: true,
-      listagemId: listagens[0].id,
+      listagemId: normas[0].id,
       compradorId: comprador.id,
       vendedorId: vendedor.id,
       userId: vendedor.id,
@@ -162,7 +162,7 @@ async function main() {
       status: 'VENDEDOR_CONFIRMOU',
       vendedorConfirmou: true,
       compradorConfirmou: false,
-      listagemId: listagens[2].id,
+      listagemId: normas[2].id,
       compradorId: comprador.id,
       vendedorId: vendedor.id,
       userId: vendedor.id,
@@ -174,7 +174,7 @@ async function main() {
       solicitante: comprador.name,
       servico: 'ISO 27001 - Segurança da Informação ISO 27001',
       status: 'PENDENTE',
-      listagemId: listagens[3].id,
+      listagemId: normas[3].id,
       compradorId: comprador.id,
       vendedorId: vendedor.id,
       userId: vendedor.id,

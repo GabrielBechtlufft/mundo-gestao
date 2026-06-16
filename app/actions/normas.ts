@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { prisma } from "@/app/lib/prisma";
 import { getSession } from "./auth";
@@ -11,21 +11,22 @@ export async function getMinhasISOs(): Promise<string[]> {
   return user.isosVendidas.split(",").map((s: string) => s.trim()).filter(Boolean);
 }
 
-export async function getMinhasListagens() {
+export async function getMinhasNormas() {
   const session = await getSession();
   if (!session) return { success: false, error: "Não autenticado" };
 
-  const listagens = await prisma.listagem.findMany({
+  const normas = await prisma.listagem.findMany({
     where: { userId: session.id },
     include: { _count: { select: { contatos: true } } },
     orderBy: { createdAt: "desc" },
   });
-  return { success: true, listagens };
+  return { success: true, normas };
 }
 
 export async function criarListagem(data: {
   isoTipo: string; titulo: string; descricao: string;
   cidade: string; imagem?: string;
+  tipoServico?: string; categoriaServico?: string;
 }) {
   const session = await getSession();
   if (!session) return { success: false, error: "Não autenticado" };

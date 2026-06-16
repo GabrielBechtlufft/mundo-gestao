@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
 import Sidebar from "@/app/components/layout/Sidebar";
@@ -8,7 +8,7 @@ type Certificadora = {
   id: string; name: string; email: string | null; statusVendedor: string;
   razaoSocial: string | null; cnpj: string | null; isosVendidas: string;
   validadeCertificado: string | null;
-  _count: { listagens: number };
+  _count: { normas: number };
 };
 
 function certBadge(validade: string | null): { label: string; color: string; bg: string } {
@@ -36,7 +36,7 @@ export default function VendedoresPage() {
   useEffect(() => { carregar(); }, []);
 
   const handleSuspender = async (id: string) => {
-    if (!confirm("Deseja suspender esta certificadora? Todas as listagens serão pausadas.")) return;
+    if (!confirm("Deseja suspender esta certificadora? Todas as normas serão pausadas.")) return;
     await suspenderVendedor(id);
     carregar();
   };
@@ -126,7 +126,7 @@ export default function VendedoresPage() {
                         <p style={{ fontSize: "12px", color: "#888", margin: "0 0 6px" }}>
                           {v.email || "Sem e-mail"}
                           {v.cnpj && ` · CNPJ: ${v.cnpj}`}
-                          {` · ${v._count.listagens} listagem(s)`}
+                          {` · ${v._count.normas} listagem(s)`}
                         </p>
 
                         {/* Certificado */}
@@ -194,7 +194,7 @@ export default function VendedoresPage() {
             {[
               { label: "CNPJ", value: detalhe.cnpj || "—" },
               { label: "Login", value: detalhe.name },
-              { label: "Listagens", value: `${detalhe._count.listagens}` },
+              { label: "Normas", value: `${detalhe._count.normas}` },
               { label: "Status", value: statusLabel[detalhe.statusVendedor] || detalhe.statusVendedor },
             ].map(({ label, value }) => (
               <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderBottom: "1px solid #F3F4F6" }}>

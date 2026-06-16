@@ -68,6 +68,7 @@ export default function FuncionariosPage() {
   const [processando, setProcessando] = useState(false);
   const [erro, setErro] = useState("");
   const [credenciais, setCredenciais] = useState<{ login: string; senha: string } | null>(null);
+  const [busca, setBusca] = useState("");
 
   const [nome, setNome] = useState("");
   const [cargo, setCargo] = useState("");
@@ -152,8 +153,13 @@ export default function FuncionariosPage() {
     carregar();
   };
 
-  const ativos = funcionarios.filter((f) => f.ativo);
-  const inativos = funcionarios.filter((f) => !f.ativo);
+  const funcionariosFiltrados = funcionarios.filter((f) => {
+    if (!busca) return true;
+    const q = busca.toLowerCase();
+    return [f.nome, f.cargo, f.email].join(" ").toLowerCase().includes(q);
+  });
+  const ativos = funcionariosFiltrados.filter((f) => f.ativo);
+  const inativos = funcionariosFiltrados.filter((f) => !f.ativo);
 
   return (
     <div style={{ padding: "8px 56px 32px", height: "100%", display: "flex", flexDirection: "column" }}>
@@ -196,8 +202,19 @@ export default function FuncionariosPage() {
 
           {/* Lista principal */}
           <div style={{ background: "#fff", borderRadius: "20px", padding: "28px 32px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", flex: 1 }}>
+            {funcionarios.length > 0 && (
+              <input
+                type="text"
+                placeholder="Buscar por nome, cargo ou e-mail..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                style={{ padding: "10px 16px", borderRadius: "10px", border: "1.5px solid #E5E7EB", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box", color: "#111", marginBottom: "20px" }}
+              />
+            )}
             {loading ? (
               <p style={{ color: "#888", textAlign: "center", paddingTop: "40px" }}>Carregando...</p>
+            ) : funcionariosFiltrados.length === 0 && busca ? (
+              <p style={{ textAlign: "center", color: "#9CA3AF", fontSize: "14px", padding: "32px 0" }}>Nenhum funcionário encontrado para esta busca.</p>
             ) : funcionarios.length === 0 ? (
               <div style={{ textAlign: "center", paddingTop: "60px", paddingBottom: "60px" }}>
                 <div style={{ fontSize: "56px", marginBottom: "16px" }}>👥</div>

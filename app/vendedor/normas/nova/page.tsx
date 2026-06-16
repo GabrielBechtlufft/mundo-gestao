@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import VendedorSidebar from "@/app/components/layout/VendedorSidebar";
-import { criarListagem, getMinhasISOs } from "@/app/actions/listagens";
+import { criarListagem, getMinhasISOs } from "@/app/actions/normas";
 import { CIDADES } from "@/app/lib/cidades";
+import { TIPOS_SERVICO, CATEGORIAS_SERVICO } from "@/app/lib/estados";
 
-const TODOS_TIPOS_ISO = ["ISO 9001", "ISO 14001", "ISO 45001", "ISO 27001", "ISO 22000", "ISO 50001"];
+const TODOS_TIPOS_ISO = ["ISO 9001", "ISO 14001", "ISO 45001", "ISO 27001", "ISO 22000", "ISO 50001", "ISO 37001", "Outras"];
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "14px 16px", border: "1.5px solid #E5E7EB",
@@ -22,6 +23,7 @@ export default function NovaListagemPage() {
   const [carregandoISOs, setCarregandoISOs] = useState(true);
   const [form, setForm] = useState({
     isoTipo: "", titulo: "", descricao: "", cidade: "", imagem: "",
+    tipoServico: "", categoriaServico: "",
   });
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
@@ -35,15 +37,21 @@ export default function NovaListagemPage() {
   }, []);
 
   const tiposDisponiveis = isosPermitidas.length > 0 ? isosPermitidas : TODOS_TIPOS_ISO;
+  const categoriasDisponiveis = form.tipoServico ? (CATEGORIAS_SERVICO[form.tipoServico] ?? []) : [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === "tipoServico" ? { categoriaServico: "" } : {}),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro("");
-    if (!form.isoTipo || !form.titulo || !form.descricao || !form.cidade) {
+    if (!form.isoTipo || !form.titulo || !form.descricao || !form.cidade || !form.tipoServico || !form.categoriaServico) {
       setErro("Preencha todos os campos obrigatórios.");
       return;
     }
@@ -54,15 +62,17 @@ export default function NovaListagemPage() {
       descricao: form.descricao,
       cidade: form.cidade,
       imagem: form.imagem || undefined,
+      tipoServico: form.tipoServico,
+      categoriaServico: form.categoriaServico,
     });
     setLoading(false);
-    if (res.success) router.push("/vendedor/listagens");
-    else setErro(res.error || "Erro ao criar listagem.");
+    if (res.success) router.push("/vendedor/normas");
+    else setErro(res.error || "Erro ao criar norma.");
   };
 
   return (
     <div style={{ padding: "8px 56px 32px", height: "100%", display: "flex", flexDirection: "column" }}>
-      <h1 style={{ color: "#fff", fontSize: "36px", fontWeight: 700, letterSpacing: "-0.5px", marginBottom: "32px", marginTop: "8px", flexShrink: 0 }}>Nova Listagem</h1>
+      <h1 style={{ color: "#fff", fontSize: "36px", fontWeight: 700, letterSpacing: "-0.5px", marginBottom: "32px", marginTop: "8px", flexShrink: 0 }}>Nova Norma</h1>
 
       <div style={{ display: "flex", gap: "24px", alignItems: "stretch", flex: 1, minHeight: 0 }}>
         <VendedorSidebar />
@@ -70,7 +80,7 @@ export default function NovaListagemPage() {
         <div style={{ flex: 1, background: "#fff", borderRadius: "20px", padding: "40px 48px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", height: "100%", overflowY: "auto" }}>
           <h2 style={{ fontSize: "22px", fontWeight: 800, color: "#111", marginBottom: "8px" }}>Detalhes do Serviço</h2>
           <p style={{ color: "#888", marginBottom: "32px" }}>
-            Preencha as informações para publicar seu serviço. O preço será negociado diretamente com o comprador via chat.
+            Preencha as informações para que compradores encontrem seu serviço. O preço será negociado via chat.
           </p>
 
           {erro && (
@@ -80,21 +90,49 @@ export default function NovaListagemPage() {
           )}
 
           <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {/* Tipo de Serviço + Categoria */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
               <div>
-                <label style={labelStyle}>Tipo de ISO *</label>
+                <label style={labelStyle}>Tipo de Serviço *</label>
+                <select name="tipoServico" value={form.tipoServico} onChange={handleChange}
+                  style={{ ...inputStyle, background: "#fff" }}>
+                  <option value="" disabled>Selecione o tipo</option>
+                  {TIPOS_SERVICO.map((t) => (
+                    <option key={t.label} value={t.label}>{t.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Categoria *</label>
+                <select name="categoriaServico" value={form.categoriaServico} onChange={handleChange}
+                  disabled={!form.tipoServico}
+                  style={{ ...inputStyle, background: "#fff", opacity: form.tipoServico ? 1 : 0.6 }}>
+                  <option value="" disabled>
+                    {form.tipoServico ? "Selecione a categoria" : "Selecione o tipo primeiro"}
+                  </option>
+                  {categoriasDisponiveis.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* ISO + Cidade */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              <div>
+                <label style={labelStyle}>Norma ISO *</label>
                 {carregandoISOs ? (
                   <div style={{ padding: "14px 16px", border: "1.5px solid #E5E7EB", borderRadius: "12px", fontSize: "15px", color: "#aaa" }}>Carregando...</div>
                 ) : (
                   <>
                     <select name="isoTipo" value={form.isoTipo} onChange={handleChange}
                       style={{ ...inputStyle, background: "#fff" }}>
-                      <option value="" disabled>Selecione uma ISO</option>
-                      {tiposDisponiveis.map(t => <option key={t} value={t}>{t}</option>)}
+                      <option value="" disabled>Selecione uma norma</option>
+                      {tiposDisponiveis.map((t) => <option key={t} value={t}>{t}</option>)}
                     </select>
                     {isosPermitidas.length > 0 && (
                       <p style={{ fontSize: "11px", color: "#9CA3AF", marginTop: "6px", margin: "6px 0 0" }}>
-                        Apenas ISOs autorizadas no seu cadastro
+                        Apenas normas autorizadas no seu cadastro
                       </p>
                     )}
                   </>
@@ -105,13 +143,13 @@ export default function NovaListagemPage() {
                 <select name="cidade" value={form.cidade} onChange={handleChange}
                   style={{ ...inputStyle, background: "#fff" }}>
                   <option value="" disabled>Selecione uma cidade</option>
-                  {CIDADES.map(c => <option key={c} value={c}>{c}</option>)}
+                  {CIDADES.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
             </div>
 
             <div>
-              <label style={labelStyle}>Título da Listagem *</label>
+              <label style={labelStyle}>Título da Norma *</label>
               <input name="titulo" value={form.titulo} onChange={handleChange}
                 placeholder="Ex: Consultoria ISO 9001 — Implantação e Certificação"
                 style={inputStyle} />
@@ -145,7 +183,7 @@ export default function NovaListagemPage() {
               </button>
               <button type="submit" disabled={loading || carregandoISOs}
                 style={{ background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", padding: "14px 36px", borderRadius: "12px", fontWeight: 800, fontSize: "15px", border: "none", cursor: "pointer", opacity: (loading || carregandoISOs) ? 0.7 : 1 }}>
-                {loading ? "Publicando..." : "Publicar Listagem"}
+                {loading ? "Publicando..." : "Publicar Norma"}
               </button>
             </div>
           </form>
