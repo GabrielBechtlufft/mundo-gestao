@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import Sidebar from "@/app/components/layout/Sidebar";
 import AvatarUpload from "@/app/components/AvatarUpload";
 import { getPerfilAdmin, atualizarPerfilAdmin } from "@/app/actions/perfil";
+import { trocarSenhaAutenticado } from "@/app/actions/senha";
 
 type Perfil = { id: string; name: string; email: string | null; login: string; image: string | null };
 
@@ -40,6 +41,14 @@ export default function AdminPerfilPage() {
   const [email, setEmail] = useState("");
   const [imagemUrl, setImagemUrl] = useState<string>("");
 
+  const [mostrarModalSenha, setMostrarModalSenha] = useState(false);
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [salvandoSenha, setSalvandoSenha] = useState(false);
+  const [erroSenha, setErroSenha] = useState("");
+  const [sucessoSenha, setSucessoSenha] = useState(false);
+
   useEffect(() => {
     getPerfilAdmin().then((res) => {
       if (res.success && res.perfil) {
@@ -52,6 +61,19 @@ export default function AdminPerfilPage() {
       setLoading(false);
     });
   }, []);
+
+  const handleTrocarSenha = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErroSenha(""); setSucessoSenha(false);
+    if (novaSenha !== confirmarSenha) { setErroSenha("As senhas não coincidem."); return; }
+    setSalvandoSenha(true);
+    const res = await trocarSenhaAutenticado(senhaAtual, novaSenha);
+    setSalvandoSenha(false);
+    if (!res.success) { setErroSenha(res.error || "Erro ao trocar senha."); return; }
+    setSucessoSenha(true);
+    setSenhaAtual(""); setNovaSenha(""); setConfirmarSenha("");
+    setTimeout(() => { setSucessoSenha(false); setMostrarModalSenha(false); }, 2000);
+  };
 
   const handleSalvar = async () => {
     setErro(""); setSucesso(false);
@@ -110,6 +132,51 @@ export default function AdminPerfilPage() {
                 <button onClick={handleSalvar} disabled={salvando} style={{ padding: "12px 32px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "14px", cursor: salvando ? "not-allowed" : "pointer", opacity: salvando ? 0.7 : 1, alignSelf: "flex-start" }}>
                   {salvando ? "Salvando..." : "Salvar Alterações"}
                 </button>
+              </div>
+
+              {/* Segurança */}
+              <div style={{ background: "#fff", borderRadius: "20px", padding: "28px 32px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)" }}>
+                <h3 style={{ fontSize: "16px", fontWeight: 800, color: "#111", margin: "0 0 16px" }}>Segurança</h3>
+                {!mostrarModalSenha ? (
+                  <button onClick={() => { setMostrarModalSenha(true); setErroSenha(""); setSucessoSenha(false); }}
+                    style={{ padding: "10px 24px", background: "transparent", color: "#6001D3", border: "2px solid #EDE9FE", borderRadius: "12px", fontSize: "14px", fontWeight: 700, cursor: "pointer" }}
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#F5F3FF"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}>
+                    Trocar senha
+                  </button>
+                ) : (
+                  <form onSubmit={handleTrocarSenha} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    {erroSenha && <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "10px", padding: "10px 14px", color: "#B91C1C", fontSize: "13px" }}>{erroSenha}</div>}
+                    {sucessoSenha && <div style={{ background: "#ECFDF5", border: "1px solid #A7F3D0", borderRadius: "10px", padding: "10px 14px", color: "#065F46", fontSize: "13px", fontWeight: 600 }}>✓ Senha alterada com sucesso!</div>}
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#6B7280", marginBottom: "6px", textTransform: "uppercase" }}>Senha atual</label>
+                        <input type="password" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} required placeholder="••••••"
+                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box" as const }} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#6B7280", marginBottom: "6px", textTransform: "uppercase" }}>Nova senha</label>
+                        <input type="password" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} required placeholder="Mín. 6 caracteres"
+                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box" as const }} />
+                      </div>
+                      <div>
+                        <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#6B7280", marginBottom: "6px", textTransform: "uppercase" }}>Confirmar</label>
+                        <input type="password" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} required placeholder="Repita a senha"
+                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box" as const }} />
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "10px" }}>
+                      <button type="submit" disabled={salvandoSenha}
+                        style={{ padding: "10px 24px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "14px", cursor: salvandoSenha ? "not-allowed" : "pointer", opacity: salvandoSenha ? 0.7 : 1 }}>
+                        {salvandoSenha ? "Salvando..." : "Salvar"}
+                      </button>
+                      <button type="button" onClick={() => { setMostrarModalSenha(false); setSenhaAtual(""); setNovaSenha(""); setConfirmarSenha(""); setErroSenha(""); }}
+                        style={{ padding: "10px 20px", background: "transparent", color: "#6B7280", border: "1.5px solid #E5E7EB", borderRadius: "12px", fontWeight: 600, fontSize: "14px", cursor: "pointer" }}>
+                        Cancelar
+                      </button>
+                    </div>
+                  </form>
+                )}
               </div>
 
               {/* Sair */}

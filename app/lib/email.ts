@@ -91,6 +91,48 @@ export async function enviarEmailRejeicaoVendedor(para: string, nome: string, mo
   });
 }
 
+export async function enviarEmailRedefinicaoSenha(para: string, nome: string, token: string) {
+  const transporter = criarTransporter();
+  if (!transporter) {
+    console.log(`[Email] SMTP não configurado. Email de redefinição para ${para} não enviado.`);
+    return;
+  }
+
+  const url = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const link = `${url}/redefinir-senha/${token}`;
+
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;background:#f8f5ff;border-radius:16px;">
+      <div style="text-align:center;margin-bottom:24px;">
+        <h1 style="color:#6001D3;font-size:28px;margin:0;">Mundo Gestão</h1>
+      </div>
+      <div style="background:#fff;border-radius:12px;padding:32px;">
+        <h2 style="color:#111;margin-top:0;">Olá, ${nome}!</h2>
+        <p style="color:#444;line-height:1.6;">
+          Recebemos uma solicitação para redefinir a senha da sua conta na plataforma <strong>Mundo Gestão</strong>.
+        </p>
+        <p style="color:#444;line-height:1.6;">
+          Clique no botão abaixo para criar uma nova senha. Este link é válido por <strong>1 hora</strong>.
+        </p>
+        <div style="text-align:center;margin:28px 0;">
+          <a href="${link}" style="display:inline-block;background:#6001D3;color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">Redefinir minha senha</a>
+        </div>
+        <p style="color:#888;font-size:13px;margin-bottom:0;">
+          Se você não solicitou a redefinição de senha, ignore este e-mail. Sua senha permanecerá a mesma.
+        </p>
+      </div>
+      <p style="text-align:center;color:#aaa;font-size:12px;margin-top:20px;">Mundo Gestão &mdash; ISO Consulting Platform</p>
+    </div>
+  `;
+
+  await transporter.sendMail({
+    from: `"Mundo Gestão" <${process.env.SMTP_USER}>`,
+    to: para,
+    subject: "🔐 Redefinir sua senha - Mundo Gestão",
+    html,
+  });
+}
+
 export async function enviarEmailAprovacaoVendedor(para: string, nome: string) {
   const transporter = criarTransporter();
   if (!transporter) {

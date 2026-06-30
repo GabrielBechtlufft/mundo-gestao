@@ -39,6 +39,17 @@ model User {
   funcionarios        FuncionarioVendedor[] @relation("FuncionarioDono")
   funcionarioPerfil   FuncionarioVendedor? @relation("FuncionarioLinked")
   mensagensEnviadas   Mensagem[]           @relation("MensagensEnviadas")
+  passwordResetTokens PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  User      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  expiresAt DateTime
+  usado     Boolean  @default(false)
+  createdAt DateTime @default(now())
 }
 
 model SolicitacaoCadastro {
