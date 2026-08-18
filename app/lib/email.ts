@@ -1,5 +1,14 @@
 import nodemailer from "nodemailer";
 
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
+}
+
 function criarTransporter() {
   const host = process.env.SMTP_HOST;
   const user = process.env.SMTP_USER;
@@ -21,13 +30,14 @@ export async function enviarEmailSolicitacaoRecebida(para: string, nome: string)
     return;
   }
 
+  const nomeSeguro = escapeHtml(nome);
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;background:#f8f5ff;border-radius:16px;">
       <div style="text-align:center;margin-bottom:24px;">
         <h1 style="color:#6001D3;font-size:28px;margin:0;">Mundo Gestão</h1>
       </div>
       <div style="background:#fff;border-radius:12px;padding:32px;">
-        <h2 style="color:#111;margin-top:0;">Olá, ${nome}! Recebemos sua solicitação.</h2>
+        <h2 style="color:#111;margin-top:0;">Olá, ${nomeSeguro}! Recebemos sua solicitação.</h2>
         <p style="color:#444;line-height:1.6;">
           Recebemos sua solicitação de cadastro como vendedor na plataforma <strong>Mundo Gestão</strong>.
           Nossa equipe irá analisar as informações enviadas e você receberá uma resposta em breve.
@@ -61,19 +71,21 @@ export async function enviarEmailRejeicaoVendedor(para: string, nome: string, mo
     return;
   }
 
+  const nomeSeguro = escapeHtml(nome);
+  const motivoSeguro = escapeHtml(motivo);
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;background:#f8f5ff;border-radius:16px;">
       <div style="text-align:center;margin-bottom:24px;">
         <h1 style="color:#6001D3;font-size:28px;margin:0;">Mundo Gestão</h1>
       </div>
       <div style="background:#fff;border-radius:12px;padding:32px;">
-        <h2 style="color:#111;margin-top:0;">Olá, ${nome}.</h2>
+        <h2 style="color:#111;margin-top:0;">Olá, ${nomeSeguro}.</h2>
         <p style="color:#444;line-height:1.6;">
           Após análise, infelizmente não foi possível aprovar sua solicitação de cadastro como vendedor na plataforma <strong>Mundo Gestão</strong>.
         </p>
         <div style="background:#fff5f5;border-left:4px solid #EF4444;border-radius:8px;padding:16px;margin:20px 0;">
           <p style="margin:0 0 6px;font-weight:700;color:#B91C1C;">Motivo:</p>
-          <p style="margin:0;color:#444;line-height:1.6;">${motivo}</p>
+          <p style="margin:0;color:#444;line-height:1.6;">${motivoSeguro}</p>
         </div>
         <p style="color:#444;line-height:1.6;">
           Se acredita que houve um engano ou deseja enviar novas informações, entre em contato respondendo este e-mail.
@@ -99,7 +111,8 @@ export async function enviarEmailRedefinicaoSenha(para: string, nome: string, to
   }
 
   const url = process.env.NEXTAUTH_URL || "http://localhost:3000";
-  const link = `${url}/redefinir-senha/${token}`;
+  const link = `${url}/redefinir-senha/${encodeURIComponent(token)}`;
+  const nomeSeguro = escapeHtml(nome);
 
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;background:#f8f5ff;border-radius:16px;">
@@ -107,7 +120,7 @@ export async function enviarEmailRedefinicaoSenha(para: string, nome: string, to
         <h1 style="color:#6001D3;font-size:28px;margin:0;">Mundo Gestão</h1>
       </div>
       <div style="background:#fff;border-radius:12px;padding:32px;">
-        <h2 style="color:#111;margin-top:0;">Olá, ${nome}!</h2>
+        <h2 style="color:#111;margin-top:0;">Olá, ${nomeSeguro}!</h2>
         <p style="color:#444;line-height:1.6;">
           Recebemos uma solicitação para redefinir a senha da sua conta na plataforma <strong>Mundo Gestão</strong>.
         </p>
@@ -141,17 +154,19 @@ export async function enviarEmailAprovacaoVendedor(para: string, nome: string) {
   }
 
   const url = process.env.NEXTAUTH_URL || "http://localhost:3000";
+  const nomeSeguro = escapeHtml(nome);
+  const paraSeguro = escapeHtml(para);
   const html = `
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;background:#f8f5ff;border-radius:16px;">
       <div style="text-align:center;margin-bottom:24px;">
         <h1 style="color:#6001D3;font-size:28px;margin:0;">Mundo Gestão</h1>
       </div>
       <div style="background:#fff;border-radius:12px;padding:32px;">
-        <h2 style="color:#111;margin-top:0;">Parabéns, ${nome}! Sua conta foi aprovada.</h2>
+        <h2 style="color:#111;margin-top:0;">Parabéns, ${nomeSeguro}! Sua conta foi aprovada.</h2>
         <p style="color:#444;line-height:1.6;">Seu cadastro como vendedor na plataforma <strong>Mundo Gestão</strong> foi aprovado e já está ativo.</p>
         <div style="background:#f0e8ff;border-radius:8px;padding:16px;margin:20px 0;">
           <p style="margin:0 0 8px;font-weight:700;color:#6001D3;">Dados de acesso:</p>
-          <p style="margin:4px 0;color:#333;"><strong>Login:</strong> ${para}</p>
+          <p style="margin:4px 0;color:#333;"><strong>Login:</strong> ${paraSeguro}</p>
           <p style="margin:4px 0;color:#333;"><strong>Senha provisória:</strong> senha@123</p>
         </div>
         <p style="color:#e67e00;font-size:13px;background:#fff8e6;padding:10px 14px;border-radius:8px;border-left:4px solid #e67e00;">

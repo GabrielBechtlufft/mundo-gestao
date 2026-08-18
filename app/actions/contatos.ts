@@ -1,8 +1,12 @@
 "use server";
 
 import { prisma } from "@/app/lib/prisma";
+import { getSession } from "./auth";
 
 export async function registrarContato(listagemId: number, info?: string) {
+  const session = await getSession();
+  if (!session) return { success: false };
+
   try {
     await prisma.contato.create({
       data: { listagemId, info: info || null },

@@ -53,8 +53,10 @@ export async function enviarPropostaVendedor(propostaId: number, documentoPropos
   const session = await getSession();
   if (!session) return { success: false, error: "Não autenticado" };
 
-  if (!documentoProposta || !documentoProposta.startsWith("/uploads/")) {
-    return { success: false, error: "É obrigatório anexar um arquivo de proposta." };
+  const localUploadPattern = /^\/uploads\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(pdf|png|jpe?g|webp)$/i;
+  const vercelBlobPattern = /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\//i;
+  if (!documentoProposta || (!localUploadPattern.test(documentoProposta) && !vercelBlobPattern.test(documentoProposta))) {
+    return { success: false, error: "É obrigatório anexar um arquivo de proposta válido." };
   }
 
   const proposta = await prisma.proposta.findUnique({ where: { id: propostaId } });

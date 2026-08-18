@@ -24,7 +24,8 @@ export async function criarAvaliacao(listagemId: number, nota: number, comentari
     if (session.role !== "COMPRADOR") return { success: false, error: "Apenas compradores podem avaliar." };
 
     if (!comentario.trim()) return { success: false, error: "Escreva um comentário." };
-    if (nota < 1 || nota > 5) return { success: false, error: "Nota deve ser entre 1 e 5." };
+    if (comentario.trim().length > 1000) return { success: false, error: "Comentário muito longo (máximo 1000 caracteres)." };
+    if (!Number.isInteger(nota) || nota < 1 || nota > 5) return { success: false, error: "Nota deve ser um número inteiro entre 1 e 5." };
 
     const propostaFechada = await prisma.proposta.findFirst({
       where: { listagemId, compradorId: session.id, status: "PROPOSTA_FECHADA" },

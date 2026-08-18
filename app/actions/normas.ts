@@ -30,6 +30,7 @@ export async function criarListagem(data: {
 }) {
   const session = await getSession();
   if (!session) return { success: false, error: "Não autenticado" };
+  if (session.role !== "VENDEDOR") return { success: false, error: "Apenas certificadoras podem criar listagens." };
   if (session.statusVendedor !== "APROVADO") return { success: false, error: "Sua conta não está aprovada." };
 
   const isosPermitidas = await getMinhasISOs();

@@ -31,13 +31,9 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) return null;
 
-        // Check password: support both bcrypt hashed and legacy plain "123"
         let passwordValid = false;
         if (user.password.startsWith("$2")) {
           passwordValid = await bcrypt.compare(credentials.password, user.password);
-        } else {
-          // Legacy plain-text password (for development seed data)
-          passwordValid = credentials.password === user.password;
         }
 
         if (!passwordValid) return null;

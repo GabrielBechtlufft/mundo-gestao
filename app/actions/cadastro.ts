@@ -18,9 +18,15 @@ export async function solicitarCadastro(data: {
   documentoComprovante?: string;
   certificacoesISO?: string;
 }) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   try {
     if (!data.nome || !data.email || !data.telefone || !data.cidade) {
       return { success: false, error: "Preencha todos os campos obrigatórios." };
+    }
+
+    if (!emailRegex.test(data.email)) {
+      return { success: false, error: "Formato de e-mail inválido." };
     }
 
     if (!data.isosVendidas || data.isosVendidas.trim() === "") {
@@ -86,9 +92,15 @@ export async function cadastrarComprador(data: {
   email: string;
   senha: string;
 }) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   try {
     if (!data.nome || !data.email || !data.senha) {
       return { success: false, error: "Preencha todos os campos obrigatórios." };
+    }
+
+    if (!emailRegex.test(data.email)) {
+      return { success: false, error: "Formato de e-mail inválido." };
     }
 
     if (data.senha.length < 6) {
