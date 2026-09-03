@@ -21,7 +21,7 @@ export function Logo({ className = "", size = "md" }: LogoProps) {
     <div className={`flex items-center ${gap} ${className} select-none`}>
       <div className="relative shrink-0">
         <Image
-          src="/logo.svg"
+          src="/newLogo.png"
           alt="Logo Mundo de Gestão"
           width={icon}
           height={icon}
@@ -35,10 +35,10 @@ export function Logo({ className = "", size = "md" }: LogoProps) {
           style={{ fontSize: title }}
         >
           MUNDO DE GESTÃO 
-          <span className="font-bold ml-1" style={{ fontSize: '55%', marginTop: '-2px' }}>®</span>
+          <span className="font-bold ml-1 text-[#00EBCB]" style={{ fontSize: '55%', marginTop: '-2px' }}>®</span>
         </div>
         <p 
-          className="font-bold tracking-[0.22em] text-white/80 uppercase m-0 mt-1 whitespace-nowrap"
+          className="font-medium tracking-[0.22em] text-[#E8EDF0]/90 uppercase m-0 mt-1 whitespace-nowrap"
           style={{ fontSize: subtitle }}
         >
           NORMAS ISO NA NOVA ERA DIGITAL

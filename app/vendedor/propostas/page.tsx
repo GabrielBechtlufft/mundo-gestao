@@ -16,19 +16,19 @@ type PropostaVendedor = {
 };
 
 const statusConfig: Record<string, { bg: string; text: string; label: string }> = {
-  CONTATO_SOLICITADO: { bg: "#FEF3C7", text: "#92400E", label: "Contato Solicitado" },
-  EM_CONTATO:         { bg: "#DBEAFE", text: "#1E40AF", label: "Em Contato" },
-  PROPOSTA_ENVIADA:   { bg: "#EDE9FE", text: "#6001D3", label: "Proposta Enviada" },
-  PROPOSTA_RECUSADA:  { bg: "#FEE2E2", text: "#991B1B", label: "Proposta Recusada" },
-  EM_NEGOCIACAO:      { bg: "#FDE68A", text: "#92400E", label: "Em Negociação" },
-  PROPOSTA_FECHADA:   { bg: "#DCFCE7", text: "#166534", label: "Proposta Fechada" },
-  CANCELADA:          { bg: "#FEE2E2", text: "#991B1B", label: "Cancelada" },
+  CONTATO_SOLICITADO: { bg: "rgba(245, 158, 11, 0.15)", text: "#F59E0B", label: "Contato Solicitado" },
+  EM_CONTATO:         { bg: "rgba(0, 169, 214, 0.15)", text: "#00A9D6", label: "Em Contato" },
+  PROPOSTA_ENVIADA:   { bg: "rgba(0, 235, 203, 0.15)", text: "#00EBCB", label: "Proposta Enviada" },
+  PROPOSTA_RECUSADA:  { bg: "rgba(239, 68, 68, 0.15)", text: "#F87171", label: "Proposta Recusada" },
+  EM_NEGOCIACAO:      { bg: "rgba(245, 158, 11, 0.15)", text: "#F59E0B", label: "Em Negociação" },
+  PROPOSTA_FECHADA:   { bg: "rgba(34, 197, 94, 0.15)", text: "#22C55E", label: "Proposta Fechada" },
+  CANCELADA:          { bg: "rgba(239, 68, 68, 0.15)", text: "#F87171", label: "Cancelada" },
 };
 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(2px)" }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: "20px", padding: "36px 32px", width: "100%", maxWidth: "500px", boxShadow: "0 20px 60px rgba(80,0,160,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(2,13,29,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(6px)" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: "#03162D", border: "1px solid rgba(232, 237, 240, 0.15)", borderRadius: "20px", padding: "36px 32px", width: "100%", maxWidth: "500px", boxShadow: "0 24px 60px rgba(0,0,0,0.6)", maxHeight: "90vh", overflowY: "auto", color: "#FFFFFF" }}>
         {children}
       </div>
     </div>
@@ -111,17 +111,17 @@ export default function VendedorPropostasPage() {
 
   return (
     <>
-      <div style={{ padding: "8px 56px 32px", height: "100%", display: "flex", flexDirection: "column" }}>
-        <h1 style={{ color: "#fff", fontSize: "36px", fontWeight: 700, marginBottom: "32px", marginTop: "8px", letterSpacing: "-0.5px", flexShrink: 0 }}>
+      <div style={{ padding: "8px 56px 32px", height: "100%", display: "flex", flexDirection: "column", fontFamily: "var(--font-montserrat), sans-serif" }}>
+        <h1 style={{ color: "#FFFFFF", fontSize: "32px", fontWeight: 800, marginBottom: "32px", marginTop: "8px", letterSpacing: "-0.5px", flexShrink: 0 }}>
           Olá, {firstName}
         </h1>
 
         <div style={{ display: "flex", gap: "24px", alignItems: "stretch", flex: 1, minHeight: 0 }}>
           <VendedorSidebar />
 
-          <div style={{ flex: 1, background: "#fff", borderRadius: "20px", padding: "36px 48px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", height: "100%", overflowY: "auto" }}>
-            <h2 style={{ fontSize: "28px", fontWeight: 900, color: "#111", margin: "0 0 8px" }}>Minhas Propostas</h2>
-            <p style={{ fontSize: "13px", color: "#888", margin: "0 0 32px" }}>
+          <div style={{ flex: 1, background: "#03162D", border: "1px solid rgba(232, 237, 240, 0.15)", borderRadius: "20px", padding: "36px 48px", boxShadow: "0 8px 32px rgba(0,0,0,0.4)", height: "100%", overflowY: "auto", color: "#FFFFFF" }}>
+            <h2 style={{ fontSize: "26px", fontWeight: 800, color: "#FFFFFF", margin: "0 0 8px" }}>Minhas Propostas</h2>
+            <p style={{ fontSize: "13px", color: "#A7B0B8", margin: "0 0 32px", fontWeight: 400 }}>
               Gerencie as solicitações de contato e envie suas propostas comerciais.
             </p>
 
@@ -129,10 +129,10 @@ export default function VendedorPropostasPage() {
               {[
                 { label: "Ativas",  value: ativas.length,   color: "#F59E0B" },
                 { label: "Fechadas", value: fechadas.length, color: "#22C55E" },
-                { label: "Total",   value: propostas.length, color: "#7B00D4" },
+                { label: "Total",   value: propostas.length, color: "#00EBCB" },
               ].map((c) => (
-                <div key={c.label} style={{ borderLeft: `4px solid ${c.color}`, borderRadius: "12px", padding: "10px 18px", minWidth: "90px", boxShadow: "3px 5px 4px rgba(80,0,160,0.15)" }}>
-                  <div style={{ fontSize: "24px", fontWeight: 900, color: c.color }}>{c.value}</div>
+                <div key={c.label} style={{ background: "#020D1D", borderLeft: `4px solid ${c.color}`, border: "1px solid rgba(232, 237, 240, 0.1)", borderLeftColor: c.color, borderRadius: "12px", padding: "10px 18px", minWidth: "90px" }}>
+                  <div style={{ fontSize: "24px", fontWeight: 800, color: c.color }}>{c.value}</div>
                   <div style={{ fontSize: "11px", color: c.color, fontWeight: 600 }}>{c.label}</div>
                 </div>
               ))}
@@ -142,18 +142,18 @@ export default function VendedorPropostasPage() {
               <p style={{ color: "#888", textAlign: "center", paddingTop: "40px" }}>Carregando...</p>
             ) : (
               <>
-                <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px" }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
                   <input
                     type="text"
                     placeholder="Buscar por cliente, norma ou serviço..."
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
-                    style={{ padding: "10px 16px", borderRadius: "10px", border: "1.5px solid #E5E7EB", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box", color: "#111" }}
+                    style={{ padding: "12px 16px", borderRadius: "10px", border: "1.5px solid rgba(232, 237, 240, 0.18)", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box", color: "#FFFFFF", background: "#020D1D" }}
                   />
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     {[{ key: "TODOS", label: "Todos" }, ...Object.entries(statusConfig).map(([k, v]) => ({ key: k, label: v.label }))].map((s) => (
                       <button key={s.key} onClick={() => setFiltroStatus(s.key)}
-                        style={{ padding: "5px 14px", borderRadius: "20px", border: "1.5px solid", borderColor: filtroStatus === s.key ? "#6001D3" : "#E5E7EB", background: filtroStatus === s.key ? "#6001D3" : "transparent", color: filtroStatus === s.key ? "#fff" : "#6B7280", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>
+                        style={{ padding: "6px 16px", borderRadius: "20px", border: "1.5px solid", borderColor: filtroStatus === s.key ? "#00EBCB" : "rgba(232, 237, 240, 0.15)", background: filtroStatus === s.key ? "#00EBCB" : "transparent", color: filtroStatus === s.key ? "#020D1D" : "#A7B0B8", fontSize: "12px", fontWeight: 600, cursor: "pointer", transition: "all 0.15s" }}>
                         {s.label}
                       </button>
                     ))}
@@ -163,26 +163,26 @@ export default function VendedorPropostasPage() {
                 {propostas.length === 0 ? (
                   <div style={{ textAlign: "center", padding: "60px 0" }}>
                     <div style={{ fontSize: "56px", marginBottom: "16px" }}>📋</div>
-                    <p style={{ color: "#aaa", fontSize: "16px" }}>Nenhuma proposta recebida ainda.</p>
+                    <p style={{ color: "#A7B0B8", fontSize: "16px", fontWeight: 400 }}>Nenhuma proposta recebida ainda.</p>
                   </div>
                 ) : propostasFiltradas.length === 0 ? (
-                  <p style={{ textAlign: "center", color: "#9CA3AF", fontSize: "14px", padding: "32px 0" }}>Nenhum resultado para esta busca.</p>
+                  <p style={{ textAlign: "center", color: "#A7B0B8", fontSize: "14px", padding: "32px 0" }}>Nenhum resultado para esta busca.</p>
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                     {propostasFiltradas.map((p) => {
-                      const cfg = statusConfig[p.status] ?? { bg: "#FEF3C7", text: "#92400E", label: "Pendente" };
+                      const cfg = statusConfig[p.status] ?? { bg: "rgba(245, 158, 11, 0.15)", text: "#F59E0B", label: "Pendente" };
                       return (
-                        <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px", border: "1.5px solid #E5E7EB", borderRadius: "16px" }}>
+                        <div key={p.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px", border: "1.5px solid rgba(232, 237, 240, 0.12)", background: "#020D1D", borderRadius: "16px" }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "5px" }}>
-                              <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "#EDE9FE", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: "#6001D3", fontSize: "13px", flexShrink: 0 }}>
+                              <div style={{ width: "30px", height: "30px", borderRadius: "50%", background: "rgba(0, 235, 203, 0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: "#00EBCB", fontSize: "13px", flexShrink: 0 }}>
                                 {(p.Comprador?.name || p.solicitante)[0]}
                               </div>
-                              <span style={{ fontSize: "14px", fontWeight: 700, color: "#111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              <span style={{ fontSize: "14px", fontWeight: 700, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                                 {p.Comprador?.name || p.solicitante}
                               </span>
                             </div>
-                            <div style={{ fontSize: "12px", color: "#7B00D4", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <div style={{ fontSize: "12px", color: "#00A9D6", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                               {p.Listagem?.isoTipo || ""}{p.Listagem?.titulo ? ` — ${p.Listagem.titulo}` : ""}
                             </div>
                           </div>
@@ -192,12 +192,12 @@ export default function VendedorPropostasPage() {
                             </span>
                             {["CONTATO_SOLICITADO", "EM_CONTATO", "PROPOSTA_RECUSADA"].includes(p.status) && (
                               <button onClick={() => { setDetalhes(p); setErro(""); setUploadFile(null); setEnvioModal(true); }}
-                                style={{ padding: "7px 14px", borderRadius: "8px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", fontWeight: 700, fontSize: "12px", cursor: "pointer", whiteSpace: "nowrap" }}>
+                                style={{ padding: "8px 16px", borderRadius: "8px", background: "#00EBCB", color: "#020D1D", border: "none", fontWeight: 600, fontSize: "12px", cursor: "pointer", whiteSpace: "nowrap", boxShadow: "0 2px 8px rgba(0,235,203,0.3)" }}>
                                 📎 Enviar Proposta
                               </button>
                             )}
                             <button onClick={() => { setDetalhes(p); setErro(""); setUploadFile(null); }}
-                              style={{ position: "relative", padding: "7px 16px", borderRadius: "8px", background: "#EDE9FE", color: "#6001D3", border: "1.5px solid #DDD6FE", fontWeight: 700, fontSize: "12px", cursor: "pointer" }}>
+                              style={{ position: "relative", padding: "8px 16px", borderRadius: "8px", background: "rgba(232, 237, 240, 0.08)", color: "#E8EDF0", border: "1.5px solid rgba(232, 237, 240, 0.18)", fontWeight: 600, fontSize: "12px", cursor: "pointer" }}>
                               Detalhes
                               {p._count.mensagens > 0 && (
                                 <span style={{ position: "absolute", top: "-6px", right: "-6px", minWidth: "18px", height: "18px", borderRadius: "50%", background: "#EF4444", color: "#fff", fontSize: "10px", fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 4px", boxShadow: "0 2px 6px rgba(239,68,68,0.5)" }}>
@@ -219,7 +219,7 @@ export default function VendedorPropostasPage() {
 
       {/* Modal de Detalhes */}
       {detalhes && !envioModal && (() => {
-        const cfg = statusConfig[detalhes.status] ?? { bg: "#FEF3C7", text: "#92400E", label: "Pendente" };
+        const cfg = statusConfig[detalhes.status] ?? { bg: "rgba(245, 158, 11, 0.15)", text: "#F59E0B", label: "Pendente" };
         const finalizado = ["PROPOSTA_FECHADA", "CANCELADA"].includes(detalhes.status);
         const podeEnviar = ["CONTATO_SOLICITADO", "EM_CONTATO", "PROPOSTA_RECUSADA"].includes(detalhes.status);
         const podeConfirmar = !finalizado && !detalhes.vendedorConfirmou &&
@@ -229,8 +229,8 @@ export default function VendedorPropostasPage() {
           <Modal onClose={() => setDetalhes(null)}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
               <div>
-                <p style={{ margin: "0 0 4px", fontSize: "12px", color: "#9CA3AF", fontWeight: 600 }}>PROPOSTA #{detalhes.id}</p>
-                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#111" }}>
+                <p style={{ margin: "0 0 4px", fontSize: "12px", color: "#A7B0B8", fontWeight: 600 }}>PROPOSTA #{detalhes.id}</p>
+                <h2 style={{ margin: 0, fontSize: "18px", fontWeight: 800, color: "#FFFFFF" }}>
                   {detalhes.Comprador?.name || detalhes.solicitante}
                 </h2>
               </div>
@@ -242,40 +242,40 @@ export default function VendedorPropostasPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "24px" }}>
               {detalhes.Comprador?.email && (
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
-                  <span style={{ color: "#6B7280" }}>E-mail</span>
-                  <span style={{ fontWeight: 600, color: "#111" }}>{detalhes.Comprador.email}</span>
+                  <span style={{ color: "#A7B0B8" }}>E-mail</span>
+                  <span style={{ fontWeight: 600, color: "#FFFFFF" }}>{detalhes.Comprador.email}</span>
                 </div>
               )}
               {detalhes.Listagem?.isoTipo && (
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
-                  <span style={{ color: "#6B7280" }}>Norma</span>
-                  <span style={{ fontWeight: 700, color: "#111" }}>{detalhes.Listagem.isoTipo}</span>
+                  <span style={{ color: "#A7B0B8" }}>Norma</span>
+                  <span style={{ fontWeight: 700, color: "#00EBCB" }}>{detalhes.Listagem.isoTipo}</span>
                 </div>
               )}
               {detalhes.Listagem?.titulo && (
                 <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
-                  <span style={{ color: "#6B7280" }}>Serviço</span>
-                  <span style={{ fontWeight: 600, color: "#111", textAlign: "right", maxWidth: "60%" }}>{detalhes.Listagem.titulo}</span>
+                  <span style={{ color: "#A7B0B8" }}>Serviço</span>
+                  <span style={{ fontWeight: 600, color: "#FFFFFF", textAlign: "right", maxWidth: "60%" }}>{detalhes.Listagem.titulo}</span>
                 </div>
               )}
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px" }}>
-                <span style={{ color: "#6B7280" }}>Data</span>
-                <span style={{ fontWeight: 600, color: "#111" }}>
+                <span style={{ color: "#A7B0B8" }}>Data</span>
+                <span style={{ fontWeight: 600, color: "#FFFFFF" }}>
                   {new Date(detalhes.createdAt).toLocaleDateString("pt-BR")}
                 </span>
               </div>
               {detalhes.compradorConfirmou && (
-                <div style={{ background: "#ECFDF5", border: "1px solid #BBF7D0", borderRadius: "10px", padding: "10px 14px", fontSize: "12px", color: "#166534", fontWeight: 600 }}>
+                <div style={{ background: "rgba(34, 197, 94, 0.15)", border: "1px solid rgba(34, 197, 94, 0.3)", borderRadius: "10px", padding: "10px 14px", fontSize: "12px", color: "#22C55E", fontWeight: 600 }}>
                   ✅ O comprador já confirmou o encerramento
                 </div>
               )}
             </div>
 
             {detalhes.status === "PROPOSTA_RECUSADA" && detalhes.motivoRecusa && (
-              <div style={{ background: "#FEF2F2", border: "1.5px solid #FECACA", borderRadius: "12px", padding: "14px 16px", marginBottom: "16px" }}>
-                <p style={{ margin: "0 0 6px", fontSize: "11px", fontWeight: 800, color: "#991B1B", letterSpacing: "0.5px" }}>MOTIVO DA RECUSA PELO COMPRADOR</p>
-                <p style={{ margin: "0 0 10px", fontSize: "13px", color: "#7F1D1D", lineHeight: 1.6 }}>{detalhes.motivoRecusa}</p>
-                <p style={{ margin: 0, fontSize: "12px", color: "#B91C1C", fontWeight: 600 }}>
+              <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1.5px solid rgba(239, 68, 68, 0.2)", borderRadius: "12px", padding: "14px 16px", marginBottom: "16px" }}>
+                <p style={{ margin: "0 0 6px", fontSize: "11px", fontWeight: 800, color: "#F87171", letterSpacing: "0.5px" }}>MOTIVO DA RECUSA PELO COMPRADOR</p>
+                <p style={{ margin: "0 0 10px", fontSize: "13px", color: "#E8EDF0", lineHeight: 1.6 }}>{detalhes.motivoRecusa}</p>
+                <p style={{ margin: 0, fontSize: "12px", color: "#F87171", fontWeight: 600 }}>
                   📎 Revise as mudanças solicitadas e envie uma nova proposta abaixo.
                 </p>
               </div>
@@ -283,14 +283,14 @@ export default function VendedorPropostasPage() {
 
             {detalhes.documentoProposta && (
               <button onClick={() => window.open(detalhes.documentoProposta!, "_blank")}
-                style={{ display: "flex", alignItems: "center", gap: "8px", background: "#F5F3FF", border: "1.5px solid #DDD6FE", borderRadius: "10px", padding: "12px 16px", fontSize: "13px", fontWeight: 700, color: "#6001D3", cursor: "pointer", width: "100%", marginBottom: "16px" }}>
+                style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(0, 169, 214, 0.1)", border: "1.5px solid rgba(0, 169, 214, 0.25)", borderRadius: "10px", padding: "12px 16px", fontSize: "13px", fontWeight: 600, color: "#00EBCB", cursor: "pointer", width: "100%", marginBottom: "16px" }}>
                 {detalhes.status === "PROPOSTA_RECUSADA" ? "📄 Ver proposta anterior" : "📄 Ver proposta enviada"}
               </button>
             )}
 
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <button onClick={() => { setDetalhes(null); router.push(`/chat/${detalhes.id}`); }}
-                style={{ position: "relative", width: "100%", padding: "13px", borderRadius: "10px", background: "#EDE9FE", color: "#6001D3", border: "1.5px solid #DDD6FE", fontWeight: 700, fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                style={{ position: "relative", width: "100%", padding: "13px", borderRadius: "10px", background: "rgba(0, 235, 203, 0.12)", color: "#00EBCB", border: "1.5px solid rgba(0, 235, 203, 0.25)", fontWeight: 600, fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
                 💬 Abrir Chat
                 {detalhes._count.mensagens > 0 && (
                   <span style={{ marginLeft: "4px", minWidth: "20px", height: "20px", borderRadius: "10px", background: "#EF4444", color: "#fff", fontSize: "11px", fontWeight: 800, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0 5px" }}>
@@ -301,21 +301,21 @@ export default function VendedorPropostasPage() {
 
               {podeEnviar && (
                 <button onClick={() => { setEnvioModal(true); setErro(""); setUploadFile(null); }}
-                  style={{ width: "100%", padding: "13px", borderRadius: "10px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer" }}>
+                  style={{ width: "100%", padding: "13px", borderRadius: "10px", background: "#00EBCB", color: "#020D1D", border: "none", fontWeight: 600, fontSize: "14px", cursor: "pointer", boxShadow: "0 4px 14px rgba(0,235,203,0.3)" }}>
                   📎 Enviar Proposta
                 </button>
               )}
 
               {podeConfirmar && (
                 <button onClick={() => handleConfirmar(detalhes.id)} disabled={loadingAcao}
-                  style={{ width: "100%", padding: "13px", borderRadius: "10px", background: "linear-gradient(90deg,#059669,#34D399)", color: "#fff", border: "none", fontWeight: 700, fontSize: "14px", cursor: "pointer", opacity: loadingAcao ? 0.7 : 1 }}>
+                  style={{ width: "100%", padding: "13px", borderRadius: "10px", background: "#22C55E", color: "#020D1D", border: "none", fontWeight: 600, fontSize: "14px", cursor: "pointer", opacity: loadingAcao ? 0.7 : 1 }}>
                   ✅ Confirmar Encerramento
                 </button>
               )}
 
               {podeCancelar && (
                 <button onClick={() => handleCancelar(detalhes.id)} disabled={loadingAcao}
-                  style={{ width: "100%", padding: "13px", borderRadius: "10px", background: "transparent", color: "#EF4444", border: "1.5px solid #EF4444", fontWeight: 700, fontSize: "14px", cursor: "pointer", opacity: loadingAcao ? 0.7 : 1 }}>
+                  style={{ width: "100%", padding: "13px", borderRadius: "10px", background: "transparent", color: "#EF4444", border: "1.5px solid #EF4444", fontWeight: 600, fontSize: "14px", cursor: "pointer", opacity: loadingAcao ? 0.7 : 1 }}>
                   ✕ Cancelar Proposta
                 </button>
               )}
@@ -329,24 +329,24 @@ export default function VendedorPropostasPage() {
         <Modal onClose={() => { setEnvioModal(false); setUploadFile(null); setErro(""); }}>
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: "56px", marginBottom: "16px" }}>📎</div>
-            <h2 style={{ fontSize: "22px", fontWeight: 800, color: "#111", marginTop: 0, marginBottom: "12px" }}>Enviar Proposta</h2>
-            <p style={{ color: "#666", marginBottom: "24px", lineHeight: 1.6 }}>
+            <h2 style={{ fontSize: "22px", fontWeight: 800, color: "#FFFFFF", marginTop: 0, marginBottom: "12px" }}>Enviar Proposta</h2>
+            <p style={{ color: "#A7B0B8", marginBottom: "24px", lineHeight: 1.6, fontSize: "14px" }}>
               Anexe o arquivo da sua proposta comercial. O comprador receberá uma notificação.
             </p>
-            <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px 20px", border: "2px dashed #DDD6FE", borderRadius: "12px", cursor: "pointer", marginBottom: "8px", background: uploadFile ? "#F5F3FF" : "transparent", color: uploadFile ? "#6001D3" : "#888", fontWeight: 600, fontSize: "14px", transition: "all 0.2s" }}>
+            <label style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "10px", padding: "14px 20px", border: "2px dashed rgba(0,235,203,0.3)", borderRadius: "12px", cursor: "pointer", marginBottom: "8px", background: uploadFile ? "rgba(0, 235, 203, 0.1)" : "#020D1D", color: uploadFile ? "#00EBCB" : "#A7B0B8", fontWeight: 600, fontSize: "14px", transition: "all 0.2s" }}>
               <input type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" style={{ display: "none" }} onChange={(e) => { if (e.target.files?.[0]) setUploadFile(e.target.files[0]); }} />
               {uploadFile ? `✓ ${uploadFile.name.slice(0, 30)}` : "Selecionar arquivo (PDF, DOC, imagem)"}
             </label>
             {erro && (
-              <div style={{ background: "#FEF2F2", border: "1px solid #FECACA", borderRadius: "8px", padding: "10px", color: "#B91C1C", fontSize: "13px", marginBottom: "16px" }}>{erro}</div>
+              <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "8px", padding: "10px", color: "#F87171", fontSize: "13px", marginBottom: "16px" }}>{erro}</div>
             )}
             <div style={{ display: "flex", gap: "12px", marginTop: "16px" }}>
               <button onClick={() => { setEnvioModal(false); setUploadFile(null); setErro(""); }}
-                style={{ flex: 1, padding: "14px", background: "transparent", border: "1.5px solid #ccc", borderRadius: "12px", fontWeight: 600, cursor: "pointer" }}>
+                style={{ flex: 1, padding: "14px", background: "transparent", border: "1.5px solid rgba(232, 237, 240, 0.2)", color: "#E8EDF0", borderRadius: "12px", fontWeight: 600, cursor: "pointer" }}>
                 Voltar
               </button>
               <button onClick={handleEnviarProposta} disabled={enviando || !uploadFile}
-                style={{ flex: 1, padding: "14px", background: uploadFile ? "linear-gradient(90deg,#6001D3,#A872F0)" : "#E5E7EB", color: uploadFile ? "#fff" : "#9CA3AF", border: "none", borderRadius: "12px", fontWeight: 700, cursor: uploadFile ? "pointer" : "not-allowed" }}>
+                style={{ flex: 1, padding: "14px", background: uploadFile ? "#00EBCB" : "rgba(232, 237, 240, 0.1)", color: uploadFile ? "#020D1D" : "#A7B0B8", border: "none", borderRadius: "12px", fontWeight: 600, cursor: uploadFile ? "pointer" : "not-allowed", boxShadow: uploadFile ? "0 4px 14px rgba(0,235,203,0.3)" : "none" }}>
                 {enviando ? "Enviando..." : "📎 Enviar"}
               </button>
             </div>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { consultarServicos } from "@/app/actions/servicos";
-import { CIDADES } from "@/app/lib/cidades";
+import { TODOS_ESTADOS } from "@/app/lib/estados";
 import { useEffect } from "react";
 import { getSession } from "@/app/actions/auth";
 import { signOut } from "next-auth/react";
@@ -89,9 +89,9 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-linear-to-b from-[#6001D3] to-[#A872F0] overflow-hidden flex flex-col font-sans">
+    <div className="relative min-h-screen bg-[#020D1D] bg-gradient-to-b from-[#020D1D] via-[#03162D] to-[#020D1D] overflow-hidden flex flex-col font-sans text-white">
       {/* Header */}
-      <header className="relative z-50 flex items-center justify-between px-12 py-10 md:px-24 text-white">
+      <header className="relative z-50 flex items-center justify-between px-8 py-8 md:px-20 text-white">
         <div className="flex items-center gap-4">
           {step > 1 && (
             <button
@@ -99,7 +99,7 @@ export default function LandingPage() {
                 if (step === 5) setStep(1);
                 else setStep(step - 1);
               }}
-              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-bold transition-colors"
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-semibold transition-colors text-white"
             >
               ← Voltar
             </button>
@@ -114,14 +114,14 @@ export default function LandingPage() {
         <div className="flex items-center gap-6">
           {session ? (
             <div className="flex items-center gap-4">
-              <span className="text-white text-sm font-medium opacity-80">
+              <span className="text-[#E8EDF0] text-sm font-medium opacity-80">
                 Olá, {session.name}
               </span>
               <button
                 onClick={async () => {
                   await signOut({ callbackUrl: "/" });
                 }}
-                className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-lg font-bold text-sm transition-all border border-white/20"
+                className="bg-white/10 hover:bg-white/20 text-white px-6 py-2 rounded-lg font-semibold text-sm transition-all border border-white/20"
               >
                 Sair
               </button>
@@ -129,7 +129,7 @@ export default function LandingPage() {
           ) : (
             <Link
               href="/login"
-              className="bg-white text-[#6001D3] px-8 py-2 rounded-lg font-bold text-sm shadow-[0_4px_0_0_#e5e7eb] hover:shadow-none hover:translate-y-1 transition-all"
+              className="bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] px-8 py-2.5 rounded-xl font-semibold text-sm shadow-[0_4px_14px_rgba(0,235,203,0.3)] hover:shadow-none hover:translate-y-0.5 transition-all no-underline"
             >
               Entrar
             </Link>
@@ -138,62 +138,66 @@ export default function LandingPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="relative z-20 flex-1 flex flex-col items-center justify-center -mt-32 px-6">
+      <main className="relative z-20 flex-1 flex flex-col items-center justify-center -mt-20 px-6">
         {step === 1 && (
-          <div className="flex flex-col items-center animate-fade-in text-white text-center">
-            <h1 className="text-5xl md:text-6xl font-bold mb-12 drop-shadow-md">
-              Bem Vindo ao Mundo da Gestão
+          <div className="flex flex-col items-center animate-fade-in text-white text-center max-w-4xl">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-8 tracking-tight drop-shadow-md text-white">
+              Bem-Vindo ao <span className="bg-gradient-to-r from-[#00EBCB] to-[#00A9D6] bg-clip-text text-transparent">Mundo da Gestão</span>
             </h1>
+            <p className="text-[#A7B0B8] text-lg md:text-xl font-normal max-w-2xl mb-10">
+              Conectamos sua empresa aos melhores organismos de certificação ISO e consultorias credenciadas do país.
+            </p>
             <button
               onClick={handleNextStep}
-              className="bg-white text-[#6001D3] px-12 py-4 rounded-xl text-xl font-bold shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:scale-105 transition-transform"
+              className="bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] px-12 py-4 rounded-2xl text-lg md:text-xl font-semibold shadow-[0_8px_30px_rgba(0,235,203,0.35)] hover:scale-105 transition-all cursor-pointer"
             >
-              Consultar
+              Consultar Serviços
             </button>
           </div>
         )}
 
         {step === 2 && (
           <div className="flex flex-col items-center animate-fade-in text-white text-center w-full max-w-2xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-10 drop-shadow-md">
+            <h1 className="text-3xl md:text-5xl font-extrabold mb-8 tracking-tight drop-shadow-md text-white">
               Qual serviço deseja consultar?
             </h1>
-            <input
-              type="text"
-              autoFocus
-              value={servicoInput.toUpperCase()}
-              onChange={(e) => setServicoInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="w-full px-8 py-5 rounded-2xl text-2xl text-gray-800 outline-none shadow-lg bg-white"
-              placeholder="Ex: ISO 9001"
-            />
+            <div className="w-full relative">
+              <input
+                type="text"
+                autoFocus
+                value={servicoInput.toUpperCase()}
+                onChange={(e) => setServicoInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="w-full px-8 py-5 rounded-2xl text-xl md:text-2xl text-white outline-none shadow-2xl bg-[#03162D] border-2 border-[#E8EDF0]/20 focus:border-[#00EBCB] placeholder-[#A7B0B8] font-medium transition-all"
+                placeholder="Ex: ISO 9001, ISO 14001..."
+              />
+            </div>
+            <p className="text-[#A7B0B8] text-sm mt-4 font-normal">Pressione Enter ou avance para a próxima etapa</p>
+            <button
+              onClick={handleNextStep}
+              disabled={!servicoInput.trim()}
+              className="mt-6 bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] px-10 py-3.5 rounded-xl text-base font-semibold shadow-[0_6px_20px_rgba(0,235,203,0.3)] hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100 cursor-pointer"
+            >
+              Continuar →
+            </button>
           </div>
         )}
 
         {step === 3 && (
           <div className="flex flex-col items-center animate-fade-in text-white text-center w-full max-w-2xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-10 drop-shadow-md">
-              De qual cidade está falando?
+            <h1 className="text-3xl md:text-5xl font-extrabold mb-8 tracking-tight drop-shadow-md text-white">
+              De qual estado está falando?
             </h1>
             <select
               autoFocus
               value={cidadeInput}
-              onChange={(e) => {
-                setCidadeInput(e.target.value);
-                // Call handleNextStep manually since select doesn't use Enter key down as effectively
-                // Or we can let them select and press a button, or just wait for them to press enter if it's focused.
-                // Wait, the previous code waited for handleKeyDown ("Enter") to go to the next step.
-                // With a select, they just choose an option. Usually selecting an option doesn't auto advance unless we want it to.
-                // If we want it to auto-advance when they select, we can call handleNextStep directly inside a setTimeout.
-                // But the current logic relies on handleKeyDown. 
-                // Let's add a button, or just auto-advance on change if it's a valid city.
-              }}
+              onChange={(e) => setCidadeInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full px-8 py-5 rounded-2xl text-2xl text-gray-800 outline-none shadow-lg bg-white appearance-none cursor-pointer"
+              className="w-full px-8 py-5 rounded-2xl text-xl md:text-2xl text-white outline-none shadow-2xl bg-[#03162D] border-2 border-[#E8EDF0]/20 focus:border-[#00EBCB] font-medium appearance-none cursor-pointer transition-all"
             >
-              <option value="" disabled>Selecione uma cidade</option>
-              {CIDADES.map((c) => (
-                <option key={c} value={c}>
+              <option value="" disabled className="bg-[#03162D] text-[#A7B0B8]">Selecione um estado</option>
+              {TODOS_ESTADOS.map((c) => (
+                <option key={c} value={c} className="bg-[#03162D] text-white">
                   {c}
                 </option>
               ))}
@@ -201,30 +205,34 @@ export default function LandingPage() {
             <button
               onClick={handleNextStep}
               disabled={!cidadeInput}
-              className="mt-8 bg-white text-[#6001D3] px-12 py-4 rounded-xl text-xl font-bold shadow-[0_6px_20px_rgba(0,0,0,0.15)] hover:scale-105 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+              className="mt-8 bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] px-12 py-4 rounded-xl text-lg font-semibold shadow-[0_8px_25px_rgba(0,235,203,0.35)] hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100 cursor-pointer"
             >
-              Buscar
+              Buscar Prestadores
             </button>
           </div>
         )}
 
         {step === 4 && (
           <div className="flex flex-col items-center animate-fade-in text-white text-center">
-            <h1 className="text-4xl md:text-5xl font-bold drop-shadow-md animate-pulse">
-              Consultando
+            <div className="w-16 h-16 border-4 border-[#00EBCB] border-t-transparent rounded-full animate-spin mb-6" />
+            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight drop-shadow-md text-white">
+              Consultando os melhores especialistas...
             </h1>
           </div>
         )}
 
         {step === 5 && (
-          <div className="flex flex-col items-center animate-fade-in text-white w-full max-w-7xl px-8 mt-12">
-            <h1 className="text-3xl font-bold mb-4 self-center">
-              Aqui estão os melhores prestadores e serviços indicados à você!
+          <div className="flex flex-col items-center animate-fade-in text-white w-full max-w-7xl px-4 mt-8">
+            <h1 className="text-2xl md:text-3xl font-extrabold mb-2 text-center text-white">
+              Melhores prestadores e serviços indicados para você
             </h1>
+            <p className="text-[#A7B0B8] text-sm md:text-base mb-6 text-center font-normal">
+              Filtro: {servicoInput || "Todos os serviços"} • {cidadeInput || "Brasil"}
+            </p>
 
             {resultados.length === 0 ? (
-              <div className="w-full text-center">
-                <p className="text-xl opacity-80 mb-6">
+              <div className="w-full text-center py-12 bg-[#03162D]/60 rounded-3xl border border-[#E8EDF0]/10 max-w-xl">
+                <p className="text-lg text-[#A7B0B8] mb-6 font-normal">
                   Nenhum serviço encontrado para essa busca.
                 </p>
                 <button
@@ -233,25 +241,25 @@ export default function LandingPage() {
                     setServicoInput("");
                     setCidadeInput("");
                   }}
-                  className="bg-white text-[#6001D3] font-bold px-6 py-2 rounded-lg"
+                  className="bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] font-semibold px-8 py-3 rounded-xl transition-all shadow-[0_4px_14px_rgba(0,235,203,0.3)]"
                 >
                   Tentar Novamente
                 </button>
               </div>
             ) : (
-              <div className="flex gap-6 overflow-x-auto pb-8 pt-5 w-full snap-x snap-mandatory custom-scrollbar">
+              <div className="flex gap-6 overflow-x-auto pb-8 pt-4 w-full snap-x snap-mandatory custom-scrollbar">
                 {resultados.map((res: Servico) => {
                   const tierStyles: Record<string, { icon: string; label: string; bg: string; text: string; border: string }> = {
-                    PRATA:   { icon: "🥈", label: "Prata",   bg: "#F3F4F6", text: "#4B5563", border: "#9E9E9E" },
-                    OURO:    { icon: "🥇", label: "Ouro",    bg: "#FFFBEB", text: "#92400E", border: "#FFD700" },
-                    PLATINA: { icon: "💎", label: "Platina", bg: "#F5F3FF", text: "#6001D3", border: "#A855F7" },
+                    PRATA:   { icon: "🥈", label: "Prata",   bg: "rgba(232,237,240,0.1)", text: "#E8EDF0", border: "#A7B0B8" },
+                    OURO:    { icon: "🥇", label: "Ouro",    bg: "rgba(255,215,0,0.12)", text: "#FFD700", border: "#FFD700" },
+                    PLATINA: { icon: "💎", label: "Platina", bg: "rgba(0,235,203,0.12)", text: "#00EBCB", border: "#00EBCB" },
                   };
                   const tierStyle = res.User?.rankTier ? tierStyles[res.User.rankTier] : null;
 
                   return (
                     <div
                       key={res.id}
-                      className="min-w-[320px] max-w-[320px] bg-white text-gray-900 rounded-3xl p-6 shadow-xl flex flex-col snap-start shrink-0 relative"
+                      className="min-w-[320px] max-w-[320px] bg-[#03162D] text-white rounded-3xl p-6 shadow-2xl border border-[rgba(232,237,240,0.12)] flex flex-col snap-start shrink-0 relative"
                     >
                       {res.imagem ? (
                         <div className="w-full h-40 mb-4 rounded-2xl overflow-hidden relative">
@@ -264,35 +272,35 @@ export default function LandingPage() {
                           />
                         </div>
                       ) : (
-                        <div className="w-full h-40 bg-gray-200 rounded-2xl mb-4 flex items-center justify-center">
-                          <span className="text-gray-400 text-sm">Sem imagem</span>
+                        <div className="w-full h-40 bg-[#020D1D] rounded-2xl mb-4 flex items-center justify-center border border-[rgba(232,237,240,0.08)]">
+                          <span className="text-[#A7B0B8] text-sm font-medium">Sem imagem</span>
                         </div>
                       )}
 
                       {res.destaque && (
-                        <div className="absolute top-8 left-8 bg-[#22C55E] text-white text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wider">
+                        <div className="absolute top-8 left-8 bg-[#00EBCB] text-[#020D1D] text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">
                           {res.destaque}
                         </div>
                       )}
 
                       {tierStyle && (
-                        <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: tierStyle.bg, border: `1.5px solid ${tierStyle.border}`, borderRadius: "20px", padding: "3px 10px 3px 6px", marginBottom: "8px" }}>
+                        <div style={{ display: "inline-flex", alignItems: "center", gap: "4px", background: tierStyle.bg, border: `1.5px solid ${tierStyle.border}`, borderRadius: "20px", padding: "3px 10px 3px 6px", marginBottom: "8px", width: "fit-content" }}>
                           <span style={{ fontSize: "13px" }}>{tierStyle.icon}</span>
                           <span style={{ fontSize: "11px", fontWeight: 700, color: tierStyle.text }}>{tierStyle.label}</span>
                         </div>
                       )}
 
-                      <h3 className="text-xl font-bold mb-2 truncate">
+                      <h3 className="text-xl font-bold mb-2 truncate text-white">
                         {res.titulo}
                       </h3>
 
-                      <p className="text-sm text-gray-500 mt-auto mb-6">
+                      <p className="text-sm text-[#A7B0B8] mt-auto mb-6 font-normal">
                         {res.User?.name ?? "Consultoria Credenciada"}
                       </p>
 
                       <button
                         onClick={() => router.push(`/servico/${res.id}`)}
-                        className="w-full bg-[#00D1B2] hover:bg-[#00BFA5] text-white font-bold py-4 rounded-xl transition-colors"
+                        className="w-full bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] font-semibold py-3.5 rounded-xl transition-all shadow-[0_4px_14px_rgba(0,235,203,0.3)] cursor-pointer"
                       >
                         Solicitar Orçamento
                       </button>
@@ -304,7 +312,7 @@ export default function LandingPage() {
 
             {resultados.length > 0 && (
               <button
-                className="mt-6 bg-[#6A0DAD] hover:bg-[#5E00A3] text-white font-bold px-12 py-4 rounded-full transition-colors"
+                className="mt-6 bg-gradient-to-r from-[#00A9D6] to-[#00EBCB] hover:opacity-95 text-[#020D1D] font-semibold px-12 py-4 rounded-full transition-all shadow-[0_8px_25px_rgba(0,235,203,0.3)] cursor-pointer"
                 onClick={() => {
                   setStep(1);
                   setServicoInput("");
@@ -342,7 +350,7 @@ export default function LandingPage() {
         />
       </div>
 
-      {/* Estilo para animação global css na mesma pagina e esconder a scrollbar horizontal */}
+      {/* Estilo para animação global css na mesma pagina e scrollbar horizontal */}
       <style
         dangerouslySetInnerHTML={{
           __html: `
@@ -354,22 +362,22 @@ export default function LandingPage() {
           animation: fadeIn 0.4s ease-out forwards;
         }
         .custom-scrollbar::-webkit-scrollbar {
-            height: 10px;
+            height: 8px;
         }
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(232, 237, 240, 0.08);
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(0, 235, 203, 0.35);
             border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.8);
+            background: rgba(0, 235, 203, 0.7);
         }
         .custom-scrollbar {
             scrollbar-width: thin;
-            scrollbar-color: rgba(255, 255, 255, 0.5) rgba(255, 255, 255, 0.1);
+            scrollbar-color: rgba(0, 235, 203, 0.35) rgba(232, 237, 240, 0.08);
         }
       `,
         }}

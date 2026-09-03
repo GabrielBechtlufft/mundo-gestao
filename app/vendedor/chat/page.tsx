@@ -35,9 +35,9 @@ const STATUS_COLOR: Record<string, { bg: string; text: string }> = {
 
 function Avatar({ nome, imagem, size = 44 }: { nome: string; imagem?: string | null; size?: number }) {
   if (imagem) return <img src={imagem} alt={nome} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
-  const cor = ["#6001D3","#0891B2","#059669","#D97706","#DC2626"][nome.charCodeAt(0) % 5];
+  const cor = ["#00EBCB", "#00A9D6", "#22C55E", "#F59E0B", "#F87171", "#00CDB8"][nome.charCodeAt(0) % 6];
   return (
-    <div style={{ width: size, height: size, borderRadius: "50%", background: cor + "20", border: `2px solid ${cor}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: size * 0.38, fontWeight: 800, color: cor }}>
+    <div style={{ width: size, height: size, borderRadius: "50%", background: cor + "20", border: `2px solid ${cor}55`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: size * 0.38, fontWeight: 800, color: cor }}>
       {nome[0]?.toUpperCase()}
     </div>
   );
@@ -76,25 +76,25 @@ function ModalAtribuir({
   return (
     <div
       onClick={onClose}
-      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(2px)" }}
+      style={{ position: "fixed", inset: 0, background: "rgba(2,13,29,0.8)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(6px)" }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        style={{ background: "#fff", borderRadius: "20px", padding: "36px 32px", width: "100%", maxWidth: "440px", boxShadow: "0 20px 60px rgba(80,0,160,0.2)" }}
+        style={{ background: "#03162D", border: "1px solid rgba(232, 237, 240, 0.15)", borderRadius: "20px", padding: "36px 32px", width: "100%", maxWidth: "440px", boxShadow: "0 24px 60px rgba(0,0,0,0.6)", color: "#FFFFFF" }}
       >
-        <h2 style={{ fontSize: "20px", fontWeight: 800, marginTop: 0, marginBottom: "6px", color: "#111" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 800, marginTop: 0, marginBottom: "6px", color: "#FFFFFF" }}>
           Atribuir funcionário
         </h2>
-        <p style={{ color: "#6B7280", fontSize: "13px", margin: "0 0 24px" }}>
-          Chat com <strong>{conversa.compradorNome}</strong> · {conversa.isoTipo || conversa.titulo}
+        <p style={{ color: "#A7B0B8", fontSize: "13px", margin: "0 0 24px" }}>
+          Chat com <strong style={{ color: "#00EBCB" }}>{conversa.compradorNome}</strong> · {conversa.isoTipo || conversa.titulo}
         </p>
 
         {funcionarios.length === 0 ? (
-          <div style={{ background: "#F9FAFB", borderRadius: "12px", padding: "20px", textAlign: "center", marginBottom: "20px" }}>
-            <p style={{ color: "#6B7280", fontSize: "13px", margin: 0 }}>
+          <div style={{ background: "#020D1D", border: "1px solid rgba(232, 237, 240, 0.12)", borderRadius: "12px", padding: "20px", textAlign: "center", marginBottom: "20px" }}>
+            <p style={{ color: "#A7B0B8", fontSize: "13px", margin: 0 }}>
               Nenhum funcionário ativo com conta na plataforma.
             </p>
-            <p style={{ color: "#9CA3AF", fontSize: "12px", margin: "8px 0 0" }}>
+            <p style={{ color: "#00A9D6", fontSize: "12px", margin: "8px 0 0" }}>
               Crie contas na aba Equipe primeiro.
             </p>
           </div>
@@ -106,17 +106,17 @@ function ModalAtribuir({
               style={{
                 display: "flex", alignItems: "center", gap: "12px",
                 padding: "12px 16px", borderRadius: "12px", border: "1.5px solid",
-                borderColor: selecionado === null ? "#7B00D4" : "#E5E7EB",
-                background: selecionado === null ? "#F5F0FF" : "#fff",
+                borderColor: selecionado === null ? "#00EBCB" : "rgba(232, 237, 240, 0.15)",
+                background: selecionado === null ? "rgba(0, 235, 203, 0.12)" : "#020D1D",
                 cursor: "pointer", textAlign: "left", transition: "all 0.15s",
               }}
             >
-              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#F3F4F6", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0 }}>
+              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "rgba(232, 237, 240, 0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px", flexShrink: 0, color: "#FFFFFF" }}>
                 —
               </div>
               <div>
-                <div style={{ fontSize: "14px", fontWeight: 600, color: "#374151" }}>Sem atribuição</div>
-                <div style={{ fontSize: "12px", color: "#9CA3AF" }}>Visível para toda a certificadora</div>
+                <div style={{ fontSize: "14px", fontWeight: 600, color: "#FFFFFF" }}>Sem atribuição</div>
+                <div style={{ fontSize: "12px", color: "#A7B0B8" }}>Visível para toda a certificadora</div>
               </div>
             </button>
 
@@ -127,18 +127,18 @@ function ModalAtribuir({
                 style={{
                   display: "flex", alignItems: "center", gap: "12px",
                   padding: "12px 16px", borderRadius: "12px", border: "1.5px solid",
-                  borderColor: selecionado === f.id ? "#7B00D4" : "#E5E7EB",
-                  background: selecionado === f.id ? "#F5F0FF" : "#fff",
+                  borderColor: selecionado === f.id ? "#00EBCB" : "rgba(232, 237, 240, 0.15)",
+                  background: selecionado === f.id ? "rgba(0, 235, 203, 0.12)" : "#020D1D",
                   cursor: "pointer", textAlign: "left", transition: "all 0.15s",
                 }}
               >
                 <Avatar nome={f.nome} size={36} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#111" }}>{f.nome}</div>
-                  {f.cargo && <div style={{ fontSize: "12px", color: "#9CA3AF" }}>{f.cargo}</div>}
+                  <div style={{ fontSize: "14px", fontWeight: 600, color: "#FFFFFF" }}>{f.nome}</div>
+                  {f.cargo && <div style={{ fontSize: "12px", color: "#A7B0B8" }}>{f.cargo}</div>}
                 </div>
                 {!f.linkedUserId && (
-                  <span style={{ fontSize: "10px", fontWeight: 700, background: "#FEF3C7", color: "#92400E", padding: "2px 8px", borderRadius: "20px", flexShrink: 0 }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, background: "rgba(245, 158, 11, 0.15)", color: "#F59E0B", padding: "2px 8px", borderRadius: "20px", flexShrink: 0 }}>
                     Sem conta
                   </span>
                 )}
@@ -148,13 +148,13 @@ function ModalAtribuir({
         )}
 
         <div style={{ display: "flex", gap: "10px" }}>
-          <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "transparent", border: "1.5px solid #E5E7EB", borderRadius: "12px", fontWeight: 600, cursor: "pointer", color: "#374151", fontSize: "14px" }}>
+          <button onClick={onClose} style={{ flex: 1, padding: "12px", background: "transparent", border: "1.5px solid rgba(232, 237, 240, 0.2)", borderRadius: "12px", fontWeight: 600, cursor: "pointer", color: "#E8EDF0", fontSize: "14px" }}>
             Cancelar
           </button>
           <button
             onClick={handleSave}
             disabled={salvando}
-            style={{ flex: 2, padding: "12px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", borderRadius: "12px", fontWeight: 700, cursor: salvando ? "not-allowed" : "pointer", fontSize: "14px", opacity: salvando ? 0.7 : 1 }}
+            style={{ flex: 2, padding: "12px", background: "#00EBCB", color: "#020D1D", border: "none", borderRadius: "12px", fontWeight: 600, cursor: salvando ? "not-allowed" : "pointer", fontSize: "14px", opacity: salvando ? 0.7 : 1, boxShadow: "0 4px 14px rgba(0,235,203,0.3)" }}
           >
             {salvando ? "Salvando..." : "Confirmar atribuição"}
           </button>
@@ -219,26 +219,26 @@ export default function VendedorChatPage() {
   const isVendedor = sessionRole === "VENDEDOR";
 
   return (
-    <div style={{ padding: "8px 56px 32px", height: "100%", display: "flex", flexDirection: "column" }}>
+    <div style={{ padding: "8px 56px 32px", height: "100%", display: "flex", flexDirection: "column", fontFamily: "var(--font-montserrat), sans-serif", color: "#FFFFFF" }}>
       <div style={{ marginBottom: "32px", marginTop: "8px", flexShrink: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "20px" }}>
           <div>
-            <h1 style={{ color: "#fff", fontSize: "36px", fontWeight: 700, letterSpacing: "-0.5px", margin: "0 0 4px" }}>
+            <h1 style={{ color: "#FFFFFF", fontSize: "32px", fontWeight: 800, letterSpacing: "-0.5px", margin: "0 0 4px" }}>
               Conversas
               {totalNaoLidas > 0 && (
-                <span style={{ marginLeft: "12px", background: "#EF4444", color: "#fff", fontSize: "14px", fontWeight: 800, padding: "3px 10px", borderRadius: "20px", verticalAlign: "middle" }}>
+                <span style={{ marginLeft: "12px", background: "#EF4444", color: "#FFFFFF", fontSize: "13px", fontWeight: 800, padding: "3px 10px", borderRadius: "20px", verticalAlign: "middle" }}>
                   {totalNaoLidas}
                 </span>
               )}
             </h1>
-            <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "14px", margin: 0 }}>
+            <p style={{ color: "#A7B0B8", fontSize: "14px", margin: 0, fontWeight: 400 }}>
               {isVendedor ? "Todas as suas conversas com compradores" : "Conversas atribuídas a você"}
             </p>
           </div>
           <div style={{ display: "flex", gap: "8px" }}>
             {(["todas", "nao_lidas"] as const).map((f) => (
               <button key={f} onClick={() => setFiltro(f)}
-                style={{ padding: "8px 18px", borderRadius: "10px", border: "none", fontWeight: 700, fontSize: "13px", cursor: "pointer", background: filtro === f ? "#fff" : "rgba(255,255,255,0.15)", color: filtro === f ? "#6001D3" : "#fff", transition: "all 0.2s" }}>
+                style={{ padding: "8px 18px", borderRadius: "10px", border: "1px solid", borderColor: filtro === f ? "#00EBCB" : "rgba(232, 237, 240, 0.15)", fontWeight: 600, fontSize: "13px", cursor: "pointer", background: filtro === f ? "#00EBCB" : "rgba(232, 237, 240, 0.08)", color: filtro === f ? "#020D1D" : "#E8EDF0", transition: "all 0.2s" }}>
                 {f === "todas" ? "Todas" : `Não lidas${totalNaoLidas > 0 ? ` (${totalNaoLidas})` : ""}`}
               </button>
             ))}
@@ -248,7 +248,7 @@ export default function VendedorChatPage() {
         {/* Barra de busca */}
         <div style={{ position: "relative", maxWidth: "480px" }}>
           <svg
-            style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "rgba(255,255,255,0.5)", pointerEvents: "none" }}
+            style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#A7B0B8", pointerEvents: "none" }}
             xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           >
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -259,18 +259,18 @@ export default function VendedorChatPage() {
             onChange={(e) => setBusca(e.target.value)}
             placeholder="Buscar por nome ou ISO (ex: Vanessa, ISO 9001...)"
             style={{
-              width: "100%", padding: "11px 16px 11px 40px", borderRadius: "12px",
-              border: "1.5px solid rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.12)",
-              color: "#fff", fontSize: "14px", outline: "none", boxSizing: "border-box",
-              backdropFilter: "blur(4px)", transition: "border-color 0.2s",
+              width: "100%", padding: "12px 16px 12px 40px", borderRadius: "12px",
+              border: "1.5px solid rgba(232, 237, 240, 0.18)", background: "#020D1D",
+              color: "#FFFFFF", fontSize: "13px", outline: "none", boxSizing: "border-box",
+              transition: "border-color 0.2s",
             }}
-            onFocus={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.5)"; }}
-            onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.2)"; }}
+            onFocus={(e) => { e.target.style.borderColor = "#00EBCB"; }}
+            onBlur={(e) => { e.target.style.borderColor = "rgba(232, 237, 240, 0.18)"; }}
           />
           {busca && (
             <button
               onClick={() => setBusca("")}
-              style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.6)", cursor: "pointer", fontSize: "16px", padding: "2px 6px", lineHeight: 1 }}
+              style={{ position: "absolute", right: "12px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "#A7B0B8", cursor: "pointer", fontSize: "16px", padding: "2px 6px", lineHeight: 1 }}
             >
               ✕
             </button>
@@ -281,22 +281,22 @@ export default function VendedorChatPage() {
       <div style={{ display: "flex", gap: "24px", alignItems: "stretch", flex: 1, minHeight: 0 }}>
         <VendedorSidebar role={sessionRole} />
 
-        <div style={{ flex: 1, background: "#fff", borderRadius: "20px", boxShadow: "0 8px 32px rgba(80,0,160,0.1)", overflowY: "auto" }}>
+        <div style={{ flex: 1, background: "#03162D", border: "1px solid rgba(232, 237, 240, 0.15)", borderRadius: "20px", boxShadow: "0 8px 32px rgba(0,0,0,0.4)", overflowY: "auto" }}>
           {loading ? (
-            <p style={{ color: "#9CA3AF", textAlign: "center", padding: "60px 0" }}>Carregando conversas...</p>
+            <p style={{ color: "#00EBCB", textAlign: "center", padding: "60px 0", fontWeight: 500 }}>Carregando conversas...</p>
           ) : lista.length === 0 ? (
             <div style={{ textAlign: "center", padding: "80px 0" }}>
               <div style={{ fontSize: "48px", marginBottom: "12px" }}>
                 {busca ? "🔍" : "💬"}
               </div>
-              <p style={{ color: "#374151", fontSize: "16px", fontWeight: 700, margin: "0 0 6px" }}>
+              <p style={{ color: "#FFFFFF", fontSize: "16px", fontWeight: 700, margin: "0 0 6px" }}>
                 {busca
                   ? "Nenhum resultado encontrado"
                   : filtro === "nao_lidas"
                   ? "Nenhuma mensagem não lida"
                   : "Nenhuma conversa ainda"}
               </p>
-              <p style={{ color: "#9CA3AF", fontSize: "13px" }}>
+              <p style={{ color: "#A7B0B8", fontSize: "13px" }}>
                 {busca
                   ? `Sem conversas com "${busca}"`
                   : filtro === "nao_lidas"
@@ -304,7 +304,7 @@ export default function VendedorChatPage() {
                   : "As conversas aparecerão aqui quando houver propostas."}
               </p>
               {busca && (
-                <button onClick={() => setBusca("")} style={{ marginTop: "16px", padding: "8px 20px", background: "none", border: "1.5px solid #E5E7EB", borderRadius: "10px", cursor: "pointer", color: "#6B7280", fontSize: "13px", fontWeight: 600 }}>
+                <button onClick={() => setBusca("")} style={{ marginTop: "16px", padding: "8px 20px", background: "none", border: "1.5px solid rgba(232, 237, 240, 0.2)", borderRadius: "10px", cursor: "pointer", color: "#E8EDF0", fontSize: "13px", fontWeight: 600 }}>
                   Limpar busca
                 </button>
               )}
@@ -316,7 +316,7 @@ export default function VendedorChatPage() {
                 return (
                   <div
                     key={c.id}
-                    style={{ display: "flex", alignItems: "center", gap: "14px", padding: "16px 24px", borderTop: i > 0 ? "1px solid #F3F4F6" : "none", background: c.naoLidas > 0 ? "#FAFBFF" : "transparent" }}
+                    style={{ display: "flex", alignItems: "center", gap: "14px", padding: "16px 24px", borderTop: i > 0 ? "1px solid rgba(232, 237, 240, 0.08)" : "none", background: c.naoLidas > 0 ? "rgba(0, 235, 203, 0.05)" : "transparent" }}
                   >
                     {/* Avatar clicável */}
                     <div
@@ -332,30 +332,30 @@ export default function VendedorChatPage() {
                       style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
                     >
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "3px" }}>
-                        <span style={{ fontSize: "14px", fontWeight: c.naoLidas > 0 ? 800 : 700, color: "#111", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <span style={{ fontSize: "14px", fontWeight: c.naoLidas > 0 ? 800 : 700, color: "#FFFFFF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {c.compradorNome}
                         </span>
                         {c.isoTipo && (
-                          <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "8px", background: "#EDE9FE", color: "#6001D3", flexShrink: 0 }}>
+                          <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "8px", background: "rgba(0, 235, 203, 0.12)", color: "#00EBCB", border: "1px solid rgba(0, 235, 203, 0.25)", flexShrink: 0 }}>
                             {c.isoTipo}
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: "13px", fontWeight: 600, color: "#374151", marginBottom: "3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: "#00A9D6", marginBottom: "3px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {c.titulo}
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         {c.ultimaMensagem ? (
-                          <span style={{ fontSize: "12px", color: "#9CA3AF", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            <span style={{ fontWeight: 600 }}>{c.ultimaMensagem.remetente}:</span>{" "}
+                          <span style={{ fontSize: "12px", color: "#A7B0B8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            <span style={{ fontWeight: 600, color: "#E8EDF0" }}>{c.ultimaMensagem.remetente}:</span>{" "}
                             {c.ultimaMensagem.texto}
                           </span>
                         ) : (
-                          <span style={{ fontSize: "12px", color: "#D1D5DB", fontStyle: "italic" }}>Sem mensagens ainda</span>
+                          <span style={{ fontSize: "12px", color: "#A7B0B8", fontStyle: "italic", opacity: 0.7 }}>Sem mensagens ainda</span>
                         )}
                         {/* Badge do funcionário responsável */}
                         {c.funcionario && (
-                          <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "8px", background: "#F0FDF4", color: "#166534", flexShrink: 0, whiteSpace: "nowrap" }}>
+                          <span style={{ fontSize: "10px", fontWeight: 700, padding: "2px 8px", borderRadius: "8px", background: "rgba(34, 197, 94, 0.15)", color: "#22C55E", flexShrink: 0, whiteSpace: "nowrap" }}>
                             {c.funcionario.nome}
                           </span>
                         )}
@@ -364,7 +364,7 @@ export default function VendedorChatPage() {
 
                     {/* Coluna direita */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "6px", flexShrink: 0 }}>
-                      <span style={{ fontSize: "11px", color: "#9CA3AF" }}>
+                      <span style={{ fontSize: "11px", color: "#A7B0B8" }}>
                         {c.ultimaMensagem ? tempo(c.ultimaMensagem.createdAt) : ""}
                       </span>
                       <span style={{ fontSize: "11px", fontWeight: 700, padding: "3px 8px", borderRadius: "20px", background: sc.bg, color: sc.text }}>
@@ -383,12 +383,12 @@ export default function VendedorChatPage() {
                           style={{
                             display: "flex", alignItems: "center", gap: "4px",
                             padding: "4px 10px", borderRadius: "8px",
-                            border: "1.5px solid #E5E7EB", background: "#F9FAFB",
+                            border: "1.5px solid rgba(232, 237, 240, 0.18)", background: "#020D1D",
                             cursor: "pointer", fontSize: "11px", fontWeight: 600,
-                            color: "#6B7280", transition: "all 0.15s",
+                            color: "#A7B0B8", transition: "all 0.15s",
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#7B00D4"; e.currentTarget.style.color = "#7B00D4"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "#E5E7EB"; e.currentTarget.style.color = "#6B7280"; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#00EBCB"; e.currentTarget.style.color = "#00EBCB"; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(232, 237, 240, 0.18)"; e.currentTarget.style.color = "#A7B0B8"; }}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/>

@@ -80,9 +80,10 @@ export default function Navbar() {
           top: "80px",
           right: "40px",
           width: "300px",
-          background: "#ffffff",
+          background: "#03162D",
+          border: "1px solid rgba(232, 237, 240, 0.15)",
           borderRadius: "24px",
-          boxShadow: "0 24px 80px rgba(80,0,160,0.22)",
+          boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
           zIndex: 50,
           padding: "32px 28px 24px",
           transform: profileOpen ? "translateY(0) scale(1)" : "translateY(-16px) scale(0.95)",
@@ -97,13 +98,13 @@ export default function Navbar() {
           onClick={() => setProfileOpen(false)}
           style={{
             position: "absolute", top: "14px", right: "14px",
-            background: "#F3F4F6", border: "none", cursor: "pointer",
+            background: "rgba(255,255,255,0.08)", border: "none", cursor: "pointer",
             borderRadius: "50%", width: "28px", height: "28px",
             display: "flex", alignItems: "center", justifyContent: "center",
-            color: "#888", fontSize: "14px", transition: "background 0.15s",
+            color: "#A7B0B8", fontSize: "14px", transition: "background 0.15s",
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "#E5E7EB"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "#F3F4F6"; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.08)"; }}
           aria-label="Fechar painel"
         >
           ✕
@@ -112,26 +113,26 @@ export default function Navbar() {
         {/* Avatar */}
         <div style={{
           width: "72px", height: "72px", borderRadius: "22px",
-          background: "linear-gradient(135deg, #6001D3, #A872F0)",
+          background: "linear-gradient(135deg, #00A9D6, #00EBCB)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          fontSize: "30px", color: "#fff", margin: "0 auto 16px",
-          boxShadow: "0 8px 24px rgba(96,1,211,0.25)",
+          fontSize: "30px", color: "#020D1D", fontWeight: 800, margin: "0 auto 16px",
+          boxShadow: "0 8px 24px rgba(0,235,203,0.3)",
         }}>
           {user?.name ? user.name.charAt(0).toUpperCase() : "A"}
         </div>
 
         {/* Name & role */}
         <div style={{ textAlign: "center", marginBottom: "24px" }}>
-          <div style={{ fontSize: "18px", fontWeight: 800, color: "#111", marginBottom: "4px" }}>
+          <div style={{ fontSize: "18px", fontWeight: 800, color: "#FFFFFF", marginBottom: "4px" }}>
             {user?.name || "Administrador"}
           </div>
-          <div style={{ fontSize: "13px", color: "#888", marginBottom: "2px" }}>
+          <div style={{ fontSize: "13px", color: "#A7B0B8", marginBottom: "2px" }}>
             {user?.login || "—"}
           </div>
           <span style={{
             display: "inline-block", marginTop: "6px",
-            background: "linear-gradient(135deg, #6001D3, #A872F0)",
-            color: "#fff", fontSize: "11px", fontWeight: 700,
+            background: "linear-gradient(135deg, #00A9D6, #00EBCB)",
+            color: "#020D1D", fontSize: "11px", fontWeight: 700,
             padding: "3px 12px", borderRadius: "20px", letterSpacing: "0.04em",
           }}>
             Admin
@@ -139,14 +140,14 @@ export default function Navbar() {
         </div>
 
         {/* Info rows */}
-        <div style={{ borderTop: "1px solid #F3F4F6", borderBottom: "1px solid #F3F4F6", padding: "12px 0", marginBottom: "20px" }}>
+        <div style={{ borderTop: "1px solid rgba(232, 237, 240, 0.12)", borderBottom: "1px solid rgba(232, 237, 240, 0.12)", padding: "12px 0", marginBottom: "20px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0" }}>
-            <span style={{ fontSize: "13px", color: "#888", fontWeight: 600 }}>Função</span>
-            <span style={{ fontSize: "13px", color: "#6001D3", fontWeight: 700 }}>Administrador</span>
+            <span style={{ fontSize: "13px", color: "#A7B0B8", fontWeight: 500 }}>Função</span>
+            <span style={{ fontSize: "13px", color: "#00EBCB", fontWeight: 700 }}>Administrador</span>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "8px 0" }}>
-            <span style={{ fontSize: "13px", color: "#888", fontWeight: 600 }}>Status</span>
-            <span style={{ fontSize: "13px", color: "#22C55E", fontWeight: 700 }}>● Ativo</span>
+            <span style={{ fontSize: "13px", color: "#A7B0B8", fontWeight: 500 }}>Status</span>
+            <span style={{ fontSize: "13px", color: "#00EBCB", fontWeight: 700 }}>● Ativo</span>
           </div>
         </div>
 
@@ -157,13 +158,13 @@ export default function Navbar() {
           style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
             width: "100%", padding: "14px", marginBottom: "10px",
-            background: "linear-gradient(135deg, #6001D3, #A872F0)",
-            color: "#fff", border: "none",
-            borderRadius: "14px", fontSize: "14px", fontWeight: 700,
+            background: "linear-gradient(90deg, #00EBCB, #00A9D6)",
+            color: "#020D1D", border: "none",
+            borderRadius: "14px", fontSize: "14px", fontWeight: 600,
             cursor: "pointer", textDecoration: "none",
-            transition: "opacity 0.2s",
+            transition: "all 0.2s",
           }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.88"; }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.opacity = "0.9"; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.opacity = "1"; }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

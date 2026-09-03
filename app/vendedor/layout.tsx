@@ -16,7 +16,7 @@ export default async function VendedorLayout({
   }
 
   return (
-    <div className="flex flex-col h-screen relative overflow-hidden bg-[#6a11cb] bg-linear-to-br from-[#6a11cb] to-[#2575fc]">
+    <div className="flex flex-col h-screen relative overflow-hidden bg-[#020D1D] bg-gradient-to-br from-[#020D1D] via-[#03162D] to-[#020D1D] text-white">
       <PlanetBackground />
       <VendedorNavbar />
       <div className="relative z-10 flex-1 flex flex-col min-h-0 overflow-y-auto">

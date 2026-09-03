@@ -62,17 +62,15 @@ function LoginPageInner() {
   };
 
   return (
-    <div className="relative min-h-screen bg-linear-to-b from-[#6001D3] to-[#B06BDE] flex flex-col justify-center items-center overflow-hidden">
+    <div className="relative min-h-screen bg-[#020D1D] bg-gradient-to-b from-[#020D1D] via-[#03162D] to-[#020D1D] flex flex-col justify-center items-center overflow-hidden font-sans text-white">
       {/* Background Planet Map */}
-      <div className="absolute -bottom-[35vh] lg:-bottom-[60vh] left-1/2 -translate-x-1/2 w-[150vw] lg:w-[120vw] aspect-square select-none pointer-events-none opacity-80 mix-blend-screen">
+      <div className="absolute -bottom-[35vh] lg:-bottom-[60vh] left-1/2 -translate-x-1/2 w-[150vw] lg:w-[120vw] aspect-square select-none pointer-events-none opacity-50 mix-blend-screen">
         <Image
           src="/planet.svg"
           alt="Planet"
           fill
-          className="object-contain drop-shadow-[0_0_100px_rgba(255,255,255,0.8)]"
+          className="object-contain drop-shadow-[0_0_100px_rgba(0,235,203,0.3)]"
         />
-        {/* Glow behind the planet */}
-        <div className="absolute inset-0 bg-white/40 blur-[100px] rounded-full scale-75" />
       </div>
 
       {/* Header Info */}
@@ -83,25 +81,30 @@ function LoginPageInner() {
       </div>
 
       {/* Main Login Card */}
-      <main className="relative z-10 bg-white w-[90%] max-w-[400px] rounded-[36px] shadow-[0_20px_50px_rgba(80,0,160,0.4)] p-10 py-12 flex flex-col items-center">
-        <form onSubmit={handleLogin} className="w-full flex flex-col gap-6">
+      <main className="relative z-10 bg-[#03162D] w-[90%] max-w-[420px] rounded-[32px] border border-[rgba(232,237,240,0.15)] shadow-[0_24px_60px_rgba(0,0,0,0.6)] p-8 sm:p-10 flex flex-col items-center">
+        <div className="w-full text-center mb-6">
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Acesse sua conta</h1>
+          <p className="text-xs text-[#A7B0B8] mt-1 font-normal">Entre com suas credenciais para continuar</p>
+        </div>
+
+        <form onSubmit={handleLogin} className="w-full flex flex-col gap-5">
           {senhaTrocada && (
-            <div className="text-green-600 font-bold text-center text-xs bg-green-50 p-2 rounded-xl">
+            <div className="text-[#00EBCB] font-semibold text-center text-xs bg-[#00EBCB]/10 border border-[#00EBCB]/20 p-3 rounded-xl">
               Senha atualizada! Faça login com sua nova senha.
             </div>
           )}
           {error && (
-            <div className="text-red-500 font-bold text-center text-xs">
+            <div className="text-red-400 font-semibold text-center text-xs bg-red-500/10 border border-red-500/20 p-3 rounded-xl">
               {error}
             </div>
           )}
 
           {/* Form Fields */}
-          <div className="flex flex-col gap-5">
+          <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="login"
-                className="text-[#8D58B1] font-bold text-sm ml-1"
+                className="text-[#E8EDF0] font-medium text-xs ml-1"
               >
                 Login:
               </label>
@@ -110,14 +113,15 @@ function LoginPageInner() {
                 type="text"
                 value={login}
                 onChange={(e) => setLogin(e.target.value)}
-                className="w-full bg-white border border-[#D5E4F8] rounded-2xl h-[46px] px-4 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-inner"
+                placeholder="Seu usuário ou e-mail"
+                className="w-full bg-[#020D1D] border border-[rgba(232,237,240,0.18)] rounded-xl h-[46px] px-4 text-white placeholder-[#A7B0B8] font-medium focus:outline-none focus:border-[#00EBCB] focus:ring-2 focus:ring-[#00EBCB]/20 transition-all text-sm"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <label
                 htmlFor="senha"
-                className="text-[#8D58B1] font-bold text-sm ml-1"
+                className="text-[#E8EDF0] font-medium text-xs ml-1"
               >
                 Senha:
               </label>
@@ -127,12 +131,13 @@ function LoginPageInner() {
                   type={mostrarSenha ? "text" : "password"}
                   value={senha}
                   onChange={(e) => setSenha(e.target.value)}
-                  className="w-full bg-white border border-[#D5E4F8] rounded-2xl h-[46px] px-4 pr-12 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-inner"
+                  placeholder="••••••••"
+                  className="w-full bg-[#020D1D] border border-[rgba(232,237,240,0.18)] rounded-xl h-[46px] px-4 pr-12 text-white placeholder-[#A7B0B8] font-medium focus:outline-none focus:border-[#00EBCB] focus:ring-2 focus:ring-[#00EBCB]/20 transition-all text-sm"
                 />
                 <button
                   type="button"
                   onClick={() => setMostrarSenha((v) => !v)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A872D1] hover:text-[#6001D3] transition-colors"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A7B0B8] hover:text-[#00EBCB] transition-colors cursor-pointer"
                   tabIndex={-1}
                   aria-label={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
                 >
@@ -142,44 +147,44 @@ function LoginPageInner() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2 mt-[-10px]">
-            <p className="text-[9px] text-[#A2D5EC] text-center font-medium m-0">
-              Ao entrar, eu concordo com todos os termos da plataforma
-            </p>
+          <div className="flex items-center justify-between text-[11px] mt-[-4px]">
+            <span className="text-[#A7B0B8] font-normal text-[10px]">
+              Termos da plataforma
+            </span>
             <Link
               href="/esqueci-senha"
-              className="text-[9px] font-bold underline text-right text-[#B06BDE] hover:text-[#6001D3] m-0 no-underline"
+              className="font-semibold text-[#00EBCB] hover:text-[#00CDB8] transition-colors no-underline uppercase tracking-wide"
             >
-              ESQUECI MINHA SENHA
+              Esqueci minha senha
             </Link>
           </div>
 
           {/* Buttons Area */}
-          <div className="flex flex-col w-full gap-4 mt-2">
+          <div className="flex flex-col w-full gap-3 mt-2">
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-white border-2 border-[#A872D1] text-[#A872D1] rounded-[20px] font-bold shadow-[0_4px_0_0_#A872D1] active:shadow-none active:translate-y-1 transition-all flex justify-center items-center gap-3 text-sm hover:bg-purple-50 disabled:opacity-50"
+              className="w-full h-12 bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] rounded-xl font-semibold shadow-[0_4px_14px_rgba(0,235,203,0.3)] active:translate-y-0.5 transition-all flex justify-center items-center gap-2 text-sm disabled:opacity-50 cursor-pointer"
             >
               {loading ? "Entrando..." : "Entrar"}
             </button>
 
             <div className="text-center my-1 relative">
-              <span className="bg-white px-2 text-[9px] text-[#A872D1] font-bold uppercase relative z-10">
-                Criar Conta
+              <span className="bg-[#03162D] px-3 text-[10px] text-[#A7B0B8] font-semibold uppercase tracking-wider relative z-10">
+                Criar Nova Conta
               </span>
-              <div className="absolute top-1/2 left-0 w-full h-px bg-purple-100 -translate-y-1/2 z-0" />
+              <div className="absolute top-1/2 left-0 w-full h-px bg-[rgba(232,237,240,0.12)] -translate-y-1/2 z-0" />
             </div>
 
             <Link
               href="/cadastro-comprador"
-              className="w-full h-11 bg-white border-2 border-[#A872D1] text-[#A872D1] rounded-[20px] font-bold shadow-[0_4px_0_0_#A872D1] active:shadow-none active:translate-y-1 transition-all flex justify-center items-center gap-3 text-sm hover:bg-purple-50 no-underline"
+              className="w-full h-11 bg-transparent border border-[#00EBCB]/40 hover:border-[#00EBCB] text-[#00EBCB] hover:bg-[#00EBCB]/10 rounded-xl font-semibold transition-all flex justify-center items-center gap-2 text-xs sm:text-sm no-underline"
             >
               Cadastrar como Comprador
             </Link>
             <Link
               href="/cadastro"
-              className="w-full h-11 bg-white border-2 border-[#A872D1] text-[#A872D1] rounded-[20px] font-bold shadow-[0_4px_0_0_#A872D1] active:shadow-none active:translate-y-1 transition-all flex justify-center items-center gap-3 text-sm hover:bg-purple-50 no-underline"
+              className="w-full h-11 bg-transparent border border-[#00A9D6]/40 hover:border-[#00A9D6] text-[#00A9D6] hover:bg-[#00A9D6]/10 rounded-xl font-semibold transition-all flex justify-center items-center gap-2 text-xs sm:text-sm no-underline"
             >
               Cadastrar como Certificadora
             </Link>

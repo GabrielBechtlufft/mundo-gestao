@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -80,12 +80,13 @@ export default function VendedorSidebar({ role }: { role?: string }) {
 
       <aside
         style={{
-          background: "#ffffff",
+          background: "#03162D",
+          border: "1px solid rgba(232, 237, 240, 0.12)",
           borderRadius: "20px",
           width: isMinimized ? "64px" : "200px",
           minHeight: "340px",
           padding: isMinimized ? "20px 8px" : "20px 12px",
-          boxShadow: "0 8px 32px rgba(80,0,160,0.12)",
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
           flexShrink: 0,
           display: "flex",
           flexDirection: "column",
@@ -102,7 +103,7 @@ export default function VendedorSidebar({ role }: { role?: string }) {
             right: isMinimized ? "50%" : "16px",
             transform: isMinimized ? "translateX(50%)" : "none",
             background: "none", border: "none", cursor: "pointer",
-            color: "#7B00D4", padding: "4px",
+            color: "#00EBCB", padding: "4px",
             transition: "all 0.3s ease", zIndex: 10,
           }}
           aria-label={isMinimized ? "Expandir" : "Minimizar"}
@@ -115,6 +116,7 @@ export default function VendedorSidebar({ role }: { role?: string }) {
             style={{
               transition: "transform 0.3s ease",
               transform: isMinimized ? "rotate(180deg)" : "none",
+              filter: "brightness(0) invert(1)",
             }}
           />
         </button>
@@ -135,15 +137,16 @@ export default function VendedorSidebar({ role }: { role?: string }) {
                   padding: "10px 12px", borderRadius: "10px",
                   fontSize: "14px",
                   fontWeight: isActive ? 600 : 400,
-                  color: isActive ? "#7B00D4" : "#555",
+                  color: isActive ? "#00EBCB" : "#A7B0B8",
                   textDecoration: "none",
                   transition: "all 0.15s ease",
-                  background: isActive ? "rgba(123,0,212,0.06)" : "transparent",
+                  background: isActive ? "rgba(0, 235, 203, 0.12)" : "transparent",
+                  border: isActive ? "1px solid rgba(0, 235, 203, 0.2)" : "1px solid transparent",
                   overflow: "hidden", whiteSpace: "nowrap",
                 }}
               >
                 <span style={{
-                  color: isActive ? "#7B00D4" : "#888",
+                  color: isActive ? "#00EBCB" : "#A7B0B8",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   minWidth: "20px",
                 }}>

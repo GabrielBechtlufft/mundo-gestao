@@ -30,10 +30,10 @@ type PropostaInfo = {
 };
 
 const TIER_STYLE: Record<string, { label: string; bg: string; text: string; border: string; icon: string }> = {
-  BRONZE:  { label: "Bronze",  bg: "#FDF1E8", text: "#92400E", border: "#CD7F32", icon: "🥉" },
-  PRATA:   { label: "Prata",   bg: "#F3F4F6", text: "#4B5563", border: "#9E9E9E", icon: "🥈" },
-  OURO:    { label: "Ouro",    bg: "#FFFBEB", text: "#92400E", border: "#FFD700", icon: "🥇" },
-  PLATINA: { label: "Platina", bg: "#F5F3FF", text: "#6001D3", border: "#A855F7", icon: "💎" },
+  BRONZE:  { label: "Bronze",  bg: "rgba(205,127,50,0.15)", text: "#CD7F32", border: "#CD7F32", icon: "🥉" },
+  PRATA:   { label: "Prata",   bg: "rgba(232,237,240,0.1)", text: "#E8EDF0", border: "#A7B0B8", icon: "🥈" },
+  OURO:    { label: "Ouro",    bg: "rgba(255,215,0,0.12)", text: "#FFD700", border: "#FFD700", icon: "🥇" },
+  PLATINA: { label: "Platina", bg: "rgba(0,235,203,0.12)", text: "#00EBCB", border: "#00EBCB", icon: "💎" },
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -55,7 +55,7 @@ function StarRating({ value, onChange }: { value: number; onChange?: (n: number)
           onClick={() => onChange && onChange(star)}
           onMouseEnter={() => onChange && setHover(star)}
           onMouseLeave={() => onChange && setHover(0)}
-          style={{ fontSize: "32px", cursor: onChange ? "pointer" : "default", color: star <= (hover || value) ? "#F59E0B" : "rgba(255,255,255,0.3)", transition: "color 0.15s", userSelect: "none" }}
+          style={{ fontSize: "32px", cursor: onChange ? "pointer" : "default", color: star <= (hover || value) ? "#00EBCB" : "rgba(232, 237, 240, 0.2)", transition: "color 0.15s", userSelect: "none" }}
         >
           ★
         </span>
@@ -103,37 +103,37 @@ function NegociacaoModal({
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div style={{ background: "#fff", borderRadius: "24px", width: "100%", maxWidth: "460px", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.3)" }}>
-        <div style={{ background: "linear-gradient(135deg,#6001D3,#A872F0)", padding: "24px 28px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(2,13,29,0.8)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", backdropFilter: "blur(6px)" }}>
+      <div style={{ background: "#03162D", border: "1px solid rgba(232, 237, 240, 0.15)", borderRadius: "24px", width: "100%", maxWidth: "460px", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", color: "#FFFFFF" }}>
+        <div style={{ background: "linear-gradient(135deg,#03162D,#00A9D6)", borderBottom: "1px solid rgba(232, 237, 240, 0.12)", padding: "24px 28px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <h2 style={{ color: "#fff", margin: 0, fontSize: "18px", fontWeight: 800 }}>Concluir Negociação</h2>
-            <p style={{ color: "rgba(255,255,255,0.75)", margin: "4px 0 0", fontSize: "13px" }}>{proposta.servico}</p>
+            <h2 style={{ color: "#FFFFFF", margin: 0, fontSize: "18px", fontWeight: 800 }}>Concluir Negociação</h2>
+            <p style={{ color: "#E8EDF0", margin: "4px 0 0", fontSize: "13px" }}>{proposta.servico}</p>
           </div>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button onClick={onClose} style={{ background: "rgba(232,237,240,0.15)", border: "none", color: "#FFFFFF", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
 
         <div style={{ padding: "28px" }}>
-          <p style={{ color: "#555", fontSize: "14px", lineHeight: 1.6, marginTop: 0, marginBottom: "24px" }}>
+          <p style={{ color: "#A7B0B8", fontSize: "14px", lineHeight: 1.6, marginTop: 0, marginBottom: "24px" }}>
             Ambas as partes precisam confirmar para encerrar a negociação. Após a conclusão, o comprador poderá avaliar a certificadora.
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 16px", borderRadius: "12px", background: proposta.vendedorConfirmou ? "#F0FDF4" : "#F9FAFB", border: `1.5px solid ${proposta.vendedorConfirmou ? "#86EFAC" : "#E5E7EB"}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 16px", borderRadius: "12px", background: proposta.vendedorConfirmou ? "rgba(34, 197, 94, 0.12)" : "#020D1D", border: `1.5px solid ${proposta.vendedorConfirmou ? "rgba(34, 197, 94, 0.4)" : "rgba(232, 237, 240, 0.12)"}` }}>
               <span style={{ fontSize: "20px" }}>{proposta.vendedorConfirmou ? "✅" : "⏳"}</span>
               <div>
-                <div style={{ fontWeight: 700, fontSize: "13px", color: "#111" }}>Certificadora — {proposta.vendedorNome}</div>
-                <div style={{ fontSize: "12px", color: proposta.vendedorConfirmou ? "#166534" : "#9CA3AF" }}>
+                <div style={{ fontWeight: 700, fontSize: "13px", color: "#FFFFFF" }}>Certificadora — {proposta.vendedorNome}</div>
+                <div style={{ fontSize: "12px", color: proposta.vendedorConfirmou ? "#22C55E" : "#A7B0B8" }}>
                   {proposta.vendedorConfirmou ? "Confirmou a conclusão" : "Aguardando confirmação"}
                 </div>
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 16px", borderRadius: "12px", background: proposta.compradorConfirmou ? "#F0FDF4" : "#F9FAFB", border: `1.5px solid ${proposta.compradorConfirmou ? "#86EFAC" : "#E5E7EB"}` }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 16px", borderRadius: "12px", background: proposta.compradorConfirmou ? "rgba(34, 197, 94, 0.12)" : "#020D1D", border: `1.5px solid ${proposta.compradorConfirmou ? "rgba(34, 197, 94, 0.4)" : "rgba(232, 237, 240, 0.12)"}` }}>
               <span style={{ fontSize: "20px" }}>{proposta.compradorConfirmou ? "✅" : "⏳"}</span>
               <div>
-                <div style={{ fontWeight: 700, fontSize: "13px", color: "#111" }}>Comprador — {proposta.compradorNome}</div>
-                <div style={{ fontSize: "12px", color: proposta.compradorConfirmou ? "#166534" : "#9CA3AF" }}>
+                <div style={{ fontWeight: 700, fontSize: "13px", color: "#FFFFFF" }}>Comprador — {proposta.compradorNome}</div>
+                <div style={{ fontSize: "12px", color: proposta.compradorConfirmou ? "#22C55E" : "#A7B0B8" }}>
                   {proposta.compradorConfirmou ? "Confirmou a conclusão" : "Aguardando confirmação"}
                 </div>
               </div>
@@ -141,7 +141,7 @@ function NegociacaoModal({
           </div>
 
           {erro && (
-            <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: "10px", padding: "10px 14px", color: "#B91C1C", fontSize: "13px", marginBottom: "16px" }}>
+            <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "10px", padding: "10px 14px", color: "#F87171", fontSize: "13px", marginBottom: "16px" }}>
               {erro}
             </div>
           )}
@@ -150,12 +150,12 @@ function NegociacaoModal({
             <button
               onClick={handleConfirmar}
               disabled={confirmando}
-              style={{ width: "100%", padding: "14px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: confirmando ? "not-allowed" : "pointer", opacity: confirmando ? 0.7 : 1, transition: "opacity 0.2s" }}
+              style={{ width: "100%", padding: "14px", background: "#00EBCB", color: "#020D1D", border: "none", borderRadius: "12px", fontWeight: 600, fontSize: "15px", cursor: confirmando ? "not-allowed" : "pointer", opacity: confirmando ? 0.7 : 1, transition: "opacity 0.2s", boxShadow: "0 4px 14px rgba(0,235,203,0.3)" }}
             >
               {confirmando ? "Confirmando..." : "✅ Confirmar Conclusão"}
             </button>
           ) : euConfirmei ? (
-            <div style={{ textAlign: "center", color: "#166534", fontWeight: 600, fontSize: "14px", padding: "12px", background: "#F0FDF4", borderRadius: "12px" }}>
+            <div style={{ textAlign: "center", color: "#22C55E", fontWeight: 600, fontSize: "14px", padding: "12px", background: "rgba(34, 197, 94, 0.12)", borderRadius: "12px" }}>
               Você já confirmou. Aguardando a outra parte.
             </div>
           ) : null}
@@ -197,57 +197,57 @@ function AvaliacaoModal({
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div style={{ background: "#fff", borderRadius: "24px", width: "100%", maxWidth: "460px", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.3)" }}>
-        <div style={{ background: "linear-gradient(135deg,#6001D3,#A872F0)", padding: "24px 28px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(2,13,29,0.8)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", backdropFilter: "blur(6px)" }}>
+      <div style={{ background: "#03162D", border: "1px solid rgba(232, 237, 240, 0.15)", borderRadius: "24px", width: "100%", maxWidth: "460px", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", color: "#FFFFFF" }}>
+        <div style={{ background: "linear-gradient(135deg,#03162D,#00A9D6)", borderBottom: "1px solid rgba(232, 237, 240, 0.12)", padding: "24px 28px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div>
-            <h2 style={{ color: "#fff", margin: 0, fontSize: "18px", fontWeight: 800 }}>Avaliar Certificadora</h2>
-            <p style={{ color: "rgba(255,255,255,0.75)", margin: "4px 0 0", fontSize: "13px" }}>{proposta.vendedorNome}</p>
+            <h2 style={{ color: "#FFFFFF", margin: 0, fontSize: "18px", fontWeight: 800 }}>Avaliar Certificadora</h2>
+            <p style={{ color: "#E8EDF0", margin: "4px 0 0", fontSize: "13px" }}>{proposta.vendedorNome}</p>
           </div>
-          <button onClick={onClose} style={{ background: "rgba(255,255,255,0.2)", border: "none", color: "#fff", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button onClick={onClose} style={{ background: "rgba(232,237,240,0.15)", border: "none", color: "#FFFFFF", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
         </div>
 
         <div style={{ padding: "28px" }}>
           {sucesso ? (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
               <div style={{ fontSize: "48px", marginBottom: "12px" }}>⭐</div>
-              <h3 style={{ color: "#111", margin: "0 0 8px", fontSize: "18px", fontWeight: 800 }}>Obrigado pelo feedback!</h3>
-              <p style={{ color: "#6B7280", fontSize: "14px", margin: "0 0 24px" }}>Sua avaliação foi enviada com sucesso.</p>
-              <button onClick={onClose} style={{ padding: "12px 28px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", borderRadius: "12px", fontWeight: 700, cursor: "pointer", fontSize: "14px" }}>
+              <h3 style={{ color: "#FFFFFF", margin: "0 0 8px", fontSize: "18px", fontWeight: 800 }}>Obrigado pelo feedback!</h3>
+              <p style={{ color: "#A7B0B8", fontSize: "14px", margin: "0 0 24px" }}>Sua avaliação foi enviada com sucesso.</p>
+              <button onClick={onClose} style={{ padding: "12px 28px", background: "#00EBCB", color: "#020D1D", border: "none", borderRadius: "12px", fontWeight: 600, cursor: "pointer", fontSize: "14px", boxShadow: "0 4px 14px rgba(0,235,203,0.3)" }}>
                 Fechar
               </button>
             </div>
           ) : (
             <>
-              <p style={{ color: "#555", fontSize: "14px", lineHeight: 1.6, marginTop: 0, marginBottom: "20px" }}>
+              <p style={{ color: "#A7B0B8", fontSize: "14px", lineHeight: 1.6, marginTop: 0, marginBottom: "20px" }}>
                 Como foi sua experiência com a certificadora nesta negociação?
               </p>
 
               <div style={{ marginBottom: "20px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#374151", marginBottom: "10px" }}>Sua nota *</label>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#E8EDF0", marginBottom: "10px" }}>Sua nota *</label>
                 <StarRating value={nota} onChange={setNota} />
                 {nota > 0 && (
-                  <span style={{ fontSize: "13px", color: "#6B7280", marginTop: "6px", display: "block" }}>
+                  <span style={{ fontSize: "13px", color: "#00EBCB", marginTop: "6px", display: "block", fontWeight: 600 }}>
                     {["", "Péssimo", "Ruim", "Regular", "Bom", "Excelente"][nota]}
                   </span>
                 )}
               </div>
 
               <div style={{ marginBottom: "20px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 600, color: "#374151", marginBottom: "6px" }}>Comentário *</label>
+                <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#E8EDF0", marginBottom: "6px" }}>Comentário *</label>
                 <textarea
                   value={comentario}
                   onChange={(e) => setComentario(e.target.value)}
                   rows={4}
                   placeholder="Conte sobre sua experiência com este serviço ISO..."
-                  style={{ width: "100%", border: "1.5px solid #E5E7EB", borderRadius: "12px", padding: "12px 16px", fontSize: "14px", resize: "vertical", boxSizing: "border-box", outline: "none", fontFamily: "inherit", lineHeight: 1.5 }}
-                  onFocus={(e) => (e.target.style.borderColor = "#6001D3")}
-                  onBlur={(e) => (e.target.style.borderColor = "#E5E7EB")}
+                  style={{ width: "100%", border: "1.5px solid rgba(232, 237, 240, 0.18)", borderRadius: "12px", padding: "12px 16px", fontSize: "14px", resize: "vertical", boxSizing: "border-box", outline: "none", fontFamily: "inherit", lineHeight: 1.5, background: "#020D1D", color: "#FFFFFF" }}
+                  onFocus={(e) => (e.target.style.borderColor = "#00EBCB")}
+                  onBlur={(e) => (e.target.style.borderColor = "rgba(232, 237, 240, 0.18)")}
                 />
               </div>
 
               {erro && (
-                <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: "10px", padding: "10px 14px", color: "#B91C1C", fontSize: "13px", marginBottom: "16px" }}>
+                <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "10px", padding: "10px 14px", color: "#F87171", fontSize: "13px", marginBottom: "16px" }}>
                   {erro}
                 </div>
               )}
@@ -255,7 +255,7 @@ function AvaliacaoModal({
               <button
                 onClick={handleEnviar}
                 disabled={enviando}
-                style={{ width: "100%", padding: "14px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", borderRadius: "12px", fontWeight: 700, fontSize: "15px", cursor: enviando ? "not-allowed" : "pointer", opacity: enviando ? 0.7 : 1, transition: "opacity 0.2s" }}
+                style={{ width: "100%", padding: "14px", background: "#00EBCB", color: "#020D1D", border: "none", borderRadius: "12px", fontWeight: 600, fontSize: "15px", cursor: enviando ? "not-allowed" : "pointer", opacity: enviando ? 0.7 : 1, transition: "opacity 0.2s", boxShadow: "0 4px 14px rgba(0,235,203,0.3)" }}
               >
                 {enviando ? "Enviando..." : "✉ Enviar Avaliação"}
               </button>

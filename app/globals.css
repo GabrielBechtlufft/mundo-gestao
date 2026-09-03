@@ -1,11 +1,35 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-montserrat), 'Montserrat', sans-serif;
+  --font-montserrat: var(--font-montserrat), 'Montserrat', sans-serif;
+
+  /* Cores Oficiais MDG */
+  --color-turquoise: #00EBCB;
+  --color-turquoise-mdg: #00EBCB;
+  --color-turquoise-sec: #00CDB8;
+  --color-turquoise-hover: #00CDB8;
+  
+  --color-cyan-tech: #00A9D6;
+  --color-cyan: #00A9D6;
+
+  --color-navy: #020D1D;
+  --color-navy-mdg: #020D1D;
+  --color-navy-sec: #03162D;
+  --color-navy-card: #03162D;
+
+  --color-gray-light: #E8EDF0;
+  --color-gray-medium: #A7B0B8;
+}
+
 :root {
-  --purple-dark: #5B0099;
-  --purple-main: #7B00D4;
-  --purple-light: #9B30FF;
-  --green-main: #16A34A;
-  --green-light: #22C55E;
+  --turquoise-mdg: #00EBCB;
+  --turquoise-sec: #00CDB8;
+  --cyan-tech: #00A9D6;
+  --navy-mdg: #020D1D;
+  --navy-sec: #03162D;
+  --gray-light: #E8EDF0;
+  --gray-medium: #A7B0B8;
 }
 
 * {
@@ -13,21 +37,32 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-montserrat), 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: linear-gradient(160deg, #7B00D4 0%, #9B59FF 50%, #C084FC 100%);
+  background-color: #020D1D;
+  background-image: radial-gradient(circle at 50% 0%, #031c38 0%, #020D1D 70%);
+  color: #FFFFFF;
 }
 
 /* Scrollbar customization */
 ::-webkit-scrollbar {
   width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.3);
-  border-radius: 3px;
+  background: rgba(0, 235, 203, 0.25);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 235, 203, 0.5);
+}
+
+::selection {
+  background: #00EBCB;
+  color: #020D1D;
 }

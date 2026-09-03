@@ -26,10 +26,9 @@ export default function EsqueciSenhaPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-linear-to-b from-[#6001D3] to-[#B06BDE] flex flex-col justify-center items-center overflow-hidden">
-      <div className="absolute -bottom-[35vh] lg:-bottom-[60vh] left-1/2 -translate-x-1/2 w-[150vw] lg:w-[120vw] aspect-square select-none pointer-events-none opacity-80 mix-blend-screen">
-        <Image src="/planet.svg" alt="Planet" fill className="object-contain drop-shadow-[0_0_100px_rgba(255,255,255,0.8)]" />
-        <div className="absolute inset-0 bg-white/40 blur-[100px] rounded-full scale-75" />
+    <div className="relative min-h-screen bg-[#020D1D] bg-gradient-to-b from-[#020D1D] via-[#03162D] to-[#020D1D] flex flex-col justify-center items-center overflow-hidden font-sans text-white">
+      <div className="absolute -bottom-[35vh] lg:-bottom-[60vh] left-1/2 -translate-x-1/2 w-[150vw] lg:w-[120vw] aspect-square select-none pointer-events-none opacity-50 mix-blend-screen">
+        <Image src="/planet.svg" alt="Planet" fill className="object-contain drop-shadow-[0_0_100px_rgba(0,235,203,0.3)]" />
       </div>
 
       <div className="absolute top-8 left-8 md:top-12 md:left-12 z-20">
@@ -38,22 +37,22 @@ export default function EsqueciSenhaPage() {
         </Link>
       </div>
 
-      <main className="relative z-10 bg-white w-[90%] max-w-[420px] rounded-[36px] shadow-[0_20px_50px_rgba(80,0,160,0.4)] p-10 py-12 flex flex-col items-center">
+      <main className="relative z-10 bg-[#03162D] w-[90%] max-w-[420px] rounded-[32px] border border-[rgba(232,237,240,0.15)] shadow-[0_24px_60px_rgba(0,0,0,0.6)] p-8 sm:p-10 flex flex-col items-center">
         {enviado ? (
           <div className="w-full text-center flex flex-col items-center gap-5">
-            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "#f0fdf4", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>
+            <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(0,235,203,0.12)", border: "1px solid rgba(0,235,203,0.3)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32 }}>
               ✉️
             </div>
             <div>
-              <h2 style={{ fontSize: 22, fontWeight: 800, color: "#111", margin: "0 0 8px" }}>Verifique seu e-mail</h2>
-              <p style={{ fontSize: 14, color: "#6B7280", lineHeight: 1.6, margin: 0 }}>
+              <h2 className="text-2xl font-extrabold text-white mb-2">Verifique seu e-mail</h2>
+              <p className="text-sm text-[#A7B0B8] leading-relaxed m-0 font-normal">
                 Se encontrarmos uma conta com esse login ou e-mail, enviaremos as instruções para redefinir sua senha.
               </p>
             </div>
-            <p style={{ fontSize: 12, color: "#9CA3AF" }}>O link expira em 1 hora.</p>
+            <p className="text-xs text-[#A7B0B8]">O link expira em 1 hora.</p>
             <Link
               href="/login"
-              className="w-full h-11 bg-white border-2 border-[#A872D1] text-[#A872D1] rounded-[20px] font-bold shadow-[0_4px_0_0_#A872D1] active:shadow-none active:translate-y-1 transition-all flex justify-center items-center text-sm hover:bg-purple-50 no-underline"
+              className="w-full h-12 bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] rounded-xl font-semibold shadow-[0_4px_14px_rgba(0,235,203,0.3)] transition-all flex justify-center items-center text-sm no-underline"
             >
               Voltar ao login
             </Link>
@@ -61,47 +60,47 @@ export default function EsqueciSenhaPage() {
         ) : (
           <>
             <div className="w-full text-center mb-6">
-              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "#f0e8ff", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 28 }}>
+              <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,169,214,0.15)", border: "1px solid rgba(0,169,214,0.3)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", fontSize: 26 }}>
                 🔑
               </div>
-              <h2 style={{ fontSize: 22, fontWeight: 800, color: "#111", margin: "0 0 6px" }}>Esqueceu sua senha?</h2>
-              <p style={{ fontSize: 13, color: "#888", margin: 0, lineHeight: 1.5 }}>
+              <h2 className="text-2xl font-extrabold text-white mb-1.5">Esqueceu sua senha?</h2>
+              <p className="text-xs text-[#A7B0B8] leading-relaxed m-0 font-normal">
                 Informe seu login ou e-mail e enviaremos um link para redefinir sua senha.
               </p>
             </div>
 
             <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5">
               {erro && (
-                <div style={{ color: "#EF4444", fontWeight: 700, fontSize: 13, textAlign: "center", background: "#FEF2F2", padding: "10px 14px", borderRadius: 10 }}>
+                <div className="text-red-400 font-semibold text-xs text-center bg-red-500/10 border border-red-500/20 p-3 rounded-xl">
                   {erro}
                 </div>
               )}
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[#8D58B1] font-bold text-sm ml-1">Login ou E-mail:</label>
+                <label className="text-[#E8EDF0] font-medium text-xs ml-1">Login ou E-mail:</label>
                 <input
                   type="text"
                   value={loginOuEmail}
                   onChange={(e) => setLoginOuEmail(e.target.value)}
                   placeholder="Seu login ou e-mail"
                   autoFocus
-                  className="w-full bg-white border border-[#D5E4F8] rounded-2xl h-[46px] px-4 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-inner"
+                  className="w-full bg-[#020D1D] border border-[rgba(232,237,240,0.18)] rounded-xl h-[46px] px-4 text-white placeholder-[#A7B0B8] font-medium focus:outline-none focus:border-[#00EBCB] focus:ring-2 focus:ring-[#00EBCB]/20 transition-all text-sm"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full h-11 bg-white border-2 border-[#A872D1] text-[#A872D1] rounded-[20px] font-bold shadow-[0_4px_0_0_#A872D1] active:shadow-none active:translate-y-1 transition-all flex justify-center items-center text-sm hover:bg-purple-50 disabled:opacity-50 mt-1"
+                className="w-full h-12 bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] rounded-xl font-semibold shadow-[0_4px_14px_rgba(0,235,203,0.3)] active:translate-y-0.5 transition-all flex justify-center items-center text-sm disabled:opacity-50 mt-1 cursor-pointer"
               >
                 {loading ? "Enviando..." : "Enviar link de redefinição"}
               </button>
 
               <Link
                 href="/login"
-                className="text-center text-xs text-[#A872D1] hover:text-[#6001D3] font-semibold no-underline"
+                className="text-center text-xs text-[#00EBCB] hover:text-[#00CDB8] font-semibold no-underline"
               >
-                Voltar ao login
+                ← Voltar ao login
               </Link>
             </form>
           </>

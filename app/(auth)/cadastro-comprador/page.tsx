@@ -88,28 +88,28 @@ export default function CadastroCompradorPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-linear-to-b from-[#6001D3] to-[#B06BDE] flex flex-col justify-center items-center overflow-hidden px-4 py-10">
+    <div className="relative min-h-screen bg-[#020D1D] bg-gradient-to-b from-[#020D1D] via-[#03162D] to-[#020D1D] flex flex-col justify-center items-center overflow-hidden px-4 py-12 font-sans text-white">
       <div className="absolute top-8 left-8 md:top-12 md:left-12 z-20">
         <Link href="/" className="no-underline transition-transform hover:opacity-90 active:scale-95">
           <Logo size="md" />
         </Link>
       </div>
 
-      <main className="relative z-10 bg-white w-full max-w-[420px] rounded-[36px] shadow-[0_20px_50px_rgba(80,0,160,0.4)] p-10 py-12 flex flex-col items-center mt-16">
+      <main className="relative z-10 bg-[#03162D] w-full max-w-[420px] rounded-[32px] border border-[rgba(232,237,240,0.15)] shadow-[0_24px_60px_rgba(0,0,0,0.6)] p-8 sm:p-10 flex flex-col items-center mt-12">
         <div className="w-full mb-6 text-center">
-          <h1 className="text-2xl font-extrabold text-gray-800 mb-1">Criar conta</h1>
-          <p className="text-sm text-gray-500">Acesse serviços de consultoria ISO</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Criar conta Comprador</h1>
+          <p className="text-xs text-[#A7B0B8] mt-1 font-normal">Acesse e contrate serviços de certificação ISO</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-5">
+        <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
           {erro && (
-            <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm font-medium">
+            <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-xs font-semibold">
               {erro}
             </div>
           )}
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="nome" className="text-[#8D58B1] font-bold text-sm ml-1">Nome completo</label>
+            <label htmlFor="nome" className="text-[#E8EDF0] font-medium text-xs ml-1">Nome completo</label>
             <input
               id="nome"
               name="nome"
@@ -117,12 +117,12 @@ export default function CadastroCompradorPage() {
               value={form.nome}
               onChange={handleChange}
               placeholder="Seu nome"
-              className="w-full bg-white border border-[#D5E4F8] rounded-2xl h-[46px] px-4 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-inner"
+              className="w-full bg-[#020D1D] border border-[rgba(232,237,240,0.18)] rounded-xl h-[46px] px-4 text-white placeholder-[#A7B0B8] font-medium focus:outline-none focus:border-[#00EBCB] focus:ring-2 focus:ring-[#00EBCB]/20 transition-all text-sm"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-[#8D58B1] font-bold text-sm ml-1">E-mail</label>
+            <label htmlFor="email" className="text-[#E8EDF0] font-medium text-xs ml-1">E-mail corporativo ou pessoal</label>
             <input
               id="email"
               name="email"
@@ -130,12 +130,12 @@ export default function CadastroCompradorPage() {
               value={form.email}
               onChange={handleChange}
               placeholder="seu@email.com"
-              className="w-full bg-white border border-[#D5E4F8] rounded-2xl h-[46px] px-4 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-inner"
+              className="w-full bg-[#020D1D] border border-[rgba(232,237,240,0.18)] rounded-xl h-[46px] px-4 text-white placeholder-[#A7B0B8] font-medium focus:outline-none focus:border-[#00EBCB] focus:ring-2 focus:ring-[#00EBCB]/20 transition-all text-sm"
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="senha" className="text-[#8D58B1] font-bold text-sm ml-1">Senha</label>
+            <label htmlFor="senha" className="text-[#E8EDF0] font-medium text-xs ml-1">Senha</label>
             <div className="relative">
               <input
                 id="senha"
@@ -144,12 +144,12 @@ export default function CadastroCompradorPage() {
                 value={form.senha}
                 onChange={handleChange}
                 placeholder="Mínimo 6 caracteres"
-                className="w-full bg-white border border-[#D5E4F8] rounded-2xl h-[46px] px-4 pr-12 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-inner"
+                className="w-full bg-[#020D1D] border border-[rgba(232,237,240,0.18)] rounded-xl h-[46px] px-4 pr-12 text-white placeholder-[#A7B0B8] font-medium focus:outline-none focus:border-[#00EBCB] focus:ring-2 focus:ring-[#00EBCB]/20 transition-all text-sm"
               />
               <button
                 type="button"
                 onClick={() => setMostrarSenha((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A872D1] hover:text-[#6001D3] transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A7B0B8] hover:text-[#00EBCB] transition-colors cursor-pointer"
                 tabIndex={-1}
               >
                 <EyeIcon open={mostrarSenha} />
@@ -158,7 +158,7 @@ export default function CadastroCompradorPage() {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="confirmarSenha" className="text-[#8D58B1] font-bold text-sm ml-1">Confirmar senha</label>
+            <label htmlFor="confirmarSenha" className="text-[#E8EDF0] font-medium text-xs ml-1">Confirmar senha</label>
             <div className="relative">
               <input
                 id="confirmarSenha"
@@ -167,12 +167,12 @@ export default function CadastroCompradorPage() {
                 value={form.confirmarSenha}
                 onChange={handleChange}
                 placeholder="Repita a senha"
-                className="w-full bg-white border border-[#D5E4F8] rounded-2xl h-[46px] px-4 pr-12 text-gray-800 focus:outline-none focus:ring-2 focus:ring-purple-300 shadow-inner"
+                className="w-full bg-[#020D1D] border border-[rgba(232,237,240,0.18)] rounded-xl h-[46px] px-4 pr-12 text-white placeholder-[#A7B0B8] font-medium focus:outline-none focus:border-[#00EBCB] focus:ring-2 focus:ring-[#00EBCB]/20 transition-all text-sm"
               />
               <button
                 type="button"
                 onClick={() => setMostrarConfirmar((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#A872D1] hover:text-[#6001D3] transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#A7B0B8] hover:text-[#00EBCB] transition-colors cursor-pointer"
                 tabIndex={-1}
               >
                 <EyeIcon open={mostrarConfirmar} />
@@ -180,25 +180,25 @@ export default function CadastroCompradorPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 mt-1">
+          <div className="flex flex-col gap-3 mt-2">
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-white border-2 border-[#A872D1] text-[#A872D1] rounded-[20px] font-bold shadow-[0_4px_0_0_#A872D1] active:shadow-none active:translate-y-1 transition-all flex justify-center items-center text-sm hover:bg-purple-50 disabled:opacity-50"
+              className="w-full h-12 bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] rounded-xl font-semibold shadow-[0_4px_14px_rgba(0,235,203,0.3)] active:translate-y-0.5 transition-all flex justify-center items-center text-sm disabled:opacity-50 cursor-pointer"
             >
               {loading ? "Criando conta..." : "Criar conta"}
             </button>
 
-            <div className="text-center my-1 relative">
-              <span className="bg-white px-2 text-[9px] text-[#A872D1] font-bold uppercase relative z-10">ou</span>
-              <div className="absolute top-1/2 left-0 w-full h-px bg-purple-100 -translate-y-1/2 z-0" />
+            <div className="text-center my-0.5 relative">
+              <span className="bg-[#03162D] px-2 text-[10px] text-[#A7B0B8] font-semibold uppercase tracking-wider relative z-10">ou</span>
+              <div className="absolute top-1/2 left-0 w-full h-px bg-[rgba(232,237,240,0.12)] -translate-y-1/2 z-0" />
             </div>
 
             <button
               type="button"
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full h-11 bg-white border-2 border-[#A872D1] text-[#A872D1] rounded-[20px] font-bold shadow-[0_4px_0_0_#A872D1] active:shadow-none active:translate-y-1 transition-all flex justify-center items-center gap-3 text-sm hover:bg-purple-50 disabled:opacity-50"
+              className="w-full h-11 bg-transparent border border-[rgba(232,237,240,0.2)] hover:border-white/40 text-white rounded-xl font-semibold transition-all flex justify-center items-center gap-3 text-xs sm:text-sm hover:bg-white/5 disabled:opacity-50 cursor-pointer"
             >
               <svg viewBox="0 0 24 24" width="18" height="18" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
@@ -211,14 +211,14 @@ export default function CadastroCompradorPage() {
           </div>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500 flex flex-col gap-1">
-          <p>
+        <div className="mt-6 text-center text-xs text-[#A7B0B8] flex flex-col gap-1.5 font-normal">
+          <p className="m-0">
             Já tem conta?{" "}
-            <Link href="/login" className="text-[#6001D3] font-bold no-underline hover:underline">Entrar</Link>
+            <Link href="/login" className="text-[#00EBCB] hover:text-[#00CDB8] font-semibold no-underline">Entrar</Link>
           </p>
-          <p>
-            Quer vender?{" "}
-            <Link href="/cadastro" className="text-[#6001D3] font-bold no-underline hover:underline">Cadastrar como certificadora</Link>
+          <p className="m-0">
+            É uma certificadora?{" "}
+            <Link href="/cadastro" className="text-[#00A9D6] hover:underline font-semibold no-underline">Cadastre-se aqui</Link>
           </p>
         </div>
       </main>
