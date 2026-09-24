@@ -14,7 +14,7 @@ type Listagem = {
   isoTipo: string;
   titulo: string;
   descricao: string;
-  cidade: string;
+  estado: string;
   destaque: string | null;
   imagem: string | null;
   status: string;
@@ -223,7 +223,7 @@ export default function ServicoPage() {
                   {listagem.isoTipo}
                 </span>
                 <span style={{ background: "rgba(232, 237, 240, 0.08)", color: "#E8EDF0", fontSize: "13px", fontWeight: 500, padding: "6px 16px", borderRadius: "20px", border: "1px solid rgba(232, 237, 240, 0.1)" }}>
-                  📍 {listagem.cidade}
+                  📍 {listagem.estado}
                 </span>
                 {mediaNotas && (
                   <span style={{ background: "rgba(255, 215, 0, 0.12)", color: "#FFD700", fontSize: "13px", fontWeight: 700, padding: "6px 14px", borderRadius: "20px", display: "flex", alignItems: "center", gap: "4px" }}>

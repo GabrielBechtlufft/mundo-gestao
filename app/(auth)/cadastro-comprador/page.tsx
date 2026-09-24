@@ -51,8 +51,8 @@ export default function CadastroCompradorPage() {
       return;
     }
 
-    if (form.senha.length < 6) {
-      setErro("A senha deve ter pelo menos 6 caracteres.");
+    if (!/^(?=.{8,128}$)(?=.*[A-Za-z])(?=.*\d).*$/.test(form.senha)) {
+      setErro("A senha deve ter 8 a 128 caracteres, com letras e números.");
       return;
     }
 
@@ -143,7 +143,7 @@ export default function CadastroCompradorPage() {
                 type={mostrarSenha ? "text" : "password"}
                 value={form.senha}
                 onChange={handleChange}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mín. 8 caracteres, letras e números"
                 className="w-full bg-[#020D1D] border border-[rgba(232,237,240,0.18)] rounded-xl h-[46px] px-4 pr-12 text-white placeholder-[#A7B0B8] font-medium focus:outline-none focus:border-[#00EBCB] focus:ring-2 focus:ring-[#00EBCB]/20 transition-all text-sm"
               />
               <button

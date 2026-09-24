@@ -4,12 +4,23 @@ import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 import { enviarEmailSolicitacaoRecebida } from "@/app/lib/email";
 
+const SENHA_FORTE = /^(?=.{8,128}$)(?=.*[A-Za-z])(?=.*\d).*$/;
+const LOCAL_UPLOAD = /^\/uploads\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(pdf|png|jpe?g|webp)$/i;
+const BLOB_UPLOAD = /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\/uploads\/[a-z0-9-]+\.(pdf|png|jpe?g|webp)$/i;
+
+function arquivoValido(url: unknown) {
+  return typeof url === "string" && (LOCAL_UPLOAD.test(url) || BLOB_UPLOAD.test(url));
+}
+
 export async function solicitarCadastro(data: {
   nome: string;
   cnpj?: string;
   email: string;
   telefone: string;
-  cidade: string;
+  estado: string;
+  senha: string;
+  logo?: string;
+  servicosCategorias?: string;
   nomeContato?: string;
   cargoContato?: string;
   mensagem?: string;
@@ -21,7 +32,7 @@ export async function solicitarCadastro(data: {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   try {
-    if (!data.nome || !data.email || !data.telefone || !data.cidade) {
+    if (!data.nome || !data.email || !data.telefone || !data.estado || !data.senha) {
       return { success: false, error: "Preencha todos os campos obrigatórios." };
     }
 
@@ -31,6 +42,14 @@ export async function solicitarCadastro(data: {
 
     if (!data.isosVendidas || data.isosVendidas.trim() === "") {
       return { success: false, error: "Selecione pelo menos uma ISO." };
+    }
+
+    if (!SENHA_FORTE.test(data.senha)) {
+      return { success: false, error: "A senha deve ter entre 8 e 128 caracteres e incluir letras e números." };
+    }
+
+    if (data.logo && !arquivoValido(data.logo)) {
+      return { success: false, error: "Logo inválido." };
     }
 
     const existingUser = await prisma.user.findFirst({
@@ -51,10 +70,18 @@ export async function solicitarCadastro(data: {
     let validadeCertificadoFinal = data.validadeCertificado || null;
     if (data.certificacoesISO) {
       try {
-        const certs: { iso: string; validade: string; documento: string }[] = JSON.parse(data.certificacoesISO);
-        const validades = certs.map(c => c.validade).filter(Boolean).sort();
+        const certs = JSON.parse(data.certificacoesISO) as Record<string, { validade?: string; arquivoUrl?: string; documento?: string }> | { validade?: string; arquivoUrl?: string; documento?: string }[];
+        const itens = Array.isArray(certs) ? certs : Object.values(certs);
+        if (!itens.length || itens.some((cert) => !cert.validade || !arquivoValido(cert.arquivoUrl || cert.documento))) {
+          return { success: false, error: "Certificados inválidos." };
+        }
+        const validades = itens.flatMap(c => c.validade ? [c.validade] : []).sort();
         if (validades.length > 0) validadeCertificadoFinal = validades[0];
-      } catch { /* ignora JSON inválido */ }
+      } catch { return { success: false, error: "Dados dos certificados inválidos." }; }
+    }
+
+    if (data.documentoComprovante && !arquivoValido(data.documentoComprovante)) {
+      return { success: false, error: "Documento inválido." };
     }
 
     await prisma.solicitacaoCadastro.create({
@@ -63,7 +90,11 @@ export async function solicitarCadastro(data: {
         cnpj: data.cnpj || null,
         email: data.email,
         telefone: data.telefone,
-        cidade: data.cidade,
+        cidade: "",
+        estado: data.estado,
+        senhaHash: await bcrypt.hash(data.senha, 10),
+        logo: data.logo || null,
+        servicosCategorias: data.servicosCategorias || "",
         nomeContato: data.nomeContato || null,
         cargoContato: data.cargoContato || null,
         mensagem: data.mensagem || null,
@@ -103,8 +134,8 @@ export async function cadastrarComprador(data: {
       return { success: false, error: "Formato de e-mail inválido." };
     }
 
-    if (data.senha.length < 6) {
-      return { success: false, error: "A senha deve ter pelo menos 6 caracteres." };
+    if (!SENHA_FORTE.test(data.senha)) {
+      return { success: false, error: "A senha deve ter entre 8 e 128 caracteres e incluir letras e números." };
     }
 
     const existingUser = await prisma.user.findFirst({

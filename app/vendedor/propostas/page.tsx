@@ -148,7 +148,8 @@ export default function VendedorPropostasPage() {
                     placeholder="Buscar por cliente, norma ou serviço..."
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
-                    style={{ padding: "12px 16px", borderRadius: "10px", border: "1.5px solid rgba(232, 237, 240, 0.18)", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box", color: "#FFFFFF", background: "#020D1D" }}
+                    className="placeholder:text-[#A7B0B8]"
+                    style={{ padding: "12px 16px", borderRadius: "10px", border: "1.5px solid rgba(232, 237, 240, 0.18)", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box", color: "#FFFFFF", caretColor: "#FFFFFF", background: "#020D1D" }}
                   />
                   <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
                     {[{ key: "TODOS", label: "Todos" }, ...Object.entries(statusConfig).map(([k, v]) => ({ key: k, label: v.label }))].map((s) => (

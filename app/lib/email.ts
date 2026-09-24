@@ -146,7 +146,7 @@ export async function enviarEmailRedefinicaoSenha(para: string, nome: string, to
   });
 }
 
-export async function enviarEmailAprovacaoVendedor(para: string, nome: string) {
+export async function enviarEmailAprovacaoVendedor(para: string, nome: string, senhaDefinida = false) {
   const transporter = criarTransporter();
   if (!transporter) {
     console.log(`[Email] SMTP não configurado. Email de aprovação para ${para} não enviado.`);
@@ -167,10 +167,10 @@ export async function enviarEmailAprovacaoVendedor(para: string, nome: string) {
         <div style="background:#f0e8ff;border-radius:8px;padding:16px;margin:20px 0;">
           <p style="margin:0 0 8px;font-weight:700;color:#6001D3;">Dados de acesso:</p>
           <p style="margin:4px 0;color:#333;"><strong>Login:</strong> ${paraSeguro}</p>
-          <p style="margin:4px 0;color:#333;"><strong>Senha provisória:</strong> senha@123</p>
+          <p style="margin:4px 0;color:#333;"><strong>Senha:</strong> ${senhaDefinida ? "a senha definida durante o cadastro" : "senha@123"}</p>
         </div>
         <p style="color:#e67e00;font-size:13px;background:#fff8e6;padding:10px 14px;border-radius:8px;border-left:4px solid #e67e00;">
-          ⚠️ No primeiro acesso você será solicitado a criar uma nova senha pessoal.
+          ${senhaDefinida ? "Use a senha criada no cadastro. Caso a esqueça, utilize a recuperação de senha." : "No primeiro acesso você será solicitado a criar uma nova senha pessoal."}
         </p>
         <div style="text-align:center;margin-top:28px;">
           <a href="${url}/login" style="display:inline-block;background:#6001D3;color:#fff;padding:14px 32px;border-radius:10px;text-decoration:none;font-weight:700;font-size:15px;">Acessar plataforma</a>

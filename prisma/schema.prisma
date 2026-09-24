@@ -19,7 +19,11 @@ model User {
   statusVendedor      String               @default("APROVADO") // "PENDENTE", "APROVADO", "REJEITADO", "SUSPENSO"
   trocarSenha         Boolean              @default(false)
   isosVendidas        String               @default("") // ISOs autorizadas separadas por vírgula: "ISO 9001,ISO 14001"
+  servicosCategorias  String               @default("")
+  estadosAtuacao      String               @default("")
   image               String?              // Foto do perfil (Google)
+  logo                String?
+  certificacoesISO    String?
   googleId            String?              @unique // ID do Google OAuth
   // Campos da empresa (apenas para role=VENDEDOR)
   cnpj                String?
@@ -60,6 +64,10 @@ model SolicitacaoCadastro {
   email                 String
   telefone              String
   cidade                String
+  estado                String   @default("")
+  logo                  String?
+  senhaHash             String?
+  servicosCategorias    String   @default("")
   isosVendidas          String   @default("")
   validadeCertificado   String?  // Data de validade do certificado (ISO string)
   documentoComprovante  String?
@@ -131,7 +139,8 @@ model Listagem {
   categoriaServico String?   // Subcategoria do tipo de serviço
   titulo           String
   descricao    String
-  cidade       String
+  cidade       String    @default("")
+  estado       String    @default("")
   destaque     String?
   imagem       String?   // URL da imagem da ISO
   status       String    @default("ATIVA") // "ATIVA", "PAUSADA", "REMOVIDA", "PENDENTE_APROVACAO", "REJEITADA"

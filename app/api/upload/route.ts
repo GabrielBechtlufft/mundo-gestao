@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { randomUUID } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/lib/auth";
 
 const ALLOWED_TYPES = [
    "application/pdf",
@@ -14,6 +12,26 @@ const ALLOWED_TYPES = [
 ];
 
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const RATE_WINDOW_MS = 10 * 60 * 1000;
+const MAX_UPLOADS_PER_WINDOW = 60;
+const uploadAttempts = new Map<string, number[]>();
+
+function isRateLimited(request: NextRequest) {
+   const key = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+   const now = Date.now();
+   const recent = (uploadAttempts.get(key) || []).filter((time) => now - time < RATE_WINDOW_MS);
+   if (recent.length >= MAX_UPLOADS_PER_WINDOW) {
+      uploadAttempts.set(key, recent);
+      return true;
+   }
+   recent.push(now);
+   uploadAttempts.set(key, recent);
+   return false;
+}
+
+function extensionForMimeType(mimeType: string) {
+   return ({ "application/pdf": ".pdf", "image/png": ".png", "image/jpeg": ".jpg", "image/jpg": ".jpg", "image/webp": ".webp" } as Record<string, string>)[mimeType];
+}
 
 function validateMagicBytes(buffer: Buffer, mimeType: string): boolean {
    if (mimeType === "application/pdf") {
@@ -44,6 +62,18 @@ export async function POST(request: NextRequest) {
    // enviem certificados durante a etapa de cadastro (quando ainda não estão logados).
 
    try {
+      const origin = request.headers.get("origin");
+      if (origin && origin !== request.nextUrl.origin) {
+         return NextResponse.json({ success: false, error: "Origem não permitida." }, { status: 403 });
+      }
+      if (isRateLimited(request)) {
+         return NextResponse.json({ success: false, error: "Muitos uploads. Tente novamente em alguns minutos." }, { status: 429 });
+      }
+
+      if (!request.headers.get("content-type")?.includes("multipart/form-data")) {
+         return NextResponse.json({ success: false, error: "Envie o arquivo em formato multipart." }, { status: 400 });
+      }
+
       const formData = await request.formData();
       const file = formData.get("file") as File | null;
 
@@ -87,7 +117,10 @@ export async function POST(request: NextRequest) {
          );
       }
 
-      const ext = path.extname(file.name).toLowerCase();
+      const ext = extensionForMimeType(file.type);
+      if (!ext) {
+         return NextResponse.json({ success: false, error: "Tipo de arquivo não permitido." }, { status: 400 });
+      }
       const fileName = `${randomUUID()}${ext}`;
 
       if (process.env.BLOB_READ_WRITE_TOKEN) {

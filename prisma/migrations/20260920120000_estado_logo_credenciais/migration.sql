@@ -1,0 +1,16 @@
+ALTER TABLE "User"
+  ADD COLUMN IF NOT EXISTS "servicosCategorias" TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS "estadosAtuacao" TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS "logo" TEXT,
+  ADD COLUMN IF NOT EXISTS "certificacoesISO" TEXT;
+
+ALTER TABLE "SolicitacaoCadastro"
+  ADD COLUMN IF NOT EXISTS "estado" TEXT NOT NULL DEFAULT '',
+  ADD COLUMN IF NOT EXISTS "logo" TEXT,
+  ADD COLUMN IF NOT EXISTS "senhaHash" TEXT,
+  ADD COLUMN IF NOT EXISTS "servicosCategorias" TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE "Listagem"
+  ADD COLUMN IF NOT EXISTS "estado" TEXT NOT NULL DEFAULT '';
+
+UPDATE "SolicitacaoCadastro" SET "estado" = "cidade" WHERE "estado" = '';

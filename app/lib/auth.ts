@@ -31,6 +31,8 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) return null;
 
+        if (user.role === "COMPRADOR" && user.statusVendedor === "SUSPENSO") return null;
+
         let passwordValid = false;
         if (user.password.startsWith("$2")) {
           passwordValid = await bcrypt.compare(credentials.password, user.password);
@@ -109,6 +111,8 @@ export const authOptions: NextAuthOptions = {
             },
           });
         }
+
+        if (dbUser.role === "COMPRADOR" && dbUser.statusVendedor === "SUSPENSO") return false;
 
         // Attach db info to user object for JWT
         (user as any).id = dbUser.id;

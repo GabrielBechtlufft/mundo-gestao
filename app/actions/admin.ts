@@ -39,10 +39,12 @@ export async function aprovarVendedor(solicitacaoId: number) {
   const sol = await prisma.solicitacaoCadastro.findUnique({ where: { id: solicitacaoId } });
   if (!sol) return { success: false, error: "Solicitação não encontrada" };
 
-  const existente = await prisma.user.findFirst({ where: { email: sol.email } });
+  if (sol.status !== "PENDENTE") return { success: false, error: "Esta solicitação já foi analisada." };
+
+  const existente = await prisma.user.findFirst({ where: { OR: [{ email: sol.email }, { login: sol.email }] } });
   if (existente) return { success: false, error: "Já existe uma conta com este e-mail." };
 
-  const senhaHash = await bcrypt.hash(SENHA_PADRAO, 10);
+  const senhaHash = sol.senhaHash || await bcrypt.hash(SENHA_PADRAO, 10);
 
   const validadeCert = sol.validadeCertificado
     ? new Date(sol.validadeCertificado + "T12:00:00")
@@ -58,6 +60,10 @@ export async function aprovarVendedor(solicitacaoId: number) {
       statusVendedor: "APROVADO",
       trocarSenha: true,
       isosVendidas: sol.isosVendidas,
+      servicosCategorias: sol.servicosCategorias,
+      estadosAtuacao: JSON.stringify([sol.estado].filter(Boolean)),
+      logo: sol.logo,
+      certificacoesISO: sol.certificacoesISO,
       cnpj: sol.cnpj || null,
       razaoSocial: sol.nome,
       validadeCertificado: validadeCert,
@@ -72,13 +78,13 @@ export async function aprovarVendedor(solicitacaoId: number) {
   await prisma.notificacao.create({
     data: {
       userId: novoVendedor.id,
-      mensagem: `Parabéns! O cadastro da empresa ${sol.nome} foi aprovado. Faça login com o e-mail ${sol.email} usando a senha provisória enviada por e-mail.`,
+      mensagem: `Parabéns! O cadastro da empresa ${sol.nome} foi aprovado. Faça login com o e-mail ${sol.email} e a senha definida no cadastro.`,
       tipo: "APROVACAO",
     },
   });
 
   try {
-    await enviarEmailAprovacaoVendedor(sol.email, sol.nome);
+    await enviarEmailAprovacaoVendedor(sol.email, sol.nome, Boolean(sol.senhaHash));
   } catch (err) {
     console.error("[Email] Erro ao enviar email de aprovação:", err);
   }
@@ -121,12 +127,77 @@ export async function getVendedoresAtivos() {
     where: { role: "VENDEDOR" },
     select: {
       id: true, name: true, email: true, statusVendedor: true,
-      razaoSocial: true, cnpj: true, isosVendidas: true, validadeCertificado: true,
+      razaoSocial: true, cnpj: true, isosVendidas: true, validadeCertificado: true, logo: true,
+      estadosAtuacao: true, servicosCategorias: true, certificacoesISO: true,
       _count: { select: { normas: true } },
     },
     orderBy: { name: "asc" },
   });
   return { success: true, vendedores };
+}
+
+export async function getClientes() {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão", clientes: [] };
+  const clientes = await prisma.user.findMany({
+    where: { role: "COMPRADOR" },
+    select: { id: true, name: true, email: true, login: true, statusVendedor: true },
+    orderBy: { name: "asc" },
+  });
+  return { success: true, clientes };
+}
+
+export async function suspenderCliente(clienteId: string) {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
+  const cliente = await prisma.user.findFirst({ where: { id: clienteId, role: "COMPRADOR" }, select: { id: true } });
+  if (!cliente) return { success: false, error: "Cliente não encontrado." };
+  await prisma.user.update({
+    where: { id: clienteId },
+    data: { statusVendedor: "SUSPENSO", sessionVersion: { increment: 1 } },
+  });
+  return { success: true };
+}
+
+export async function reativarCliente(clienteId: string) {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
+  const cliente = await prisma.user.findFirst({ where: { id: clienteId, role: "COMPRADOR" }, select: { id: true } });
+  if (!cliente) return { success: false, error: "Cliente não encontrado." };
+  await prisma.user.update({ where: { id: clienteId }, data: { statusVendedor: "APROVADO" } });
+  return { success: true };
+}
+
+export async function excluirCliente(clienteId: string) {
+  // Exclusão lógica preserva o histórico de propostas e negociações.
+  return suspenderCliente(clienteId);
+}
+
+export async function excluirVendedor(vendedorId: string) {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
+  const vendedor = await prisma.user.findFirst({ where: { id: vendedorId, role: "VENDEDOR" }, select: { id: true } });
+  if (!vendedor) return { success: false, error: "Certificadora não encontrada." };
+  await prisma.listagem.updateMany({ where: { userId: vendedorId }, data: { status: "REMOVIDA" } });
+  await prisma.user.update({ where: { id: vendedorId }, data: { statusVendedor: "SUSPENSO", sessionVersion: { increment: 1 } } });
+  return { success: true };
+}
+
+export async function excluirListagemAdmin(id: number) {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
+  await prisma.listagem.update({ where: { id }, data: { status: "REMOVIDA" } });
+  return { success: true };
+}
+
+export async function getNormasAdmin() {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão", normas: [] };
+  const normas = await prisma.listagem.findMany({
+    include: { User: { select: { name: true, razaoSocial: true } } },
+    orderBy: { createdAt: "desc" },
+  });
+  return { success: true, normas };
+}
+
+export async function suspenderListagemAdmin(id: number) {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
+  await prisma.listagem.update({ where: { id }, data: { status: "PAUSADA" } });
+  return { success: true };
 }
 
 export async function getVendedoresSuspensos() {
@@ -147,7 +218,7 @@ export async function getVendedoresSuspensos() {
 export async function suspenderVendedor(vendedorId: string) {
   if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
 
-  await prisma.user.update({ where: { id: vendedorId }, data: { statusVendedor: "SUSPENSO" } });
+  await prisma.user.update({ where: { id: vendedorId }, data: { statusVendedor: "SUSPENSO", sessionVersion: { increment: 1 } } });
   await prisma.listagem.updateMany({ where: { userId: vendedorId }, data: { status: "PAUSADA" } });
   return { success: true };
 }

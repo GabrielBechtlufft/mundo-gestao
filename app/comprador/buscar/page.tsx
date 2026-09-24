@@ -3,16 +3,16 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { consultarServicos } from "@/app/actions/servicos";
-import { ISOS_DISPONIVEIS, TIPOS_SERVICO, CATEGORIAS_SERVICO, ESTADOS_CIDADES } from "@/app/lib/estados";
+import { ISOS_DISPONIVEIS, TIPOS_SERVICO, CATEGORIAS_SERVICO, ESTADOS } from "@/app/lib/estados";
 import CompradorSidebar from "@/app/components/layout/CompradorSidebar";
 
 type Servico = {
-  id: number; isoTipo: string; titulo: string; descricao: string; cidade: string;
+  id: number; isoTipo: string; titulo: string; descricao: string; estado: string;
   destaque: string | null; imagem: string | null;
-  User: { name: string; rankScore?: number; rankTier?: string } | null;
+  User: { name: string; logo?: string | null; rankScore?: number; rankTier?: string } | null;
 };
 
-type Step = 1 | 2 | 3 | 4 | 5 | "loading" | "results";
+type Step = 1 | 2 | 3 | 4 | "loading" | "results";
 
 const RANK_BADGE: Record<string, { icon: string; label: string; bg: string; text: string; border: string }> = {
   PRATA:   { icon: "🥈", label: "Prata",   bg: "#F3F4F6", text: "#4B5563", border: "#9E9E9E" },
@@ -51,13 +51,9 @@ export default function CompradorBuscarPage() {
   const [categoriaServico, setCategoriaServico] = useState("");
   const [normasSelecionadas, setNormasSelecionadas] = useState<string[]>([]);
   const [estadosSelecionados, setEstadosSelecionados] = useState<string[]>([]);
-  const [cidadesSelecionadas, setCidadesSelecionadas] = useState<string[]>([]);
   const [servicos, setServicos] = useState<Servico[]>([]);
 
-  const estados = Object.keys(ESTADOS_CIDADES).sort();
-  const cidadesDisponiveis = estadosSelecionados
-    .flatMap((est) => ESTADOS_CIDADES[est] ?? [])
-    .sort();
+  const estados = ESTADOS;
 
   const scrollCarousel = (dir: "left" | "right") => {
     carouselRef.current?.scrollBy({ left: dir === "left" ? -360 : 360, behavior: "smooth" });
@@ -67,20 +63,19 @@ export default function CompradorBuscarPage() {
     setNormasSelecionadas((prev) => prev.includes(n) ? prev.filter((x) => x !== n) : [...prev, n]);
 
   const toggleEstado = (est: string) => {
-    setEstadosSelecionados((prev) => {
-      const next = prev.includes(est) ? prev.filter((x) => x !== est) : [...prev, est];
-      const cidadesValidas = next.flatMap((e) => ESTADOS_CIDADES[e] ?? []);
-      setCidadesSelecionadas((c) => c.filter((cidade) => cidadesValidas.includes(cidade)));
-      return next;
-    });
+    setEstadosSelecionados((prev) =>
+      prev.includes(est) ? prev.filter((x) => x !== est) : [...prev, est]
+    );
   };
-
-  const toggleCidade = (c: string) =>
-    setCidadesSelecionadas((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]);
 
   const buscar = async () => {
     setStep("loading");
-    const res = await consultarServicos({ tipoServico, categoriaServico, normas: normasSelecionadas, cidades: cidadesSelecionadas });
+    const res = await consultarServicos({
+      tipoServico,
+      categoriaServico,
+      normas: normasSelecionadas,
+      estados: estadosSelecionados,
+    });
     if (res.success) setServicos(res.servicos as Servico[]);
     setStep("results");
   };
@@ -88,7 +83,7 @@ export default function CompradorBuscarPage() {
   const reset = () => {
     setStep(1); setTipoServico(""); setCategoriaServico("");
     setNormasSelecionadas([]); setEstadosSelecionados([]);
-    setCidadesSelecionadas([]); setServicos([]);
+    setServicos([]);
   };
 
   const breadcrumb = [tipoServico, categoriaServico].filter(Boolean).join(" › ");
@@ -193,7 +188,7 @@ export default function CompradorBuscarPage() {
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
                       <button
-                        onClick={() => { if (normasSelecionadas.length > 0) { setEstadosSelecionados([]); setCidadesSelecionadas([]); setStep(4); } }}
+                        onClick={() => { if (normasSelecionadas.length > 0) { setEstadosSelecionados([]); setStep(4); } }}
                         disabled={normasSelecionadas.length === 0}
                         style={{ ...btnPrimaryStyle, opacity: normasSelecionadas.length === 0 ? 0.5 : 1, cursor: normasSelecionadas.length === 0 ? "not-allowed" : "pointer" }}>
                         Continuar →
@@ -234,50 +229,9 @@ export default function CompradorBuscarPage() {
                     </div>
                     <div style={{ display: "flex", justifyContent: "flex-end" }}>
                       <button
-                        onClick={() => { if (estadosSelecionados.length > 0) setStep(5); }}
+                        onClick={() => { if (estadosSelecionados.length > 0) buscar(); }}
                         disabled={estadosSelecionados.length === 0}
                         style={{ ...btnPrimaryStyle, opacity: estadosSelecionados.length === 0 ? 0.5 : 1, cursor: estadosSelecionados.length === 0 ? "not-allowed" : "pointer" }}>
-                        Continuar →
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* ── Tela 5: Cidades (múltipla seleção, filtradas por estados) ── */}
-                {step === 5 && (
-                  <div className="animate-fade-in">
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
-                      <button onClick={() => setStep(4)} style={btnBackStyle}>← Voltar</button>
-                      <span style={{ color: "rgba(255,255,255,0.7)", fontSize: "13px" }}>
-                        {estadosSelecionados.map((e) => e.split(" — ")[0]).join(", ")}
-                      </span>
-                    </div>
-                    <h2 style={{ fontSize: "clamp(1.5rem,3vw,2.2rem)", fontWeight: 800, color: "#fff", margin: "20px 0 6px", lineHeight: 1.2 }}>
-                      Selecione a(s) cidade(s)
-                    </h2>
-                    <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "13px", marginBottom: "24px" }}>
-                      Você pode selecionar mais de uma cidade
-                    </p>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: "10px", marginBottom: "28px" }}>
-                      {cidadesDisponiveis.map((c) => {
-                        const sel = cidadesSelecionadas.includes(c);
-                        return (
-                          <button key={c} onClick={() => toggleCidade(c)}
-                            style={{ ...(sel ? cardSelectedStyle : cardBaseStyle), padding: "16px 20px", display: "flex", justifyContent: "space-between", alignItems: "center" }}
-                            onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.2)"; } }}
-                            onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,0.12)"; } }}
-                          >
-                            <span style={{ fontSize: "15px", fontWeight: 700, color: sel ? "#6001D3" : "#111" }}>{c}</span>
-                            {sel && <span style={{ fontSize: "14px", color: "#6001D3", fontWeight: 800 }}>✓</span>}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                      <button
-                        onClick={() => { if (cidadesSelecionadas.length > 0) buscar(); }}
-                        disabled={cidadesSelecionadas.length === 0}
-                        style={{ ...btnPrimaryStyle, opacity: cidadesSelecionadas.length === 0 ? 0.5 : 1, cursor: cidadesSelecionadas.length === 0 ? "not-allowed" : "pointer" }}>
                         Buscar Fornecedores →
                       </button>
                     </div>
@@ -303,7 +257,7 @@ export default function CompradorBuscarPage() {
                     Resultados encontrados
                   </h2>
                   <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "12px", margin: 0 }}>
-                    {tipoServico} · {categoriaServico} · {normasSelecionadas.join(", ")} · {cidadesSelecionadas.join(", ")}
+                    {tipoServico} · {categoriaServico} · {normasSelecionadas.join(", ")} · {estadosSelecionados.join(", ")}
                   </p>
                 </div>
                 <button onClick={reset}
@@ -356,7 +310,10 @@ export default function CompradorBuscarPage() {
                             </div>
                           )}
                           <h3 style={{ fontSize: "15px", fontWeight: 700, color: "#111", margin: "0 0 4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" as const }}>{s.titulo}</h3>
-                          <p style={{ fontSize: "12px", color: "#6B7280", margin: "0 0 12px" }}>{s.User?.name ?? "Consultoria"}</p>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px", margin: "0 0 12px" }}>
+                            {s.User?.logo ? <img src={s.User.logo} alt={`Logo ${s.User.name}`} style={{ width: "30px", height: "30px", objectFit: "contain", borderRadius: "6px", border: "1px solid #E5E7EB" }} /> : null}
+                            <p style={{ fontSize: "12px", color: "#6B7280", margin: 0 }}>{s.User?.name ?? "Consultoria"}</p>
+                          </div>
                           <div style={{ marginTop: "auto" }}>
                             <button
                               style={{ width: "100%", background: "#00D1B2", color: "#fff", border: "none", borderRadius: "10px", padding: "10px 14px", fontSize: "13px", fontWeight: 700, cursor: "pointer" }}

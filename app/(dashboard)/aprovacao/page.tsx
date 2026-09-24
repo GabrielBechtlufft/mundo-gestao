@@ -10,7 +10,7 @@ import {
 
 type Solicitacao = {
   id: number; nome: string; cnpj: string | null; email: string; telefone: string;
-  cidade: string; mensagem: string | null; isosVendidas: string;
+  estado: string; mensagem: string | null; isosVendidas: string;
   validadeCertificado: string | null; documentoComprovante: string | null;
   certificacoesISO: string | null;
   nomeContato: string | null; cargoContato: string | null;
@@ -18,7 +18,7 @@ type Solicitacao = {
 };
 
 type ListagemPendente = {
-  id: number; isoTipo: string; titulo: string; descricao: string; cidade: string;
+  id: number; isoTipo: string; titulo: string; descricao: string; estado: string;
   imagem: string | null; destaque: string | null;
   status: string; createdAt: string;
   User: { id: string; name: string; email: string | null; razaoSocial: string | null; rankTier: string } | null;
@@ -36,7 +36,7 @@ type ListagemModalStep = "detalhe" | "confirmado" | "motivo" | "recusado" | null
 function Overlay({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(2px)" }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: "20px", padding: "36px 32px", width: "100%", maxWidth: "580px", boxShadow: "0 20px 60px rgba(80,0,160,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", color: "#111827", borderRadius: "20px", padding: "36px 32px", width: "100%", maxWidth: "580px", boxShadow: "0 20px 60px rgba(80,0,160,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
         {children}
       </div>
     </div>
@@ -228,7 +228,7 @@ export default function AprovacaoPage() {
                           <div style={{ fontSize: "14px", fontWeight: 700, color: "#111" }}>{sol.nome}</div>
                           <div style={{ fontSize: "12px", color: "#888" }}>
                             {sol.cnpj && <span>{sol.cnpj} · </span>}
-                            {sol.email} · {sol.cidade}
+                            {sol.email} · {sol.estado}
                           </div>
                           {sol.nomeContato && (
                             <div style={{ fontSize: "12px", color: "#6001D3", marginTop: "2px" }}>
@@ -323,7 +323,7 @@ export default function AprovacaoPage() {
                           </div>
 
                           <div style={{ display: "flex", gap: "16px", fontSize: "12px", color: "#888", flexWrap: "wrap" }}>
-                            <span>📍 {l.cidade}</span>
+                            <span>📍 {l.estado}</span>
                           </div>
 
                           {/* Vendedor */}
@@ -367,7 +367,7 @@ export default function AprovacaoPage() {
             {selectedSol.cnpj && <p style={{ margin: "0 0 4px", fontSize: "13px", color: "#666" }}>🪪 CNPJ: {selectedSol.cnpj}</p>}
             <p style={{ margin: "0 0 4px", fontSize: "13px", color: "#666" }}>📧 {selectedSol.email}</p>
             <p style={{ margin: "0 0 4px", fontSize: "13px", color: "#666" }}>📞 {selectedSol.telefone}</p>
-            <p style={{ margin: "0 0 4px", fontSize: "13px", color: "#666" }}>📍 {selectedSol.cidade}</p>
+            <p style={{ margin: "0 0 4px", fontSize: "13px", color: "#666" }}>📍 {selectedSol.estado}</p>
             {selectedSol.validadeCertificado && (
               <p style={{ margin: "8px 0 0", fontSize: "13px" }}>
                 📅 Validade do certificado:{" "}
@@ -393,7 +393,10 @@ export default function AprovacaoPage() {
           {/* Certificações por ISO (novo formato) */}
           {selectedSol.certificacoesISO ? (() => {
             let certs: { iso: string; validade: string; documento: string }[] = [];
-            try { certs = JSON.parse(selectedSol.certificacoesISO); } catch { /* ignora */ }
+            try {
+              const raw = JSON.parse(selectedSol.certificacoesISO);
+              certs = Array.isArray(raw) ? raw : Object.entries(raw).map(([iso, cert]: [string, any]) => ({ iso, validade: cert.validade, documento: cert.documento || cert.arquivoUrl }));
+            } catch { /* ignora */ }
             return certs.length > 0 ? (
               <div style={{ marginBottom: "20px" }}>
                 <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111", marginTop: 0, marginBottom: "12px" }}>📋 Certificações por ISO:</h3>
@@ -412,7 +415,7 @@ export default function AprovacaoPage() {
                         <div style={{ marginTop: "8px" }}>
                           <a href={cert.documento} target="_blank" rel="noopener noreferrer"
                             style={{ display: "inline-flex", alignItems: "center", gap: "6px", background: "#F0F9FF", border: "1px solid #BAE6FD", padding: "6px 14px", borderRadius: "8px", color: "#0369A1", fontSize: "12px", fontWeight: 600, textDecoration: "none" }}>
-                            📎 Ver comprovante
+                            📎 Ver certificado válido
                           </a>
                           {cert.documento.match(/\.(png|jpg|jpeg|webp)$/i) && (
                             <div style={{ marginTop: "8px", borderRadius: "8px", overflow: "hidden", border: "1px solid #E5E7EB" }}>
@@ -441,7 +444,7 @@ export default function AprovacaoPage() {
               )}
               {selectedSol.documentoComprovante && (
                 <div style={{ marginBottom: "24px" }}>
-                  <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111", marginTop: 0, marginBottom: "10px" }}>📄 Documento comprovante:</h3>
+                  <h3 style={{ fontSize: "14px", fontWeight: 700, color: "#111", marginTop: 0, marginBottom: "10px" }}>📄 Certificado válido:</h3>
                   <a href={selectedSol.documentoComprovante} target="_blank" rel="noopener noreferrer"
                     style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "#F0F9FF", border: "1.5px solid #BAE6FD", padding: "10px 18px", borderRadius: "10px", color: "#0369A1", fontSize: "13px", fontWeight: 600, textDecoration: "none" }}>
                     📎 Visualizar / Download
@@ -460,7 +463,7 @@ export default function AprovacaoPage() {
               ✅ Aprovar Certificadora
             </button>
             <button onClick={() => setVendedorModal("motivo")} style={{ padding: "14px", background: "transparent", color: "#EF4444", border: "1.5px solid #EF4444", borderRadius: "12px", fontSize: "15px", fontWeight: 700, cursor: "pointer" }}>
-              ✕ Rejeitar
+              ✕ Rejeitar certificadora
             </button>
           </div>
         </Overlay>
@@ -471,7 +474,7 @@ export default function AprovacaoPage() {
           <h2 style={{ fontSize: "22px", fontWeight: 800, marginTop: 0, marginBottom: "16px", color: "#111" }}>Motivo da Rejeição</h2>
           <p style={{ color: "#888", marginBottom: "16px", fontSize: "14px" }}>Informe o motivo da rejeição. Este campo é obrigatório.</p>
           <textarea value={motivoVend} onChange={(e) => setMotivoVend(e.target.value)} rows={4} placeholder="Descreva o motivo..."
-            style={{ width: "100%", border: `1.5px solid ${motivoVendErro ? "#EF4444" : "#7B00D4"}`, borderRadius: "12px", padding: "12px 14px", fontSize: "14px", resize: "none", boxSizing: "border-box", marginBottom: "8px" }} />
+            style={{ width: "100%", border: `1.5px solid ${motivoVendErro ? "#EF4444" : "#7B00D4"}`, borderRadius: "12px", padding: "12px 14px", fontSize: "14px", resize: "none", boxSizing: "border-box", marginBottom: "8px", color: "#111827", background: "#FFFFFF" }} />
           {motivoVendErro && <p style={{ color: "#EF4444", fontSize: "13px", margin: "0 0 16px" }}>{motivoVendErro}</p>}
           <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>
             <button onClick={() => setVendedorModal("aprovacao")} style={{ flex: 1, padding: "12px", background: "transparent", border: "1.5px solid #ccc", borderRadius: "12px", fontWeight: 600, cursor: "pointer" }}>Cancelar</button>
@@ -486,7 +489,7 @@ export default function AprovacaoPage() {
             <div style={{ fontSize: "64px", marginBottom: "16px" }}>✅</div>
             <h2 style={{ fontSize: "24px", fontWeight: 800, color: "#111", marginBottom: "12px" }}>Certificadora Aprovada!</h2>
             <p style={{ color: "#666", marginBottom: "28px" }}>A certificadora receberá as credenciais de acesso e já poderá criar suas normas.</p>
-            <button onClick={closeVend} style={{ padding: "12px 32px", background: "linear-gradient(90deg,#6001D3,#A872F0)", color: "#fff", border: "none", borderRadius: "12px", fontWeight: 700, cursor: "pointer" }}>Fechar</button>
+            <button onClick={closeVend} style={{ padding: "12px 32px", background: "linear-gradient(90deg,#00A9D6,#00EBCB)", color: "#020D1D", border: "none", borderRadius: "12px", fontWeight: 700, cursor: "pointer" }}>Fechar</button>
           </div>
         </Overlay>
       )}
@@ -536,7 +539,7 @@ export default function AprovacaoPage() {
             <p style={{ margin: "0 0 6px", fontWeight: 800, fontSize: "17px", color: "#111" }}>{selectedList.titulo}</p>
             <p style={{ margin: "0 0 12px", fontSize: "13px", color: "#555", lineHeight: 1.6 }}>{selectedList.descricao}</p>
             <div style={{ display: "flex", gap: "20px", flexWrap: "wrap", fontSize: "13px" }}>
-              <span style={{ color: "#6B7280" }}>📍 {selectedList.cidade}</span>
+              <span style={{ color: "#6B7280" }}>📍 {selectedList.estado}</span>
             </div>
           </div>
 
@@ -578,7 +581,7 @@ export default function AprovacaoPage() {
             onChange={(e) => setMotivoList(e.target.value)}
             rows={4}
             placeholder="Ex: Descrição muito genérica, preço fora do padrão, imagem inapropriada..."
-            style={{ width: "100%", border: `1.5px solid ${motivoListErro ? "#EF4444" : "#7B00D4"}`, borderRadius: "12px", padding: "12px 14px", fontSize: "14px", resize: "none", boxSizing: "border-box", marginBottom: "8px" }}
+            style={{ width: "100%", border: `1.5px solid ${motivoListErro ? "#EF4444" : "#7B00D4"}`, borderRadius: "12px", padding: "12px 14px", fontSize: "14px", resize: "none", boxSizing: "border-box", marginBottom: "8px", color: "#111827", background: "#FFFFFF" }}
           />
           {motivoListErro && <p style={{ color: "#EF4444", fontSize: "13px", margin: "0 0 16px" }}>{motivoListErro}</p>}
           <div style={{ display: "flex", gap: "10px", marginTop: "8px" }}>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState, KeyboardEvent } from "react";
 import { useRouter } from "next/navigation";
 import { consultarServicos } from "@/app/actions/servicos";
-import { TODOS_ESTADOS } from "@/app/lib/estados";
+import { ESTADOS } from "@/app/lib/estados";
 import { useEffect } from "react";
 import { getSession } from "@/app/actions/auth";
 import { signOut } from "next-auth/react";
@@ -16,7 +16,7 @@ type Servico = {
   titulo: string;
   imagem: string | null;
   destaque: string | null;
-  User?: { name: string | null; rankTier?: string | null } | null;
+  User?: { name: string | null; logo?: string | null; rankTier?: string | null } | null;
 };
 
 type UserSession = {
@@ -30,7 +30,7 @@ export default function LandingPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [servicoInput, setServicoInput] = useState("");
-  const [cidadeInput, setCidadeInput] = useState("");
+  const [estadoInput, setEstadoInput] = useState("");
   const [isAnimating, setIsAnimating] = useState(false);
   const [resultados, setResultados] = useState<Servico[]>([]);
 
@@ -60,6 +60,10 @@ export default function LandingPage() {
         router.push("/login");
         return;
       }
+      if (session.role === "COMPRADOR") {
+        router.push("/comprador/buscar");
+        return;
+      }
       setStep(2);
     }
     else if (step === 2) setStep(3);
@@ -71,7 +75,7 @@ export default function LandingPage() {
       setTimeout(async () => {
         const res = await consultarServicos({
           normas: servicoInput ? [servicoInput] : undefined,
-          cidades: cidadeInput ? [cidadeInput] : undefined,
+          estados: estadoInput ? [estadoInput] : undefined,
         });
         if (res.success && res.servicos) {
           setResultados(res.servicos);
@@ -190,13 +194,13 @@ export default function LandingPage() {
             </h1>
             <select
               autoFocus
-              value={cidadeInput}
-              onChange={(e) => setCidadeInput(e.target.value)}
+              value={estadoInput}
+              onChange={(e) => setEstadoInput(e.target.value)}
               onKeyDown={handleKeyDown}
               className="w-full px-8 py-5 rounded-2xl text-xl md:text-2xl text-white outline-none shadow-2xl bg-[#03162D] border-2 border-[#E8EDF0]/20 focus:border-[#00EBCB] font-medium appearance-none cursor-pointer transition-all"
             >
               <option value="" disabled className="bg-[#03162D] text-[#A7B0B8]">Selecione um estado</option>
-              {TODOS_ESTADOS.map((c) => (
+              {ESTADOS.map((c) => (
                 <option key={c} value={c} className="bg-[#03162D] text-white">
                   {c}
                 </option>
@@ -204,7 +208,7 @@ export default function LandingPage() {
             </select>
             <button
               onClick={handleNextStep}
-              disabled={!cidadeInput}
+              disabled={!estadoInput}
               className="mt-8 bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] px-12 py-4 rounded-xl text-lg font-semibold shadow-[0_8px_25px_rgba(0,235,203,0.35)] hover:scale-105 transition-transform disabled:opacity-40 disabled:hover:scale-100 cursor-pointer"
             >
               Buscar Prestadores
@@ -227,7 +231,7 @@ export default function LandingPage() {
               Melhores prestadores e serviços indicados para você
             </h1>
             <p className="text-[#A7B0B8] text-sm md:text-base mb-6 text-center font-normal">
-              Filtro: {servicoInput || "Todos os serviços"} • {cidadeInput || "Brasil"}
+              Filtro: {servicoInput || "Todos os serviços"} • {estadoInput || "Brasil"}
             </p>
 
             {resultados.length === 0 ? (
@@ -239,7 +243,7 @@ export default function LandingPage() {
                   onClick={() => {
                     setStep(1);
                     setServicoInput("");
-                    setCidadeInput("");
+                    setEstadoInput("");
                   }}
                   className="bg-[#00EBCB] hover:bg-[#00CDB8] text-[#020D1D] font-semibold px-8 py-3 rounded-xl transition-all shadow-[0_4px_14px_rgba(0,235,203,0.3)]"
                 >
@@ -295,6 +299,7 @@ export default function LandingPage() {
                       </h3>
 
                       <p className="text-sm text-[#A7B0B8] mt-auto mb-6 font-normal">
+                        {res.User?.logo && <img src={res.User.logo} alt={`Logo ${res.User.name ?? "da certificadora"}`} className="inline-block w-7 h-7 object-contain rounded mr-2 align-middle bg-white" />}
                         {res.User?.name ?? "Consultoria Credenciada"}
                       </p>
 
@@ -316,7 +321,7 @@ export default function LandingPage() {
                 onClick={() => {
                   setStep(1);
                   setServicoInput("");
-                  setCidadeInput("");
+                  setEstadoInput("");
                 }}
               >
                 Ver Mais / Refazer Busca

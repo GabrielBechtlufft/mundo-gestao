@@ -28,7 +28,7 @@ const statusConfig: Record<string, { bg: string; text: string; label: string }> 
 function Modal({ children, onClose }: { children: React.ReactNode; onClose: () => void }) {
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(2px)" }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", borderRadius: "20px", padding: "36px 32px", width: "100%", maxWidth: "480px", boxShadow: "0 20px 60px rgba(80,0,160,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ background: "#fff", color: "#111827", borderRadius: "20px", padding: "36px 32px", width: "100%", maxWidth: "480px", boxShadow: "0 20px 60px rgba(80,0,160,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
         {children}
       </div>
     </div>
@@ -350,7 +350,7 @@ export default function CompradorHome() {
               onChange={(e) => { setMotivoRecusa(e.target.value); setErroRecusa(""); }}
               placeholder="Ex: O prazo de entrega está muito longo, gostaríamos de reduzir para 30 dias. Também precisamos incluir treinamento da equipe no escopo..."
               rows={5}
-              style={{ width: "100%", padding: "12px 14px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "13px", resize: "vertical", boxSizing: "border-box", lineHeight: 1.6, outline: "none" }}
+              style={{ width: "100%", padding: "12px 14px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "13px", resize: "vertical", boxSizing: "border-box", lineHeight: 1.6, outline: "none", color: "#111827", background: "#FFFFFF" }}
             />
             {erroRecusa && (
               <p style={{ margin: "6px 0 0", fontSize: "12px", color: "#EF4444", fontWeight: 600 }}>{erroRecusa}</p>

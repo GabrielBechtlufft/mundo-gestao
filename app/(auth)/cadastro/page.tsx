@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { solicitarCadastro } from "@/app/actions/cadastro";
 import { Logo } from "@/app/components/layout/Logo";
-import { TODOS_ESTADOS } from "@/app/lib/estados";
+import { ESTADOS, TIPOS_SERVICO, CATEGORIAS_SERVICO } from "@/app/lib/estados";
 
 const ISO_OPTIONS = [
   // Normas certificáveis – Sistemas de Gestão
@@ -89,11 +89,13 @@ type IsoCert = { validade: string; arquivo: File | null };
 export default function CadastroPage() {
   const [step, setStep] = useState<1 | 2>(1);
   const [form, setForm] = useState({
-    razaoSocial: "", cnpj: "", email: "", telefone: "", cidade: "",
-    nomeContato: "", cargoContato: "", mensagem: "",
+    razaoSocial: "", cnpj: "", email: "", telefone: "", estado: "",
+    senha: "", confirmarSenha: "", nomeContato: "", cargoContato: "", mensagem: "",
   });
   const [selectedISOs, setSelectedISOs] = useState<string[]>([]);
+  const [servicosCategorias, setServicosCategorias] = useState<string[]>([]);
   const [isoCerts, setIsoCerts] = useState<Record<string, IsoCert>>({});
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -117,6 +119,11 @@ export default function CadastroPage() {
     });
   };
 
+  const toggleServicoCategoria = (tipo: string, categoria: string) => {
+    const value = `${tipo}::${categoria}`;
+    setServicosCategorias((prev) => prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]);
+  };
+
   const setIsoCertValidade = (iso: string, validade: string) =>
     setIsoCerts((c) => ({ ...c, [iso]: { ...c[iso], validade } }));
 
@@ -127,9 +134,11 @@ export default function CadastroPage() {
   };
 
   const validarStep1 = () => {
-    if (!form.razaoSocial || !form.cnpj || !form.email || !form.telefone || !form.cidade) {
+    if (!form.razaoSocial || !form.cnpj || !form.email || !form.telefone || !form.estado || !form.senha || servicosCategorias.length === 0) {
       setErro("Preencha todos os campos obrigatórios."); return false;
     }
+    if (form.senha.length < 8) { setErro("A senha deve ter pelo menos 8 caracteres."); return false; }
+    if (form.senha !== form.confirmarSenha) { setErro("As senhas não coincidem."); return false; }
     setErro(""); return true;
   };
 
@@ -164,6 +173,7 @@ export default function CadastroPage() {
     setUploading(true);
 
     try {
+      const logo = logoFile ? await uploadFile(logoFile) : undefined;
       const certData: Record<string, { validade: string; arquivoUrl: string }> = {};
       for (const iso of selectedISOs) {
         const cert = isoCerts[iso];
@@ -174,7 +184,7 @@ export default function CadastroPage() {
 
       const res = await solicitarCadastro({
         nome: form.razaoSocial, cnpj: form.cnpj, email: form.email,
-        telefone: form.telefone, cidade: form.cidade,
+        telefone: form.telefone, estado: form.estado, senha: form.senha, logo, servicosCategorias: JSON.stringify(servicosCategorias),
         nomeContato: form.nomeContato || undefined,
         cargoContato: form.cargoContato || undefined,
         isosVendidas: selectedISOs.join(","),
@@ -264,15 +274,38 @@ export default function CadastroPage() {
               </div>
               <div>
                 <label style={labelStyle}>Telefone *</label>
-                <input name="telefone" value={form.telefone} onChange={handleChange} placeholder="(00) 00000-0000" style={inputStyle} />
+                <input name="telefone" value={form.telefone} onChange={handleChange} placeholder="+55 (00) 0 0000-0000" style={inputStyle} />
               </div>
+            </div>
+
+            <div>
+              <label style={labelStyle}>Logo da certificadora</label>
+              <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} style={inputStyle} />
+              <p style={{ fontSize: "11px", color: "#A7B0B8", margin: "6px 0 0" }}>PNG, JPG ou WebP, até 5 MB.</p>
+            </div>
+
+            <div style={{ borderTop: "1px solid rgba(232,237,240,0.12)", paddingTop: "16px" }}>
+              <label style={labelStyle}>Serviços e categorias oferecidos *</label>
+              <p style={{ fontSize: "11px", color: "#A7B0B8", margin: "0 0 10px" }}>Selecione todos os serviços que a certificadora pode oferecer.</p>
+              {TIPOS_SERVICO.map((tipo) => <div key={tipo.label} style={{ marginBottom: "10px" }}>
+                <strong style={{ fontSize: "12px", color: "#00EBCB" }}>{tipo.label}</strong>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "7px", marginTop: "6px" }}>{(CATEGORIAS_SERVICO[tipo.label] || []).map((categoria) => {
+                  const selected = servicosCategorias.includes(`${tipo.label}::${categoria}`);
+                  return <button key={categoria} type="button" onClick={() => toggleServicoCategoria(tipo.label, categoria)} style={{ padding: "7px 9px", fontSize: "11px", borderRadius: "8px", cursor: "pointer", border: selected ? "1px solid #00EBCB" : "1px solid rgba(232,237,240,0.2)", background: selected ? "rgba(0,235,203,0.15)" : "#020D1D", color: selected ? "#00EBCB" : "#E8EDF0" }}>{selected ? "✓ " : ""}{categoria}</button>;
+                })}</div>
+              </div>)}
             </div>
             <div>
               <label style={labelStyle}>Estado de atuação *</label>
-              <select name="cidade" value={form.cidade} onChange={handleChange} style={{ ...inputStyle, appearance: "none", cursor: "pointer", color: form.cidade ? "#FFFFFF" : "#A7B0B8" }}>
+              <select name="estado" value={form.estado} onChange={handleChange} style={{ ...inputStyle, appearance: "none", cursor: "pointer", color: form.estado ? "#FFFFFF" : "#A7B0B8" }}>
                 <option value="" disabled>Selecione um estado</option>
-                {TODOS_ESTADOS.map((c) => <option key={c} value={c} style={{ background: "#020D1D", color: "#FFFFFF" }}>{c}</option>)}
+                {ESTADOS.map((c) => <option key={c} value={c} style={{ background: "#020D1D", color: "#FFFFFF" }}>{c}</option>)}
               </select>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+              <div><label style={labelStyle}>Senha de acesso *</label><input name="senha" type="password" value={form.senha} onChange={handleChange} minLength={8} style={inputStyle} /></div>
+              <div><label style={labelStyle}>Confirmar senha *</label><input name="confirmarSenha" type="password" value={form.confirmarSenha} onChange={handleChange} minLength={8} style={inputStyle} /></div>
             </div>
 
             <div style={{ borderTop: "1px solid rgba(232, 237, 240, 0.12)", paddingTop: "16px", marginTop: "4px" }}>

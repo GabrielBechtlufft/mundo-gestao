@@ -4,8 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import VendedorSidebar from "@/app/components/layout/VendedorSidebar";
 import { criarListagem, getMinhasISOs } from "@/app/actions/normas";
-import { CIDADES } from "@/app/lib/cidades";
-import { TIPOS_SERVICO, CATEGORIAS_SERVICO } from "@/app/lib/estados";
+import { TIPOS_SERVICO, CATEGORIAS_SERVICO, ESTADOS } from "@/app/lib/estados";
 
 const TODOS_TIPOS_ISO = [
   // Certific\u00e1veis
@@ -36,7 +35,7 @@ export default function NovaListagemPage() {
   const [isosPermitidas, setIsosPermitidas] = useState<string[]>([]);
   const [carregandoISOs, setCarregandoISOs] = useState(true);
   const [form, setForm] = useState({
-    isoTipo: "", titulo: "", descricao: "", cidade: "", imagem: "",
+    isoTipo: "", titulo: "", descricao: "", estado: "", imagem: "",
     tipoServico: "", categoriaServico: "",
   });
   const [loading, setLoading] = useState(false);
@@ -65,7 +64,7 @@ export default function NovaListagemPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErro("");
-    if (!form.isoTipo || !form.titulo || !form.descricao || !form.cidade || !form.tipoServico || !form.categoriaServico) {
+    if (!form.isoTipo || !form.titulo || !form.descricao || !form.estado || !form.tipoServico || !form.categoriaServico) {
       setErro("Preencha todos os campos obrigatórios.");
       return;
     }
@@ -74,7 +73,7 @@ export default function NovaListagemPage() {
       isoTipo: form.isoTipo,
       titulo: form.titulo,
       descricao: form.descricao,
-      cidade: form.cidade,
+      estado: form.estado,
       imagem: form.imagem || undefined,
       tipoServico: form.tipoServico,
       categoriaServico: form.categoriaServico,
@@ -129,7 +128,7 @@ export default function NovaListagemPage() {
               </div>
             </div>
 
-            {/* Norma ISO + Cidade */}
+            {/* Norma ISO + Estado */}
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
               <div>
                 <label style={labelStyle}>Norma ISO *</label>
@@ -151,11 +150,11 @@ export default function NovaListagemPage() {
                 )}
               </div>
               <div>
-                <label style={labelStyle}>Cidade de atuação *</label>
-                <select name="cidade" value={form.cidade} onChange={handleChange}
+                <label style={labelStyle}>Estado de atuação *</label>
+                <select name="estado" value={form.estado} onChange={handleChange}
                   style={{ ...inputStyle }}>
-                  <option value="" disabled style={{ background: "#020D1D", color: "#A7B0B8" }}>Selecione uma cidade</option>
-                  {CIDADES.map((c) => <option key={c} value={c} style={{ background: "#020D1D", color: "#FFFFFF" }}>{c}</option>)}
+                  <option value="" disabled style={{ background: "#020D1D", color: "#A7B0B8" }}>Selecione um estado</option>
+                  {ESTADOS.map((estado) => <option key={estado} value={estado} style={{ background: "#020D1D", color: "#FFFFFF" }}>{estado}</option>)}
                 </select>
               </div>
             </div>

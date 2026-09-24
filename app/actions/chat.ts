@@ -258,6 +258,15 @@ export async function contarMensagensNaoLidas(propostaId: number) {
   const session = await getSession();
   if (!session) return 0;
 
+  const proposta = await prisma.proposta.findUnique({
+    where: { id: propostaId },
+    select: { compradorId: true, vendedorId: true, funcionarioId: true },
+  });
+  if (!proposta) return 0;
+  const isFuncionarioAtribuido = session.role === "FUNCIONARIO" && session.funcionarioVendedorId != null && proposta.funcionarioId === session.funcionarioVendedorId;
+  const isParticipant = proposta.compradorId === session.id || proposta.vendedorId === session.id;
+  if (!isParticipant && !isFuncionarioAtribuido && session.role !== "ADMIN") return 0;
+
   const count = await prisma.mensagem.count({
     where: {
       propostaId,

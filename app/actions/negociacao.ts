@@ -6,6 +6,7 @@ import { atualizarRank } from "./ranking";
 
 export async function criarProposta(listagemId: number) {
   const session = await getSession();
+  if (session?.role !== "COMPRADOR") return { success: false, error: "Apenas compradores podem solicitar propostas." };
   if (!session) return { success: false, error: "Não autenticado" };
 
   const listagem = await prisma.listagem.findUnique({
@@ -13,7 +14,7 @@ export async function criarProposta(listagemId: number) {
     include: { User: true },
   });
 
-  if (!listagem) return { success: false, error: "Listagem não encontrada" };
+  if (!listagem || listagem.status !== "ATIVA" || listagem.User?.statusVendedor !== "APROVADO") return { success: false, error: "Listagem não está disponível" };
   if (!listagem.userId) return { success: false, error: "Listagem sem vendedor associado" };
 
   const existente = await prisma.proposta.findFirst({
@@ -51,6 +52,7 @@ export async function criarProposta(listagemId: number) {
 
 export async function enviarPropostaVendedor(propostaId: number, documentoProposta: string) {
   const session = await getSession();
+  if (session?.role !== "VENDEDOR") return { success: false, error: "Apenas certificadoras podem enviar propostas." };
   if (!session) return { success: false, error: "Não autenticado" };
 
   const localUploadPattern = /^\/uploads\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(pdf|png|jpe?g|webp)$/i;
@@ -243,7 +245,7 @@ export async function solicitarOrcamento(listagemId: number) {
     where: { id: listagemId },
     include: { User: true },
   });
-  if (!listagem) return { success: false, error: "Listagem não encontrada" };
+  if (!listagem || listagem.status !== "ATIVA" || listagem.User?.statusVendedor !== "APROVADO") return { success: false, error: "Listagem não está disponível" };
   if (!listagem.userId) return { success: false, error: "Listagem sem vendedor associado" };
 
   const proposta = await prisma.proposta.create({
@@ -275,8 +277,7 @@ export async function confirmarNegociacao(propostaId: number) {
 
   const proposta = await prisma.proposta.findUnique({ where: { id: propostaId } });
   if (!proposta) return { success: false, error: "Proposta não encontrada" };
-  if (proposta.status === "PROPOSTA_FECHADA") return { success: false, error: "Negociação já concluída" };
-  if (proposta.status === "CANCELADA") return { success: false, error: "Proposta cancelada" };
+  if (proposta.status !== "EM_NEGOCIACAO") return { success: false, error: "A negociação ainda não pode ser concluída." };
 
   const isVendedor = proposta.vendedorId === session.id;
   const isComprador = proposta.compradorId === session.id;

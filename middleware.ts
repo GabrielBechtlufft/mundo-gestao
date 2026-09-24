@@ -9,7 +9,7 @@ export async function middleware(request: NextRequest) {
 
   const rotasProtegidas = [
     '/home', '/vendedor', '/propostas', '/aprovacao',
-    '/configuracoes', '/pagamentos', '/vendedores', '/comprador',
+    '/configuracoes', '/pagamentos', '/vendedores', '/clientes', '/normas', '/comprador',
   ];
   const precisaLogin = rotasProtegidas.some((r) => pathname.startsWith(r));
 
@@ -56,7 +56,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // Comprador restricted from admin and vendor routes
-    const rotasAdmin = ['/propostas', '/aprovacao', '/vendedores', '/pagamentos', '/configuracoes', '/home'];
+    const rotasAdmin = ['/propostas', '/aprovacao', '/vendedores', '/clientes', '/normas', '/pagamentos', '/configuracoes', '/home'];
     if (role === 'COMPRADOR' && rotasAdmin.some((r) => pathname.startsWith(r))) {
       return NextResponse.redirect(new URL('/comprador/home', request.url));
     }
@@ -98,6 +98,8 @@ export const config = {
     '/configuracoes/:path*',
     '/aprovacao/:path*',
     '/vendedores/:path*',
+    '/clientes/:path*',
+    '/normas/:path*',
     '/trocar-senha',
     '/login',
     '/',

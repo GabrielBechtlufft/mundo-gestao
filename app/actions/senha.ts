@@ -6,12 +6,23 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { enviarEmailRedefinicaoSenha } from "@/app/lib/email";
 
+const MIN_SENHA = 8;
+const MAX_SENHA = 128;
+
+function senhaValida(senha: string) {
+  return senha.length >= MIN_SENHA && senha.length <= MAX_SENHA && /[A-Za-z]/.test(senha) && /\d/.test(senha);
+}
+
+function erroSenha() {
+  return `A senha deve ter entre ${MIN_SENHA} e ${MAX_SENHA} caracteres e incluir letras e números.`;
+}
+
 export async function trocarSenha(novaSenha: string) {
   const session = await getSession();
   if (!session) return { success: false, error: "Não autenticado." };
 
-  if (!novaSenha || novaSenha.length < 6) {
-    return { success: false, error: "A senha deve ter no mínimo 6 caracteres." };
+  if (!senhaValida(novaSenha)) {
+    return { success: false, error: erroSenha() };
   }
 
   const senhaHash = await bcrypt.hash(novaSenha, 10);
@@ -28,8 +39,8 @@ export async function trocarSenhaAutenticado(senhaAtual: string, novaSenha: stri
   const session = await getSession();
   if (!session) return { success: false, error: "Não autenticado." };
 
-  if (!novaSenha || novaSenha.length < 6) {
-    return { success: false, error: "A nova senha deve ter no mínimo 6 caracteres." };
+  if (!senhaValida(novaSenha)) {
+    return { success: false, error: erroSenha() };
   }
 
   const user = await prisma.user.findUnique({ where: { id: session.id } });
@@ -48,6 +59,7 @@ export async function trocarSenhaAutenticado(senhaAtual: string, novaSenha: stri
 }
 
 export async function solicitarRedefinicaoSenha(loginOuEmail: string) {
+  if (!loginOuEmail || loginOuEmail.length > 254) return { success: true };
   const user = await prisma.user.findFirst({
     where: {
       OR: [
@@ -60,6 +72,17 @@ export async function solicitarRedefinicaoSenha(loginOuEmail: string) {
   // Retorna sucesso mesmo se não encontrar (evita enumeração de usuários)
   if (!user || !user.email) return { success: true };
 
+  const tokenRecente = await prisma.passwordResetToken.findFirst({
+    where: {
+      userId: user.id,
+      usado: false,
+      createdAt: { gt: new Date(Date.now() - 15 * 60 * 1000) },
+    },
+    select: { id: true },
+  });
+  // Limita e-mails de recuperação sem expor se a conta existe.
+  if (tokenRecente) return { success: true };
+
   // Invalidar tokens anteriores
   await prisma.passwordResetToken.updateMany({
     where: { userId: user.id, usado: false },
@@ -67,10 +90,11 @@ export async function solicitarRedefinicaoSenha(loginOuEmail: string) {
   });
 
   const token = crypto.randomBytes(32).toString("hex");
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
   const expiresAt = new Date(Date.now() + 1000 * 60 * 60); // 1 hora
 
   await prisma.passwordResetToken.create({
-    data: { userId: user.id, token, expiresAt },
+    data: { userId: user.id, token: tokenHash, expiresAt },
   });
 
   await enviarEmailRedefinicaoSenha(user.email, user.name, token);
@@ -79,12 +103,15 @@ export async function solicitarRedefinicaoSenha(loginOuEmail: string) {
 }
 
 export async function redefinirSenhaComToken(token: string, novaSenha: string) {
-  if (!novaSenha || novaSenha.length < 6) {
-    return { success: false, error: "A senha deve ter no mínimo 6 caracteres." };
+  if (!senhaValida(novaSenha)) {
+    return { success: false, error: erroSenha() };
   }
 
+  if (!/^[a-f0-9]{64}$/i.test(token)) return { success: false, error: "Link inválido ou expirado. Solicite um novo." };
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+
   const registro = await prisma.passwordResetToken.findUnique({
-    where: { token },
+    where: { token: tokenHash },
     include: { User: true },
   });
 
@@ -100,7 +127,7 @@ export async function redefinirSenhaComToken(token: string, novaSenha: string) {
       data: { password: senhaHash, trocarSenha: false, sessionVersion: { increment: 1 } },
     }),
     prisma.passwordResetToken.update({
-      where: { token },
+      where: { token: tokenHash },
       data: { usado: true },
     }),
   ]);

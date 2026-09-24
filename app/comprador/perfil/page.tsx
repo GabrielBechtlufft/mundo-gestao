@@ -152,17 +152,17 @@ export default function CompradorPerfilPage() {
                       <div>
                         <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#6B7280", marginBottom: "6px", textTransform: "uppercase" }}>Senha atual</label>
                         <input type="password" value={senhaAtual} onChange={(e) => setSenhaAtual(e.target.value)} required placeholder="••••••"
-                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box" as const }} />
+                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box" as const, color: "#111827", background: "#FFFFFF" }} />
                       </div>
                       <div>
                         <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#6B7280", marginBottom: "6px", textTransform: "uppercase" }}>Nova senha</label>
                         <input type="password" value={novaSenha} onChange={(e) => setNovaSenha(e.target.value)} required placeholder="Mín. 6 caracteres"
-                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box" as const }} />
+                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box" as const, color: "#111827", background: "#FFFFFF" }} />
                       </div>
                       <div>
                         <label style={{ display: "block", fontSize: "12px", fontWeight: 700, color: "#6B7280", marginBottom: "6px", textTransform: "uppercase" }}>Confirmar</label>
                         <input type="password" value={confirmarSenha} onChange={(e) => setConfirmarSenha(e.target.value)} required placeholder="Repita a senha"
-                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box" as const }} />
+                          style={{ width: "100%", padding: "10px 12px", border: "1.5px solid #E5E7EB", borderRadius: "10px", fontSize: "14px", outline: "none", boxSizing: "border-box" as const, color: "#111827", background: "#FFFFFF" }} />
                       </div>
                     </div>
                     <div style={{ display: "flex", gap: "10px" }}>

@@ -90,6 +90,16 @@ export const ESTADOS_CIDADES: Record<string, string[]> = {
   "RS — Rio Grande do Sul":    ["Porto Alegre"],
   "SC — Santa Catarina":       ["Florianópolis"],
   "SP — São Paulo":            ["Campinas", "Guarulhos", "Osasco", "Ribeirão Preto", "Santo André", "São Bernardo do Campo", "São Paulo", "Sorocaba"],
+  "AC — Acre":                 ["Rio Branco"],
+  "AP — Amapá":                ["Macapá"],
+  "RO — Rondônia":             ["Porto Velho"],
+  "RR — Roraima":              ["Boa Vista"],
+  "TO — Tocantins":            ["Palmas"],
+  "MA — Maranhão":             ["São Luís"],
+  "PI — Piauí":                ["Teresina"],
+  "SE — Sergipe":              ["Aracaju"],
+  "MT — Mato Grosso":          ["Cuiabá"],
+  "MS — Mato Grosso do Sul":   ["Campo Grande"],
 };
 
 export const ESTADOS = Object.keys(ESTADOS_CIDADES).sort();

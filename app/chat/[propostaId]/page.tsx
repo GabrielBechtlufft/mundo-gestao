@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getMensagens, enviarMensagem, marcarMensagensLidas } from "@/app/actions/chat";
+import {
+  getMensagens,
+  enviarMensagem,
+  marcarMensagensLidas,
+} from "@/app/actions/chat";
 import { confirmarNegociacao } from "@/app/actions/negociacao";
 import { criarAvaliacao } from "@/app/actions/avaliacoes";
 import { Logo } from "@/app/components/layout/Logo";
@@ -29,23 +33,56 @@ type PropostaInfo = {
   compradorId: string | null;
 };
 
-const TIER_STYLE: Record<string, { label: string; bg: string; text: string; border: string; icon: string }> = {
-  BRONZE:  { label: "Bronze",  bg: "rgba(205,127,50,0.15)", text: "#CD7F32", border: "#CD7F32", icon: "🥉" },
-  PRATA:   { label: "Prata",   bg: "rgba(232,237,240,0.1)", text: "#E8EDF0", border: "#A7B0B8", icon: "🥈" },
-  OURO:    { label: "Ouro",    bg: "rgba(255,215,0,0.12)", text: "#FFD700", border: "#FFD700", icon: "🥇" },
-  PLATINA: { label: "Platina", bg: "rgba(0,235,203,0.12)", text: "#00EBCB", border: "#00EBCB", icon: "💎" },
+const TIER_STYLE: Record<
+  string,
+  { label: string; bg: string; text: string; border: string; icon: string }
+> = {
+  BRONZE: {
+    label: "Bronze",
+    bg: "rgba(205,127,50,0.15)",
+    text: "#CD7F32",
+    border: "#CD7F32",
+    icon: "🥉",
+  },
+  PRATA: {
+    label: "Prata",
+    bg: "rgba(232,237,240,0.1)",
+    text: "#E8EDF0",
+    border: "#A7B0B8",
+    icon: "🥈",
+  },
+  OURO: {
+    label: "Ouro",
+    bg: "rgba(255,215,0,0.12)",
+    text: "#FFD700",
+    border: "#FFD700",
+    icon: "🥇",
+  },
+  PLATINA: {
+    label: "Platina",
+    bg: "rgba(0,235,203,0.12)",
+    text: "#00EBCB",
+    border: "#00EBCB",
+    icon: "💎",
+  },
 };
 
 const STATUS_LABEL: Record<string, string> = {
   CONTATO_SOLICITADO: "Contato Solicitado",
-  EM_CONTATO:         "Em Contato",
-  PROPOSTA_ENVIADA:   "Proposta Enviada",
-  EM_NEGOCIACAO:      "Em Negociação",
-  PROPOSTA_FECHADA:   "Negociação Concluída",
-  CANCELADA:          "Cancelada",
+  EM_CONTATO: "Em Contato",
+  PROPOSTA_ENVIADA: "Proposta Enviada",
+  EM_NEGOCIACAO: "Em Negociação",
+  PROPOSTA_FECHADA: "Negociação Concluída",
+  CANCELADA: "Cancelada",
 };
 
-function StarRating({ value, onChange }: { value: number; onChange?: (n: number) => void }) {
+function StarRating({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange?: (n: number) => void;
+}) {
   const [hover, setHover] = useState(0);
   return (
     <div style={{ display: "flex", gap: "8px" }}>
@@ -55,7 +92,14 @@ function StarRating({ value, onChange }: { value: number; onChange?: (n: number)
           onClick={() => onChange && onChange(star)}
           onMouseEnter={() => onChange && setHover(star)}
           onMouseLeave={() => onChange && setHover(0)}
-          style={{ fontSize: "32px", cursor: onChange ? "pointer" : "default", color: star <= (hover || value) ? "#00EBCB" : "rgba(232, 237, 240, 0.2)", transition: "color 0.15s", userSelect: "none" }}
+          style={{
+            fontSize: "32px",
+            cursor: onChange ? "pointer" : "default",
+            color:
+              star <= (hover || value) ? "#00EBCB" : "rgba(232, 237, 240, 0.2)",
+            transition: "color 0.15s",
+            userSelect: "none",
+          }}
         >
           ★
         </span>
@@ -83,8 +127,13 @@ function NegociacaoModal({
   const [erro, setErro] = useState("");
 
   const isComprador = proposta.compradorId === sessionId;
-  const isVendedor = sessionRole === "VENDEDOR" || sessionRole === "FUNCIONARIO";
-  const euConfirmei = isComprador ? proposta.compradorConfirmou : isVendedor ? proposta.vendedorConfirmou : false;
+  const isVendedor =
+    sessionRole === "VENDEDOR" || sessionRole === "FUNCIONARIO";
+  const euConfirmei = isComprador
+    ? proposta.compradorConfirmou
+    : isVendedor
+      ? proposta.vendedorConfirmou
+      : false;
 
   const handleConfirmar = async () => {
     setConfirmando(true);
@@ -103,45 +152,191 @@ function NegociacaoModal({
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(2,13,29,0.8)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", backdropFilter: "blur(6px)" }}>
-      <div style={{ background: "#03162D", border: "1px solid rgba(232, 237, 240, 0.15)", borderRadius: "24px", width: "100%", maxWidth: "460px", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", color: "#FFFFFF" }}>
-        <div style={{ background: "linear-gradient(135deg,#03162D,#00A9D6)", borderBottom: "1px solid rgba(232, 237, 240, 0.12)", padding: "24px 28px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(2,13,29,0.8)",
+        zIndex: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        backdropFilter: "blur(6px)",
+      }}
+    >
+      <div
+        style={{
+          background: "#03162D",
+          border: "1px solid rgba(232, 237, 240, 0.15)",
+          borderRadius: "24px",
+          width: "100%",
+          maxWidth: "460px",
+          overflow: "hidden",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
+          color: "#FFFFFF",
+        }}
+      >
+        <div
+          style={{
+            background: "linear-gradient(135deg,#03162D,#00A9D6)",
+            borderBottom: "1px solid rgba(232, 237, 240, 0.12)",
+            padding: "24px 28px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <div>
-            <h2 style={{ color: "#FFFFFF", margin: 0, fontSize: "18px", fontWeight: 800 }}>Concluir Negociação</h2>
-            <p style={{ color: "#E8EDF0", margin: "4px 0 0", fontSize: "13px" }}>{proposta.servico}</p>
+            <h2
+              style={{
+                color: "#FFFFFF",
+                margin: 0,
+                fontSize: "18px",
+                fontWeight: 800,
+              }}
+            >
+              Concluir Negociação
+            </h2>
+            <p
+              style={{ color: "#E8EDF0", margin: "4px 0 0", fontSize: "13px" }}
+            >
+              {proposta.servico}
+            </p>
           </div>
-          <button onClick={onClose} style={{ background: "rgba(232,237,240,0.15)", border: "none", color: "#FFFFFF", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button
+            onClick={onClose}
+            style={{
+              background: "rgba(232,237,240,0.15)",
+              border: "none",
+              color: "#FFFFFF",
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              cursor: "pointer",
+              fontSize: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ✕
+          </button>
         </div>
 
         <div style={{ padding: "28px" }}>
-          <p style={{ color: "#A7B0B8", fontSize: "14px", lineHeight: 1.6, marginTop: 0, marginBottom: "24px" }}>
-            Ambas as partes precisam confirmar para encerrar a negociação. Após a conclusão, o comprador poderá avaliar a certificadora.
+          <p
+            style={{
+              color: "#A7B0B8",
+              fontSize: "14px",
+              lineHeight: 1.6,
+              marginTop: 0,
+              marginBottom: "24px",
+            }}
+          >
+            Ambas as partes precisam confirmar para encerrar a negociação. Após
+            a conclusão, o comprador poderá avaliar a certificadora.
           </p>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 16px", borderRadius: "12px", background: proposta.vendedorConfirmou ? "rgba(34, 197, 94, 0.12)" : "#020D1D", border: `1.5px solid ${proposta.vendedorConfirmou ? "rgba(34, 197, 94, 0.4)" : "rgba(232, 237, 240, 0.12)"}` }}>
-              <span style={{ fontSize: "20px" }}>{proposta.vendedorConfirmou ? "✅" : "⏳"}</span>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "12px",
+              marginBottom: "24px",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                background: proposta.vendedorConfirmou
+                  ? "rgba(34, 197, 94, 0.12)"
+                  : "#020D1D",
+                border: `1.5px solid ${proposta.vendedorConfirmou ? "rgba(34, 197, 94, 0.4)" : "rgba(232, 237, 240, 0.12)"}`,
+              }}
+            >
+              <span style={{ fontSize: "20px" }}>
+                {proposta.vendedorConfirmou ? "✅" : "⏳"}
+              </span>
               <div>
-                <div style={{ fontWeight: 700, fontSize: "13px", color: "#FFFFFF" }}>Certificadora — {proposta.vendedorNome}</div>
-                <div style={{ fontSize: "12px", color: proposta.vendedorConfirmou ? "#22C55E" : "#A7B0B8" }}>
-                  {proposta.vendedorConfirmou ? "Confirmou a conclusão" : "Aguardando confirmação"}
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "13px",
+                    color: "#FFFFFF",
+                  }}
+                >
+                  Certificadora — {proposta.vendedorNome}
+                </div>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: proposta.vendedorConfirmou ? "#22C55E" : "#A7B0B8",
+                  }}
+                >
+                  {proposta.vendedorConfirmou
+                    ? "Confirmou a conclusão"
+                    : "Aguardando confirmação"}
                 </div>
               </div>
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "14px 16px", borderRadius: "12px", background: proposta.compradorConfirmou ? "rgba(34, 197, 94, 0.12)" : "#020D1D", border: `1.5px solid ${proposta.compradorConfirmou ? "rgba(34, 197, 94, 0.4)" : "rgba(232, 237, 240, 0.12)"}` }}>
-              <span style={{ fontSize: "20px" }}>{proposta.compradorConfirmou ? "✅" : "⏳"}</span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                padding: "14px 16px",
+                borderRadius: "12px",
+                background: proposta.compradorConfirmou
+                  ? "rgba(34, 197, 94, 0.12)"
+                  : "#020D1D",
+                border: `1.5px solid ${proposta.compradorConfirmou ? "rgba(34, 197, 94, 0.4)" : "rgba(232, 237, 240, 0.12)"}`,
+              }}
+            >
+              <span style={{ fontSize: "20px" }}>
+                {proposta.compradorConfirmou ? "✅" : "⏳"}
+              </span>
               <div>
-                <div style={{ fontWeight: 700, fontSize: "13px", color: "#FFFFFF" }}>Comprador — {proposta.compradorNome}</div>
-                <div style={{ fontSize: "12px", color: proposta.compradorConfirmou ? "#22C55E" : "#A7B0B8" }}>
-                  {proposta.compradorConfirmou ? "Confirmou a conclusão" : "Aguardando confirmação"}
+                <div
+                  style={{
+                    fontWeight: 700,
+                    fontSize: "13px",
+                    color: "#FFFFFF",
+                  }}
+                >
+                  Comprador — {proposta.compradorNome}
+                </div>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: proposta.compradorConfirmou ? "#22C55E" : "#A7B0B8",
+                  }}
+                >
+                  {proposta.compradorConfirmou
+                    ? "Confirmou a conclusão"
+                    : "Aguardando confirmação"}
                 </div>
               </div>
             </div>
           </div>
 
           {erro && (
-            <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "10px", padding: "10px 14px", color: "#F87171", fontSize: "13px", marginBottom: "16px" }}>
+            <div
+              style={{
+                background: "rgba(239, 68, 68, 0.1)",
+                border: "1px solid rgba(239, 68, 68, 0.2)",
+                borderRadius: "10px",
+                padding: "10px 14px",
+                color: "#F87171",
+                fontSize: "13px",
+                marginBottom: "16px",
+              }}
+            >
               {erro}
             </div>
           )}
@@ -150,12 +345,35 @@ function NegociacaoModal({
             <button
               onClick={handleConfirmar}
               disabled={confirmando}
-              style={{ width: "100%", padding: "14px", background: "#00EBCB", color: "#020D1D", border: "none", borderRadius: "12px", fontWeight: 600, fontSize: "15px", cursor: confirmando ? "not-allowed" : "pointer", opacity: confirmando ? 0.7 : 1, transition: "opacity 0.2s", boxShadow: "0 4px 14px rgba(0,235,203,0.3)" }}
+              style={{
+                width: "100%",
+                padding: "14px",
+                background: "#00EBCB",
+                color: "#020D1D",
+                border: "none",
+                borderRadius: "12px",
+                fontWeight: 600,
+                fontSize: "15px",
+                cursor: confirmando ? "not-allowed" : "pointer",
+                opacity: confirmando ? 0.7 : 1,
+                transition: "opacity 0.2s",
+                boxShadow: "0 4px 14px rgba(0,235,203,0.3)",
+              }}
             >
               {confirmando ? "Confirmando..." : "✅ Confirmar Conclusão"}
             </button>
           ) : euConfirmei ? (
-            <div style={{ textAlign: "center", color: "#22C55E", fontWeight: 600, fontSize: "14px", padding: "12px", background: "rgba(34, 197, 94, 0.12)", borderRadius: "12px" }}>
+            <div
+              style={{
+                textAlign: "center",
+                color: "#22C55E",
+                fontWeight: 600,
+                fontSize: "14px",
+                padding: "12px",
+                background: "rgba(34, 197, 94, 0.12)",
+                borderRadius: "12px",
+              }}
+            >
               Você já confirmou. Aguardando a outra parte.
             </div>
           ) : null}
@@ -181,9 +399,18 @@ function AvaliacaoModal({
   const [sucesso, setSucesso] = useState(false);
 
   const handleEnviar = async () => {
-    if (nota === 0) { setErro("Selecione uma nota de 1 a 5 estrelas."); return; }
-    if (!comentario.trim()) { setErro("Escreva um comentário sobre sua experiência."); return; }
-    if (!proposta.listagemId) { setErro("Listagem não encontrada."); return; }
+    if (nota === 0) {
+      setErro("Selecione uma nota de 1 a 5 estrelas.");
+      return;
+    }
+    if (!comentario.trim()) {
+      setErro("Escreva um comentário sobre sua experiência.");
+      return;
+    }
+    if (!proposta.listagemId) {
+      setErro("Listagem não encontrada.");
+      return;
+    }
 
     setEnviando(true);
     setErro("");
@@ -197,57 +424,214 @@ function AvaliacaoModal({
   };
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(2,13,29,0.8)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px", backdropFilter: "blur(6px)" }}>
-      <div style={{ background: "#03162D", border: "1px solid rgba(232, 237, 240, 0.15)", borderRadius: "24px", width: "100%", maxWidth: "460px", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", color: "#FFFFFF" }}>
-        <div style={{ background: "linear-gradient(135deg,#03162D,#00A9D6)", borderBottom: "1px solid rgba(232, 237, 240, 0.12)", padding: "24px 28px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(2,13,29,0.8)",
+        zIndex: 100,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        backdropFilter: "blur(6px)",
+      }}
+    >
+      <div
+        style={{
+          background: "#03162D",
+          border: "1px solid rgba(232, 237, 240, 0.15)",
+          borderRadius: "24px",
+          width: "100%",
+          maxWidth: "460px",
+          overflow: "hidden",
+          boxShadow: "0 24px 64px rgba(0,0,0,0.6)",
+          color: "#FFFFFF",
+        }}
+      >
+        <div
+          style={{
+            background: "linear-gradient(135deg,#03162D,#00A9D6)",
+            borderBottom: "1px solid rgba(232, 237, 240, 0.12)",
+            padding: "24px 28px 20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
           <div>
-            <h2 style={{ color: "#FFFFFF", margin: 0, fontSize: "18px", fontWeight: 800 }}>Avaliar Certificadora</h2>
-            <p style={{ color: "#E8EDF0", margin: "4px 0 0", fontSize: "13px" }}>{proposta.vendedorNome}</p>
+            <h2
+              style={{
+                color: "#FFFFFF",
+                margin: 0,
+                fontSize: "18px",
+                fontWeight: 800,
+              }}
+            >
+              Avaliar Certificadora
+            </h2>
+            <p
+              style={{ color: "#E8EDF0", margin: "4px 0 0", fontSize: "13px" }}
+            >
+              {proposta.vendedorNome}
+            </p>
           </div>
-          <button onClick={onClose} style={{ background: "rgba(232,237,240,0.15)", border: "none", color: "#FFFFFF", width: "32px", height: "32px", borderRadius: "50%", cursor: "pointer", fontSize: "16px", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+          <button
+            onClick={onClose}
+            style={{
+              background: "rgba(232,237,240,0.15)",
+              border: "none",
+              color: "#FFFFFF",
+              width: "32px",
+              height: "32px",
+              borderRadius: "50%",
+              cursor: "pointer",
+              fontSize: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ✕
+          </button>
         </div>
 
         <div style={{ padding: "28px" }}>
           {sucesso ? (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
               <div style={{ fontSize: "48px", marginBottom: "12px" }}>⭐</div>
-              <h3 style={{ color: "#FFFFFF", margin: "0 0 8px", fontSize: "18px", fontWeight: 800 }}>Obrigado pelo feedback!</h3>
-              <p style={{ color: "#A7B0B8", fontSize: "14px", margin: "0 0 24px" }}>Sua avaliação foi enviada com sucesso.</p>
-              <button onClick={onClose} style={{ padding: "12px 28px", background: "#00EBCB", color: "#020D1D", border: "none", borderRadius: "12px", fontWeight: 600, cursor: "pointer", fontSize: "14px", boxShadow: "0 4px 14px rgba(0,235,203,0.3)" }}>
+              <h3
+                style={{
+                  color: "#FFFFFF",
+                  margin: "0 0 8px",
+                  fontSize: "18px",
+                  fontWeight: 800,
+                }}
+              >
+                Obrigado pelo feedback!
+              </h3>
+              <p
+                style={{
+                  color: "#A7B0B8",
+                  fontSize: "14px",
+                  margin: "0 0 24px",
+                }}
+              >
+                Sua avaliação foi enviada com sucesso.
+              </p>
+              <button
+                onClick={onClose}
+                style={{
+                  padding: "12px 28px",
+                  background: "#00EBCB",
+                  color: "#020D1D",
+                  border: "none",
+                  borderRadius: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  fontSize: "14px",
+                  boxShadow: "0 4px 14px rgba(0,235,203,0.3)",
+                }}
+              >
                 Fechar
               </button>
             </div>
           ) : (
             <>
-              <p style={{ color: "#A7B0B8", fontSize: "14px", lineHeight: 1.6, marginTop: 0, marginBottom: "20px" }}>
+              <p
+                style={{
+                  color: "#A7B0B8",
+                  fontSize: "14px",
+                  lineHeight: 1.6,
+                  marginTop: 0,
+                  marginBottom: "20px",
+                }}
+              >
                 Como foi sua experiência com a certificadora nesta negociação?
               </p>
 
               <div style={{ marginBottom: "20px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#E8EDF0", marginBottom: "10px" }}>Sua nota *</label>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    color: "#E8EDF0",
+                    marginBottom: "10px",
+                  }}
+                >
+                  Sua nota *
+                </label>
                 <StarRating value={nota} onChange={setNota} />
                 {nota > 0 && (
-                  <span style={{ fontSize: "13px", color: "#00EBCB", marginTop: "6px", display: "block", fontWeight: 600 }}>
-                    {["", "Péssimo", "Ruim", "Regular", "Bom", "Excelente"][nota]}
+                  <span
+                    style={{
+                      fontSize: "13px",
+                      color: "#00EBCB",
+                      marginTop: "6px",
+                      display: "block",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {
+                      ["", "Péssimo", "Ruim", "Regular", "Bom", "Excelente"][
+                        nota
+                      ]
+                    }
                   </span>
                 )}
               </div>
 
               <div style={{ marginBottom: "20px" }}>
-                <label style={{ display: "block", fontSize: "13px", fontWeight: 500, color: "#E8EDF0", marginBottom: "6px" }}>Comentário *</label>
+                <label
+                  style={{
+                    display: "block",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    color: "#E8EDF0",
+                    marginBottom: "6px",
+                  }}
+                >
+                  Comentário *
+                </label>
                 <textarea
                   value={comentario}
                   onChange={(e) => setComentario(e.target.value)}
                   rows={4}
                   placeholder="Conte sobre sua experiência com este serviço ISO..."
-                  style={{ width: "100%", border: "1.5px solid rgba(232, 237, 240, 0.18)", borderRadius: "12px", padding: "12px 16px", fontSize: "14px", resize: "vertical", boxSizing: "border-box", outline: "none", fontFamily: "inherit", lineHeight: 1.5, background: "#020D1D", color: "#FFFFFF" }}
+                  style={{
+                    width: "100%",
+                    border: "1.5px solid rgba(232, 237, 240, 0.18)",
+                    borderRadius: "12px",
+                    padding: "12px 16px",
+                    fontSize: "14px",
+                    resize: "vertical",
+                    boxSizing: "border-box",
+                    outline: "none",
+                    fontFamily: "inherit",
+                    lineHeight: 1.5,
+                    background: "#020D1D",
+                    color: "#FFFFFF",
+                  }}
                   onFocus={(e) => (e.target.style.borderColor = "#00EBCB")}
-                  onBlur={(e) => (e.target.style.borderColor = "rgba(232, 237, 240, 0.18)")}
+                  onBlur={(e) =>
+                    (e.target.style.borderColor = "rgba(232, 237, 240, 0.18)")
+                  }
                 />
               </div>
 
               {erro && (
-                <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "10px", padding: "10px 14px", color: "#F87171", fontSize: "13px", marginBottom: "16px" }}>
+                <div
+                  style={{
+                    background: "rgba(239, 68, 68, 0.1)",
+                    border: "1px solid rgba(239, 68, 68, 0.2)",
+                    borderRadius: "10px",
+                    padding: "10px 14px",
+                    color: "#F87171",
+                    fontSize: "13px",
+                    marginBottom: "16px",
+                  }}
+                >
                   {erro}
                 </div>
               )}
@@ -255,7 +639,20 @@ function AvaliacaoModal({
               <button
                 onClick={handleEnviar}
                 disabled={enviando}
-                style={{ width: "100%", padding: "14px", background: "#00EBCB", color: "#020D1D", border: "none", borderRadius: "12px", fontWeight: 600, fontSize: "15px", cursor: enviando ? "not-allowed" : "pointer", opacity: enviando ? 0.7 : 1, transition: "opacity 0.2s", boxShadow: "0 4px 14px rgba(0,235,203,0.3)" }}
+                style={{
+                  width: "100%",
+                  padding: "14px",
+                  background: "#00EBCB",
+                  color: "#020D1D",
+                  border: "none",
+                  borderRadius: "12px",
+                  fontWeight: 600,
+                  fontSize: "15px",
+                  cursor: enviando ? "not-allowed" : "pointer",
+                  opacity: enviando ? 0.7 : 1,
+                  transition: "opacity 0.2s",
+                  boxShadow: "0 4px 14px rgba(0,235,203,0.3)",
+                }}
               >
                 {enviando ? "Enviando..." : "✉ Enviar Avaliação"}
               </button>
@@ -290,12 +687,13 @@ export default function ChatPage() {
   const carregar = async (scroll = false) => {
     const res = await getMensagens(propostaId);
     if (!res.success) {
-      if (res.error === "Sem permissão" || res.error === "Não autenticado") setSemPermissao(true);
+      if (res.error === "Sem permissão" || res.error === "Não autenticado")
+        setSemPermissao(true);
       setLoading(false);
       return;
     }
     setMensagens((res.mensagens as Mensagem[]) ?? []);
-    setProposta(res.proposta as PropostaInfo ?? null);
+    setProposta((res.proposta as PropostaInfo) ?? null);
     setSessionId(res.sessionId ?? "");
     setSessionRole((res as any).sessionRole ?? "");
     setLoading(false);
@@ -307,7 +705,7 @@ export default function ChatPage() {
     carregar(true);
     const interval = setInterval(() => carregar(false), 4000);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propostaId]);
 
   useEffect(() => {
@@ -341,21 +739,53 @@ export default function ChatPage() {
     await carregar(false);
   };
 
-  const rankStyle = TIER_STYLE[proposta?.vendedorRankTier ?? "BRONZE"] ?? TIER_STYLE.BRONZE;
+  const rankStyle =
+    TIER_STYLE[proposta?.vendedorRankTier ?? "BRONZE"] ?? TIER_STYLE.BRONZE;
 
   const isFechada = proposta?.status === "PROPOSTA_FECHADA";
   const isCancelada = proposta?.status === "CANCELADA";
   const isComprador = proposta?.compradorId === sessionId;
-  const podeVerBotaoNegociacao = !isFechada && !isCancelada && sessionRole !== "ADMIN";
+  const podeVerBotaoNegociacao =
+    !isFechada && !isCancelada && sessionRole !== "ADMIN";
 
   if (semPermissao) {
     return (
-      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#6001D3,#A872F0)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ background: "#fff", borderRadius: "20px", padding: "40px", textAlign: "center", maxWidth: "400px" }}>
+      <div
+        style={{
+          minHeight: "100vh",
+          background: "linear-gradient(135deg,#6001D3,#A872F0)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <div
+          style={{
+            background: "#fff",
+            borderRadius: "20px",
+            padding: "40px",
+            textAlign: "center",
+            maxWidth: "400px",
+          }}
+        >
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>🔒</div>
           <h2 style={{ color: "#111", fontWeight: 800 }}>Sem acesso</h2>
-          <p style={{ color: "#888" }}>Você não tem permissão para acessar este chat.</p>
-          <button onClick={() => router.back()} style={{ marginTop: "20px", padding: "12px 28px", background: "#6001D3", color: "#fff", border: "none", borderRadius: "12px", fontWeight: 700, cursor: "pointer" }}>
+          <p style={{ color: "#888" }}>
+            Você não tem permissão para acessar este chat.
+          </p>
+          <button
+            onClick={() => router.back()}
+            style={{
+              marginTop: "20px",
+              padding: "12px 28px",
+              background: "#6001D3",
+              color: "#fff",
+              border: "none",
+              borderRadius: "12px",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
             Voltar
           </button>
         </div>
@@ -364,7 +794,14 @@ export default function ChatPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#6001D3,#A872F0)", display: "flex", flexDirection: "column" }}>
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "linear-gradient(135deg,#6001D3,#A872F0)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
       {/* Modais */}
       {showNegociacaoModal && proposta && (
         <NegociacaoModal
@@ -385,9 +822,34 @@ export default function ChatPage() {
       )}
 
       {/* Header */}
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 32px", background: "rgba(0,0,0,0.15)", backdropFilter: "blur(8px)", flexShrink: 0 }}>
+      <header
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px 32px",
+          background: "rgba(0,0,0,0.15)",
+          backdropFilter: "blur(8px)",
+          flexShrink: 0,
+        }}
+      >
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <button onClick={() => router.back()} style={{ background: "rgba(255,255,255,0.15)", border: "none", color: "#fff", padding: "8px 16px", borderRadius: "10px", cursor: "pointer", fontWeight: 600, fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}>
+          <button
+            onClick={() => router.back()}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "none",
+              color: "#fff",
+              padding: "8px 16px",
+              borderRadius: "10px",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: "13px",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
             ← Voltar
           </button>
           <Link href="/" className="no-underline">
@@ -395,11 +857,38 @@ export default function ChatPage() {
           </Link>
         </div>
         {proposta && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "4px" }}>
-            <span style={{ color: "#fff", fontSize: "13px", fontWeight: 700, maxWidth: "300px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "4px",
+            }}
+          >
+            <span
+              style={{
+                color: "#fff",
+                fontSize: "13px",
+                fontWeight: 700,
+                maxWidth: "300px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
               {proposta.servico}
             </span>
-            <span style={{ background: isFechada ? "rgba(34,197,94,0.3)" : "rgba(255,255,255,0.2)", color: "#fff", fontSize: "11px", padding: "2px 10px", borderRadius: "12px" }}>
+            <span
+              style={{
+                background: isFechada
+                  ? "rgba(34,197,94,0.3)"
+                  : "rgba(255,255,255,0.2)",
+                color: "#fff",
+                fontSize: "11px",
+                padding: "2px 10px",
+                borderRadius: "12px",
+              }}
+            >
               {STATUS_LABEL[proposta.status] ?? proposta.status}
             </span>
           </div>
@@ -408,23 +897,87 @@ export default function ChatPage() {
 
       {/* Participants bar */}
       {proposta && (
-        <div style={{ background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)", padding: "10px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
+        <div
+          style={{
+            background: "rgba(255,255,255,0.1)",
+            backdropFilter: "blur(8px)",
+            padding: "10px 32px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: "13px" }}>
+            <div
+              style={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.25)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                fontWeight: 800,
+                fontSize: "13px",
+              }}
+            >
               {proposta.compradorNome[0]}
             </div>
-            <span style={{ color: "#fff", fontSize: "13px", fontWeight: 600 }}>{proposta.compradorNome}</span>
-            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px" }}>Comprador</span>
+            <span style={{ color: "#fff", fontSize: "13px", fontWeight: 600 }}>
+              {proposta.compradorNome}
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px" }}>
+              Comprador
+            </span>
           </div>
-          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "18px" }}>↔</span>
+          <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "18px" }}>
+            ↔
+          </span>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px" }}>Certificadora</span>
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", background: rankStyle.bg, border: `1.5px solid ${rankStyle.border}`, borderRadius: "20px", padding: "3px 10px 3px 6px" }}>
+            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "12px" }}>
+              Certificadora
+            </span>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                background: rankStyle.bg,
+                border: `1.5px solid ${rankStyle.border}`,
+                borderRadius: "20px",
+                padding: "3px 10px 3px 6px",
+              }}
+            >
               <span style={{ fontSize: "14px" }}>{rankStyle.icon}</span>
-              <span style={{ color: rankStyle.text, fontSize: "11px", fontWeight: 700 }}>{rankStyle.label}</span>
+              <span
+                style={{
+                  color: rankStyle.text,
+                  fontSize: "11px",
+                  fontWeight: 700,
+                }}
+              >
+                {rankStyle.label}
+              </span>
             </div>
-            <span style={{ color: "#fff", fontSize: "13px", fontWeight: 600 }}>{proposta.vendedorNome}</span>
-            <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "rgba(255,255,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: "13px" }}>
+            <span style={{ color: "#fff", fontSize: "13px", fontWeight: 600 }}>
+              {proposta.vendedorNome}
+            </span>
+            <div
+              style={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.25)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#fff",
+                fontWeight: 800,
+                fontSize: "13px",
+              }}
+            >
               {proposta.vendedorNome[0]}
             </div>
           </div>
@@ -433,15 +986,39 @@ export default function ChatPage() {
 
       {/* Banner de negociação concluída */}
       {isFechada && (
-        <div style={{ background: "rgba(34,197,94,0.2)", backdropFilter: "blur(8px)", borderBottom: "1px solid rgba(34,197,94,0.3)", padding: "12px 32px", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "12px" }}>
+        <div
+          style={{
+            background: "rgba(34,197,94,0.2)",
+            backdropFilter: "blur(8px)",
+            borderBottom: "1px solid rgba(34,197,94,0.3)",
+            padding: "12px 32px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+            gap: "12px",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <span style={{ fontSize: "20px" }}>🎉</span>
-            <span style={{ color: "#fff", fontSize: "13px", fontWeight: 700 }}>Negociação concluída com sucesso!</span>
+            <span style={{ color: "#fff", fontSize: "13px", fontWeight: 700 }}>
+              Negociação concluída com sucesso!
+            </span>
           </div>
           {isComprador && proposta?.listagemId && (
             <button
               onClick={() => setShowAvaliacaoModal(true)}
-              style={{ padding: "8px 18px", background: "#fff", color: "#6001D3", border: "none", borderRadius: "10px", fontWeight: 700, fontSize: "13px", cursor: "pointer", flexShrink: 0 }}
+              style={{
+                padding: "8px 18px",
+                background: "#fff",
+                color: "#6001D3",
+                border: "none",
+                borderRadius: "10px",
+                fontWeight: 700,
+                fontSize: "13px",
+                cursor: "pointer",
+                flexShrink: 0,
+              }}
             >
               ⭐ Avaliar Certificadora
             </button>
@@ -450,38 +1027,133 @@ export default function ChatPage() {
       )}
 
       {/* Messages area */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "24px 32px", display: "flex", flexDirection: "column", gap: "12px" }}>
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          padding: "24px 32px",
+          display: "flex",
+          flexDirection: "column",
+          gap: "12px",
+        }}
+      >
         {loading ? (
-          <div style={{ textAlign: "center", color: "rgba(255,255,255,0.7)", paddingTop: "60px" }}>Carregando...</div>
+          <div
+            style={{
+              textAlign: "center",
+              color: "rgba(255,255,255,0.7)",
+              paddingTop: "60px",
+            }}
+          >
+            Carregando...
+          </div>
         ) : mensagens.length === 0 ? (
-          <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)", paddingTop: "60px" }}>
+          <div
+            style={{
+              textAlign: "center",
+              color: "rgba(255,255,255,0.6)",
+              paddingTop: "60px",
+            }}
+          >
             <div style={{ fontSize: "40px", marginBottom: "12px" }}>💬</div>
-            <p style={{ fontSize: "15px" }}>Nenhuma mensagem ainda. Seja o primeiro a escrever!</p>
+            <p style={{ fontSize: "15px" }}>
+              Nenhuma mensagem ainda. Seja o primeiro a escrever!
+            </p>
           </div>
         ) : (
           mensagens.map((m) => {
             const isMe = m.remetenteId === sessionId;
             const ts = new Date(m.createdAt);
-            const time = ts.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-            const date = ts.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+            const time = ts.toLocaleTimeString("pt-BR", {
+              hour: "2-digit",
+              minute: "2-digit",
+            });
+            const date = ts.toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "2-digit",
+            });
             return (
-              <div key={m.id} style={{ display: "flex", flexDirection: "column", alignItems: isMe ? "flex-end" : "flex-start" }}>
-                <div style={{ display: "flex", alignItems: "flex-end", gap: "8px", flexDirection: isMe ? "row-reverse" : "row" }}>
-                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: isMe ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+              <div
+                key={m.id}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: isMe ? "flex-end" : "flex-start",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-end",
+                    gap: "8px",
+                    flexDirection: isMe ? "row-reverse" : "row",
+                  }}
+                >
+                  <div
+                    style={{
+                      width: "28px",
+                      height: "28px",
+                      borderRadius: "50%",
+                      background: isMe
+                        ? "rgba(255,255,255,0.25)"
+                        : "rgba(0,0,0,0.2)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "11px",
+                      fontWeight: 800,
+                      color: "#fff",
+                      flexShrink: 0,
+                    }}
+                  >
                     {m.Remetente.name[0]}
                   </div>
-                  <div style={{ maxWidth: "65%", background: isMe ? "#fff" : "rgba(255,255,255,0.15)", borderRadius: isMe ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "12px 16px", backdropFilter: "blur(8px)" }}>
+                  <div
+                    style={{
+                      maxWidth: "65%",
+                      background: isMe ? "#fff" : "rgba(255,255,255,0.15)",
+                      borderRadius: isMe
+                        ? "18px 18px 4px 18px"
+                        : "18px 18px 18px 4px",
+                      padding: "12px 16px",
+                      backdropFilter: "blur(8px)",
+                    }}
+                  >
                     {!isMe && (
-                      <div style={{ fontSize: "11px", fontWeight: 700, color: "rgba(255,255,255,0.8)", marginBottom: "4px" }}>
+                      <div
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: 700,
+                          color: "rgba(255,255,255,0.8)",
+                          marginBottom: "4px",
+                        }}
+                      >
                         {m.Remetente.name}
                       </div>
                     )}
-                    <p style={{ margin: 0, fontSize: "14px", color: isMe ? "#1a1a1a" : "#fff", lineHeight: 1.5, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+                    <p
+                      style={{
+                        margin: 0,
+                        fontSize: "14px",
+                        color: isMe ? "#1a1a1a" : "#fff",
+                        lineHeight: 1.5,
+                        whiteSpace: "pre-wrap",
+                        wordBreak: "break-word",
+                      }}
+                    >
                       {m.texto}
                     </p>
                   </div>
                 </div>
-                <span style={{ fontSize: "10px", color: "rgba(255,255,255,0.45)", marginTop: "4px", marginLeft: isMe ? 0 : "36px", marginRight: isMe ? "36px" : 0 }}>
+                <span
+                  style={{
+                    fontSize: "10px",
+                    color: "rgba(255,255,255,0.45)",
+                    marginTop: "4px",
+                    marginLeft: isMe ? 0 : "36px",
+                    marginRight: isMe ? "36px" : 0,
+                  }}
+                >
                   {date} {time} {isMe && m.lida ? "· Lida" : ""}
                 </span>
               </div>
@@ -492,25 +1164,86 @@ export default function ChatPage() {
       </div>
 
       {/* Input area */}
-      <div style={{ padding: "16px 32px 24px", background: "rgba(0,0,0,0.15)", backdropFilter: "blur(8px)", flexShrink: 0 }}>
+      <div
+        style={{
+          padding: "16px 32px 24px",
+          background: "rgba(0,0,0,0.15)",
+          backdropFilter: "blur(8px)",
+          flexShrink: 0,
+        }}
+      >
         {sessionRole === "ADMIN" ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "12px 20px", background: "rgba(255,255,255,0.1)", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.2)" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+              padding: "12px 20px",
+              background: "rgba(255,255,255,0.1)",
+              borderRadius: "12px",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
+          >
             <span style={{ fontSize: "16px" }}>👁️</span>
-            <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "13px", fontWeight: 600 }}>
-              Você está visualizando este chat como administrador — somente leitura.
+            <span
+              style={{
+                color: "rgba(255,255,255,0.8)",
+                fontSize: "13px",
+                fontWeight: 600,
+              }}
+            >
+              Você está visualizando este chat como administrador — somente
+              leitura.
             </span>
           </div>
         ) : isCancelada ? (
-          <div style={{ textAlign: "center", color: "rgba(255,255,255,0.6)", fontSize: "13px", padding: "12px" }}>
+          <div
+            style={{
+              textAlign: "center",
+              color: "rgba(255,255,255,0.6)",
+              fontSize: "13px",
+              padding: "12px",
+            }}
+          >
             Esta proposta foi cancelada. O chat está encerrado.
           </div>
         ) : isFechada ? (
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px", padding: "12px 20px", background: "rgba(34,197,94,0.15)", borderRadius: "12px", border: "1px solid rgba(34,197,94,0.3)" }}>
-            <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "13px", fontWeight: 600 }}>Negociação encerrada. O chat está em modo somente leitura.</span>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "12px",
+              padding: "12px 20px",
+              background: "rgba(34,197,94,0.15)",
+              borderRadius: "12px",
+              border: "1px solid rgba(34,197,94,0.3)",
+            }}
+          >
+            <span
+              style={{
+                color: "rgba(255,255,255,0.8)",
+                fontSize: "13px",
+                fontWeight: 600,
+              }}
+            >
+              Negociação encerrada. O chat está em modo somente leitura.
+            </span>
             {isComprador && proposta?.listagemId && (
               <button
                 onClick={() => setShowAvaliacaoModal(true)}
-                style={{ padding: "8px 16px", background: "#fff", color: "#6001D3", border: "none", borderRadius: "10px", fontWeight: 700, fontSize: "13px", cursor: "pointer", flexShrink: 0 }}
+                style={{
+                  padding: "8px 16px",
+                  background: "#fff",
+                  color: "#6001D3",
+                  border: "none",
+                  borderRadius: "10px",
+                  fontWeight: 700,
+                  fontSize: "13px",
+                  cursor: "pointer",
+                  flexShrink: 0,
+                }}
               >
                 ⭐ Avaliar
               </button>
@@ -519,11 +1252,23 @@ export default function ChatPage() {
         ) : (
           <>
             {erro && (
-              <div style={{ background: "#FEF2F2", border: "1px solid #FCA5A5", borderRadius: "8px", padding: "8px 12px", color: "#B91C1C", fontSize: "12px", marginBottom: "10px" }}>
+              <div
+                style={{
+                  background: "#FEF2F2",
+                  border: "1px solid #FCA5A5",
+                  borderRadius: "8px",
+                  padding: "8px 12px",
+                  color: "#B91C1C",
+                  fontSize: "12px",
+                  marginBottom: "10px",
+                }}
+              >
                 {erro}
               </div>
             )}
-            <div style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}>
+            <div
+              style={{ display: "flex", gap: "12px", alignItems: "flex-end" }}
+            >
               <textarea
                 ref={inputRef}
                 value={texto}
@@ -531,14 +1276,42 @@ export default function ChatPage() {
                 onKeyDown={handleKeyDown}
                 placeholder="Digite uma mensagem… (Enter para enviar, Shift+Enter para nova linha)"
                 rows={2}
-                style={{ flex: 1, padding: "12px 16px", borderRadius: "14px", border: "none", fontSize: "14px", resize: "none", outline: "none", background: "rgba(255,255,255,0.95)", color: "#111", lineHeight: 1.5, fontFamily: "inherit" }}
+                style={{
+                  flex: 1,
+                  padding: "12px 16px",
+                  borderRadius: "14px",
+                  border: "none",
+                  fontSize: "14px",
+                  resize: "none",
+                  outline: "none",
+                  background: "rgba(255,255,255,0.95)",
+                  color: "#111",
+                  lineHeight: 1.5,
+                  fontFamily: "inherit",
+                }}
               />
               {podeVerBotaoNegociacao && (
                 <button
                   onClick={() => setShowNegociacaoModal(true)}
-                  style={{ padding: "12px 18px", background: "rgba(255,255,255,0.15)", color: "#fff", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "14px", fontWeight: 700, fontSize: "13px", cursor: "pointer", whiteSpace: "nowrap", height: "fit-content", transition: "all 0.2s" }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.25)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.15)"; }}
+                  style={{
+                    padding: "12px 18px",
+                    background: "rgba(255,255,255,0.15)",
+                    color: "#fff",
+                    border: "1.5px solid rgba(255,255,255,0.3)",
+                    borderRadius: "14px",
+                    fontWeight: 700,
+                    fontSize: "13px",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                    height: "fit-content",
+                    transition: "all 0.2s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.25)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.15)";
+                  }}
                 >
                   🤝 Concluir
                 </button>
@@ -546,7 +1319,19 @@ export default function ChatPage() {
               <button
                 onClick={handleEnviar}
                 disabled={enviando || !texto.trim()}
-                style={{ padding: "12px 24px", background: texto.trim() ? "#fff" : "rgba(255,255,255,0.3)", color: texto.trim() ? "#6001D3" : "rgba(255,255,255,0.5)", border: "none", borderRadius: "14px", fontWeight: 800, fontSize: "14px", cursor: texto.trim() ? "pointer" : "not-allowed", transition: "all 0.2s", whiteSpace: "nowrap", height: "fit-content" }}
+                style={{
+                  padding: "12px 24px",
+                  background: texto.trim() ? "#fff" : "rgba(255,255,255,0.3)",
+                  color: texto.trim() ? "#6001D3" : "rgba(255,255,255,0.5)",
+                  border: "none",
+                  borderRadius: "14px",
+                  fontWeight: 800,
+                  fontSize: "14px",
+                  cursor: texto.trim() ? "pointer" : "not-allowed",
+                  transition: "all 0.2s",
+                  whiteSpace: "nowrap",
+                  height: "fit-content",
+                }}
               >
                 {enviando ? "..." : "Enviar ↑"}
               </button>
@@ -555,7 +1340,9 @@ export default function ChatPage() {
         )}
       </div>
 
-      <style dangerouslySetInnerHTML={{ __html: `* { box-sizing: border-box; }` }} />
+      <style
+        dangerouslySetInnerHTML={{ __html: `* { box-sizing: border-box; }` }}
+      />
     </div>
   );
 }

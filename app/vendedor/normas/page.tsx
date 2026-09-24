@@ -5,7 +5,7 @@ import VendedorSidebar from "@/app/components/layout/VendedorSidebar";
 import { getMinhasNormas, atualizarStatusListagem, excluirListagem } from "@/app/actions/normas";
 import { useRouter } from "next/navigation";
 
-type Listagem = { id: number; titulo: string; isoTipo: string; cidade: string; status: string; motivoRejeicao: string | null; visualizacoes: number; _count: { contatos: number } };
+type Listagem = { id: number; titulo: string; isoTipo: string; estado: string; status: string; motivoRejeicao: string | null; visualizacoes: number; _count: { contatos: number } };
 
 export default function VendedorNormasPage() {
   const router = useRouter();
@@ -50,7 +50,7 @@ export default function VendedorNormasPage() {
 
   const normasFiltradas = normas.filter((l) => {
     const q = busca.toLowerCase();
-    const textoOk = !busca || [l.titulo, l.isoTipo, l.cidade].join(" ").toLowerCase().includes(q);
+    const textoOk = !busca || [l.titulo, l.isoTipo, l.estado].join(" ").toLowerCase().includes(q);
     return textoOk && (filtroStatus === "TODOS" || l.status === filtroStatus);
   });
 
@@ -84,7 +84,7 @@ export default function VendedorNormasPage() {
               <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginBottom: "24px" }}>
                 <input
                   type="text"
-                  placeholder="Buscar por título, norma ou cidade..."
+                  placeholder="Buscar por título, norma ou estado..."
                   value={busca}
                   onChange={(e) => setBusca(e.target.value)}
                   style={{ padding: "12px 16px", borderRadius: "10px", border: "1.5px solid rgba(232, 237, 240, 0.18)", fontSize: "13px", outline: "none", width: "100%", boxSizing: "border-box", color: "#FFFFFF", background: "#020D1D" }}
@@ -118,7 +118,7 @@ export default function VendedorNormasPage() {
                       <span style={{ background: (statusColor[l.status] ?? "#ccc") + "22", color: statusColor[l.status] ?? "#ccc", fontSize: "12px", fontWeight: 700, padding: "3px 10px", borderRadius: "12px" }}>{statusLabel[l.status] ?? l.status}</span>
                     </div>
                     <p style={{ fontWeight: 700, fontSize: "16px", color: "#FFFFFF", margin: "0 0 4px" }}>{l.titulo}</p>
-                    <p style={{ fontSize: "13px", color: "#A7B0B8", margin: 0 }}>📍 {l.cidade} · 👁 {l.visualizacoes} visualizações · 📞 {l._count.contatos} contatos</p>
+                    <p style={{ fontSize: "13px", color: "#A7B0B8", margin: 0 }}>📍 {l.estado} · 👁 {l.visualizacoes} visualizações · 📞 {l._count.contatos} contatos</p>
                     {l.status === "PENDENTE_APROVACAO" && (
                       <p style={{ fontSize: "12px", color: "#00A9D6", margin: "6px 0 0", fontWeight: 500 }}>
                         ⏳ Aguardando revisão do administrador para ser publicada.
