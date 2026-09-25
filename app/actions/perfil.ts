@@ -3,6 +3,8 @@
 import { prisma } from "@/app/lib/prisma";
 import { getSession } from "./auth";
 import { atualizarRank } from "./ranking";
+import { arquivoValido, escoposValidos } from "@/app/lib/cadastro";
+import { ESTADOS } from "@/app/lib/estados";
 
 async function getSessionUser() {
   return await getSession();
@@ -23,6 +25,7 @@ export async function getPerfilVendedor() {
       id: true, name: true, email: true, login: true, image: true,
       razaoSocial: true, cnpj: true,
       validadeCertificado: true, isosVendidas: true,
+      logo: true, servicosCategorias: true, estadosAtuacao: true, certificacoesISO: true,
       rankTier: true, rankScore: true, statusVendedor: true,
     },
   });
@@ -36,9 +39,16 @@ export async function atualizarPerfilVendedor(data: {
   cnpj?: string;
   email?: string;
   image?: string;
+  logo?: string;
+  servicosCategorias?: string[];
+  estadosAtuacao?: string[];
 }) {
   const s = await getSessionUser();
   if (!s || s.role !== "VENDEDOR") return { success: false, error: "Não autorizado" };
+  if (s.statusVendedor !== "APROVADO") return { success: false, error: "Sua conta não está aprovada." };
+  if (data.logo && !arquivoValido(data.logo, true)) return { success: false, error: "Logo inválido." };
+  if (data.servicosCategorias && !escoposValidos(data.servicosCategorias)) return { success: false, error: "Selecione serviços e categorias válidos." };
+  if (data.estadosAtuacao && (!data.estadosAtuacao.length || data.estadosAtuacao.some((estado) => !ESTADOS.includes(estado)))) return { success: false, error: "Selecione estados válidos." };
 
   if (!data.name.trim()) return { success: false, error: "O nome não pode ser vazio." };
 
@@ -49,7 +59,8 @@ export async function atualizarPerfilVendedor(data: {
     if (existente) return { success: false, error: "Este e-mail já está em uso por outra conta." };
   }
 
-  await prisma.user.update({
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
     where: { id: s.id },
     data: {
       name: data.name.trim(),
@@ -57,7 +68,17 @@ export async function atualizarPerfilVendedor(data: {
       cnpj: data.cnpj?.trim() || null,
       email: data.email?.trim() || null,
       ...(data.image !== undefined ? { image: data.image || null } : {}),
+      ...(data.logo !== undefined ? { logo: data.logo || null } : {}),
+      ...(data.servicosCategorias ? { servicosCategorias: JSON.stringify(data.servicosCategorias) } : {}),
+      ...(data.estadosAtuacao ? { estadosAtuacao: JSON.stringify(data.estadosAtuacao) } : {}),
     },
+    });
+    const listagens = await tx.listagem.findMany({ where: { userId: s.id, status: "ATIVA" } });
+    const foraDoEscopo = listagens.filter((item) =>
+      (data.servicosCategorias && !data.servicosCategorias.includes(`${item.tipoServico}::${item.categoriaServico}`)) ||
+      (data.estadosAtuacao && !data.estadosAtuacao.includes(item.estado))
+    ).map((item) => item.id);
+    if (foraDoEscopo.length) await tx.listagem.updateMany({ where: { id: { in: foraDoEscopo } }, data: { status: "SUSPENSA_ADMIN" } });
   });
 
   return { success: true };

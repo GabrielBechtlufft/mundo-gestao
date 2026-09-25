@@ -3,24 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import VendedorSidebar from "@/app/components/layout/VendedorSidebar";
-import { criarListagem, getMinhasISOs } from "@/app/actions/normas";
-import { TIPOS_SERVICO, CATEGORIAS_SERVICO, ESTADOS } from "@/app/lib/estados";
-
-const TODOS_TIPOS_ISO = [
-  // Certific\u00e1veis
-  "ISO 9001", "ISO 14001", "ISO 45001", "ISO/IEC 27001", "ISO 22000", "ISO 50001",
-  "ISO 22301", "ISO 37001", "ISO 37301", "ISO 39001", "ISO 41001", "ISO/IEC 42001",
-  "ISO 44001", "ISO 46001", "ISO 21001", "ISO 20121", "ISO 21401", "ISO 21101",
-  "ISO 35001", "ISO 37101", "ISO 7101", "ISO 13485", "ISO/IEC 20000-1", "ISO 22163",
-  "ISO 28000", "ISO 55001", "ISO 56001",
-  // Diretrizes
-  "ISO 31000", "IEC 31010", "ISO 19011", "ISO 9004", "ISO 14004", "ISO 45002",
-  "ISO 45003", "ISO 37002", "ISO 37003", "ISO 44002", "ISO 56002", "ISO 56003",
-  "ISO 56005", "ISO 56006", "ISO 56007", "ISO 56008", "ISO 37120", "ISO 37122",
-  "ISO 37123", "ISO 37125",
-  // Outros referenciais
-  "IATF 16949", "VDA 6.3", "FSSC 22000", "PBQP-H / SiAC", "ISO/IEC 17025", "Outras",
-];
+import { criarListagem, getMeuEscopo } from "@/app/actions/normas";
+import { TIPOS_SERVICO, CATEGORIAS_SERVICO } from "@/app/lib/estados";
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "14px 16px", border: "1.5px solid rgba(232, 237, 240, 0.18)",
@@ -33,6 +17,8 @@ const labelStyle: React.CSSProperties = {
 export default function NovaListagemPage() {
   const router = useRouter();
   const [isosPermitidas, setIsosPermitidas] = useState<string[]>([]);
+  const [servicosPermitidos, setServicosPermitidos] = useState<string[]>([]);
+  const [estadosPermitidos, setEstadosPermitidos] = useState<string[]>([]);
   const [carregandoISOs, setCarregandoISOs] = useState(true);
   const [form, setForm] = useState({
     isoTipo: "", titulo: "", descricao: "", estado: "", imagem: "",
@@ -42,15 +28,18 @@ export default function NovaListagemPage() {
   const [erro, setErro] = useState("");
 
   useEffect(() => {
-    getMinhasISOs().then((isos) => {
+    getMeuEscopo().then(({ normas: isos, servicos, estados }) => {
       setIsosPermitidas(isos);
+      setServicosPermitidos(servicos);
+      setEstadosPermitidos(estados);
+      if (!isos.length || !servicos.length || !estados.length) setErro("Seu escopo está incompleto. Confira serviços e estados no perfil e solicite ao Admin a autorização das normas.");
       if (isos.length > 0) setForm((f) => ({ ...f, isoTipo: isos[0] }));
       setCarregandoISOs(false);
     });
   }, []);
 
-  const tiposDisponiveis = isosPermitidas.length > 0 ? isosPermitidas : TODOS_TIPOS_ISO;
-  const categoriasDisponiveis = form.tipoServico ? (CATEGORIAS_SERVICO[form.tipoServico] ?? []) : [];
+  const tiposDisponiveis = isosPermitidas;
+  const categoriasDisponiveis = form.tipoServico ? (CATEGORIAS_SERVICO[form.tipoServico] ?? []).filter((categoria) => servicosPermitidos.includes(`${form.tipoServico}::${categoria}`)) : [];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -110,7 +99,7 @@ export default function NovaListagemPage() {
                 <select name="tipoServico" value={form.tipoServico} onChange={handleChange}
                   style={{ ...inputStyle }}>
                   <option value="" disabled style={{ background: "#020D1D", color: "#A7B0B8" }}>Selecione o tipo</option>
-                  {TIPOS_SERVICO.map((t) => (
+                  {TIPOS_SERVICO.filter((tipo) => servicosPermitidos.some((escopo) => escopo.startsWith(`${tipo.label}::`))).map((t) => (
                     <option key={t.label} value={t.label} style={{ background: "#020D1D", color: "#FFFFFF" }}>{t.label}</option>
                   ))}
                 </select>
@@ -154,7 +143,7 @@ export default function NovaListagemPage() {
                 <select name="estado" value={form.estado} onChange={handleChange}
                   style={{ ...inputStyle }}>
                   <option value="" disabled style={{ background: "#020D1D", color: "#A7B0B8" }}>Selecione um estado</option>
-                  {ESTADOS.map((estado) => <option key={estado} value={estado} style={{ background: "#020D1D", color: "#FFFFFF" }}>{estado}</option>)}
+                  {estadosPermitidos.map((estado) => <option key={estado} value={estado} style={{ background: "#020D1D", color: "#FFFFFF" }}>{estado}</option>)}
                 </select>
               </div>
             </div>

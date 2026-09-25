@@ -12,10 +12,10 @@ type PropostaAdmin = {
    status: string;
    documentoCompra: string | null;
    documentoProposta: string | null;
-   createdAt: string;
-   updatedAt: string;
-   primeiraRespostaVendedorAt: string | null;
-   Comprador: { name: string; email: string; image: string | null } | null;
+   createdAt: Date | string;
+   updatedAt: Date | string;
+   primeiraRespostaVendedorAt: Date | string | null;
+   Comprador: { name: string; email: string | null; image: string | null } | null;
    Vendedor: {
       name: string;
       email: string | null;
@@ -105,7 +105,7 @@ function etapasPassadas(proposta: PropostaAdmin) {
    return 0; // CONTATO_SOLICITADO
 }
 
-function dataFormatada(iso: string) {
+function dataFormatada(iso: Date | string) {
    return new Date(iso).toLocaleString("pt-BR", {
       day: "2-digit",
       month: "short",
@@ -173,7 +173,7 @@ function ModalHistorico({
    const cancelada = proposta.status === "CANCELADA";
    const etapaAtual = etapasPassadas(proposta);
 
-   const timestampEtapa = (idx: number): string | null => {
+   const timestampEtapa = (idx: number): Date | string | null => {
       if (idx === 0) return proposta.createdAt; // CONTATO_SOLICITADO
       if (idx === 1) return proposta.primeiraRespostaVendedorAt ?? null; // EM_CONTATO
       if (idx === 2) return null; // PROPOSTA_ENVIADA
@@ -662,7 +662,7 @@ export default function PropostasPage() {
 
    useEffect(() => {
       getTodasPropostas().then((res) => {
-         if (res.success && res.propostas) setPropostas(res.propostas as any);
+         if (res.success && res.propostas) setPropostas(res.propostas);
          setLoading(false);
       });
    }, []);
@@ -792,7 +792,7 @@ export default function PropostasPage() {
                   ].map((c) => (
                      <button
                         key={c.key}
-                        onClick={() => setFiltro(c.key as any)}
+                        onClick={() => setFiltro(c.key as typeof filtro)}
                         style={{
                            background: "#fff",
                            borderRadius: "16px",

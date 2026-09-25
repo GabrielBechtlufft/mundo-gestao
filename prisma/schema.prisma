@@ -143,7 +143,7 @@ model Listagem {
   estado       String    @default("")
   destaque     String?
   imagem       String?   // URL da imagem da ISO
-  status       String    @default("ATIVA") // "ATIVA", "PAUSADA", "REMOVIDA", "PENDENTE_APROVACAO", "REJEITADA"
+  status       String    @default("ATIVA") // "ATIVA", "PAUSADA", "SUSPENSA_ADMIN", "REMOVIDA", "PENDENTE_APROVACAO", "REJEITADA"
   motivoRejeicao String? // Preenchido pelo admin ao rejeitar a listagem
   visualizacoes Int      @default(0)
   userId       String?

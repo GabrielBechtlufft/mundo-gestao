@@ -7,7 +7,7 @@ export function PrimeiroAcessoHandler() {
   const { data: session, update } = useSession();
 
   useEffect(() => {
-    if ((session?.user as any)?.primeiroAcesso === true) {
+    if (session?.user?.primeiroAcesso === true) {
       update({ primeiroAcesso: false });
     }
   }, [session, update]);

@@ -10,6 +10,9 @@ import {
    cadastrarVendedorDireto,
 } from "@/app/actions/admin";
 
+import Certificados, { Escopo } from "@/app/components/Certificados";
+import EscopoAdmin from "@/app/components/EscopoAdmin";
+
 type Certificadora = {
    id: string;
    name: string;
@@ -18,7 +21,7 @@ type Certificadora = {
    razaoSocial: string | null;
    cnpj: string | null;
    isosVendidas: string;
-   validadeCertificado: string | null;
+   validadeCertificado: Date | string | null;
    logo?: string | null;
    estadosAtuacao?: string;
    servicosCategorias?: string;
@@ -26,7 +29,7 @@ type Certificadora = {
    _count: { normas: number };
 };
 
-function certBadge(validade: string | null): {
+function certBadge(validade: Date | string | null): {
    label: string;
    color: string;
    bg: string;
@@ -55,11 +58,10 @@ export default function VendedoresPage() {
    const [formData, setFormData] = useState({ name: "", email: "", login: "" });
    const [formError, setFormError] = useState("");
 
-   const carregar = async () => {
-      const res = await getVendedoresAtivos();
-      if (res.success) setCertificadoras(res.vendedores as any);
+   const carregar = () => getVendedoresAtivos().then((res) => {
+      if (res.success) setCertificadoras(res.vendedores);
       setLoading(false);
-   };
+  });
 
    useEffect(() => {
       carregar();
@@ -676,13 +678,9 @@ export default function VendedoresPage() {
                      </div>
                   )}
 
-                  {detalhe.certificacoesISO && (() => {
-                     try {
-                        const raw = JSON.parse(detalhe.certificacoesISO);
-                        const certificados = Array.isArray(raw) ? raw : Object.entries(raw).map(([iso, cert]: [string, any]) => ({ iso, ...cert }));
-                        return <div style={{ marginBottom: "20px" }}><p style={{ fontSize: "11px", fontWeight: 700, color: "#6B7280", textTransform: "uppercase", margin: "0 0 8px" }}>Certificados válidos</p>{certificados.map((cert: any) => <div key={cert.iso} style={{ marginTop: "6px", fontSize: "13px" }}><strong>{cert.iso}</strong>{(cert.documento || cert.arquivoUrl) && <> · <a href={cert.documento || cert.arquivoUrl} target="_blank" rel="noopener noreferrer" style={{ color: "#00A9D6" }}>Visualizar certificado</a></>}</div>)}</div>;
-                     } catch { return null; }
-                  })()}
+                  <Escopo servicos={detalhe.servicosCategorias} estados={detalhe.estadosAtuacao} />
+                  <Certificados value={detalhe.certificacoesISO} />
+                  <EscopoAdmin key={detalhe.id} vendedor={detalhe} />
 
                   <button
                      onClick={() => setDetalhe(null)}

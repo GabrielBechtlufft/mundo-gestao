@@ -2,6 +2,8 @@
 
 import { prisma } from "@/app/lib/prisma";
 import { atualizarRank } from "./ranking";
+import { validarEscopo } from "@/app/lib/cadastro";
+import type { Prisma } from "@prisma/client";
 
 export async function consultarServicos(params: {
   tipoServico?: string;
@@ -10,7 +12,11 @@ export async function consultarServicos(params: {
   estados?: string[];
 }) {
   const { tipoServico, categoriaServico, normas, estados } = params;
-  const where: Record<string, unknown> = { status: "ATIVA" };
+  if (!tipoServico || !categoriaServico || !normas?.length || !estados?.length ||
+    estados.some((estado) => validarEscopo(estado, [`${tipoServico}::${categoriaServico}`], normas))) {
+    return { success: false, error: "Selecione serviço, categoria, norma e estado válidos." };
+  }
+  const where: Prisma.ListagemWhereInput = { status: "ATIVA", User: { is: { role: "VENDEDOR", statusVendedor: "APROVADO" } } };
   if (tipoServico) where.tipoServico = tipoServico;
   if (categoriaServico) where.categoriaServico = categoriaServico;
   if (normas?.length) where.isoTipo = { in: normas };

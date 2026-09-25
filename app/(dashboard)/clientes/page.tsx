@@ -16,12 +16,10 @@ export default function ClientesPage() {
   const [busca, setBusca] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const carregar = async () => {
-    setLoading(true);
-    const res = await getClientes();
+  const carregar = () => getClientes().then((res) => {
     if (res.success) setClientes(res.clientes);
     setLoading(false);
-  };
+  });
 
   useEffect(() => { void carregar(); }, []);
 

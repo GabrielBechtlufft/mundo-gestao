@@ -8,19 +8,23 @@ import {
   getVendedoresSuspensos, reativarVendedor,
 } from "@/app/actions/admin";
 
+import { Escopo } from "@/app/components/Certificados";
+import { certificadosDoCadastro } from "@/app/lib/cadastro";
+
 type Solicitacao = {
+  servicosCategorias: string; logo: string | null;
   id: number; nome: string; cnpj: string | null; email: string; telefone: string;
   estado: string; mensagem: string | null; isosVendidas: string;
   validadeCertificado: string | null; documentoComprovante: string | null;
   certificacoesISO: string | null;
   nomeContato: string | null; cargoContato: string | null;
-  status: string; motivoRejeicao: string | null; createdAt: string;
+  status: string; motivoRejeicao: string | null; createdAt: Date | string;
 };
 
 type ListagemPendente = {
   id: number; isoTipo: string; titulo: string; descricao: string; estado: string;
   imagem: string | null; destaque: string | null;
-  status: string; createdAt: string;
+  status: string; createdAt: Date | string;
   User: { id: string; name: string; email: string | null; razaoSocial: string | null; rankTier: string } | null;
 };
 
@@ -72,26 +76,20 @@ export default function AprovacaoPage() {
   const [motivoListErro, setMotivoListErro] = useState("");
   const [processandoList, setProcessandoList] = useState(false);
 
-  const carregarVendedores = async () => {
-    setLoadingVend(true);
-    const res = await getSolicitacoes();
-    if (res.success) setSolicitacoes(res.solicitacoes as any);
+  const carregarVendedores = () => getSolicitacoes().then((res) => {
+    if (res.success) setSolicitacoes(res.solicitacoes);
     setLoadingVend(false);
-  };
+  });
 
-  const carregarNormas = async () => {
-    setLoadingList(true);
-    const res = await getNormasPendentes();
-    if (res.success) setNormas(res.normas as any);
+  const carregarNormas = () => getNormasPendentes().then((res) => {
+    if (res.success) setNormas(res.normas);
     setLoadingList(false);
-  };
+  });
 
-  const carregarSuspensas = async () => {
-    setLoadingSusp(true);
-    const res = await getVendedoresSuspensos();
-    if (res.success) setSuspensas(res.vendedores as any);
+  const carregarSuspensas = () => getVendedoresSuspensos().then((res) => {
+    if (res.success) setSuspensas(res.vendedores);
     setLoadingSusp(false);
-  };
+  });
 
   const handleReativar = async (id: string) => {
     if (!confirm("Deseja reativar esta certificadora?")) return;
@@ -109,7 +107,8 @@ export default function AprovacaoPage() {
   const handleAprovarVend = async () => {
     if (!selectedVendId) return;
     setProcessandoVend(true);
-    await aprovarVendedor(selectedVendId);
+    const result = await aprovarVendedor(selectedVendId);
+    if (!result.success) { alert(result.error || "Não foi possível concluir a operação."); setProcessandoVend(false); return; }
     setProcessandoVend(false);
     setVendedorModal("confirmado");
     carregarVendedores();
@@ -119,7 +118,8 @@ export default function AprovacaoPage() {
     if (!motivoVend.trim()) { setMotivoVendErro("O motivo é obrigatório."); return; }
     if (!selectedVendId) return;
     setProcessandoVend(true);
-    await rejeitarVendedor(selectedVendId, motivoVend);
+    const result = await rejeitarVendedor(selectedVendId, motivoVend);
+    if (!result.success) { alert(result.error || "Não foi possível concluir a operação."); setProcessandoVend(false); return; }
     setProcessandoVend(false);
     setVendedorModal("recusado");
     carregarVendedores();
@@ -131,7 +131,8 @@ export default function AprovacaoPage() {
   const handleAprovarList = async () => {
     if (!selectedListId) return;
     setProcessandoList(true);
-    await aprovarListagem(selectedListId);
+    const result = await aprovarListagem(selectedListId);
+    if (!result.success) { alert(result.error || "Não foi possível concluir a operação."); setProcessandoList(false); return; }
     setProcessandoList(false);
     setListagemModal("confirmado");
     carregarNormas();
@@ -141,7 +142,8 @@ export default function AprovacaoPage() {
     if (!motivoList.trim()) { setMotivoListErro("O motivo é obrigatório."); return; }
     if (!selectedListId) return;
     setProcessandoList(true);
-    await rejeitarListagem(selectedListId, motivoList);
+    const result = await rejeitarListagem(selectedListId, motivoList);
+    if (!result.success) { alert(result.error || "Não foi possível concluir a operação."); setProcessandoList(false); return; }
     setProcessandoList(false);
     setListagemModal("recusado");
     carregarNormas();
@@ -254,12 +256,12 @@ export default function AprovacaoPage() {
                           <span style={{ background: (statusColor[sol.status] || "#ccc") + "22", color: statusColor[sol.status] || "#ccc", fontSize: "12px", fontWeight: 700, padding: "4px 12px", borderRadius: "20px" }}>
                             {statusLabel[sol.status] || sol.status}
                           </span>
-                          {sol.status === "PENDENTE" && (
+                          {(
                             <button
                               onClick={() => { setSelectedVendId(sol.id); setVendedorModal("aprovacao"); }}
                               style={{ padding: "8px 20px", borderRadius: "8px", border: "1.5px solid #6001D3", color: "#6001D3", fontWeight: 700, fontSize: "13px", background: "transparent", cursor: "pointer" }}
                             >
-                              Analisar
+                              {sol.status === "PENDENTE" ? "Analisar" : "Ver detalhes"}
                             </button>
                           )}
                         </div>
@@ -318,7 +320,7 @@ export default function AprovacaoPage() {
                             {l.titulo}
                           </div>
 
-                          <div style={{ fontSize: "12px", color: "#6B7280", marginBottom: "6px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as any, overflow: "hidden" }}>
+                          <div style={{ fontSize: "12px", color: "#6B7280", marginBottom: "6px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                             {l.descricao}
                           </div>
 
@@ -387,15 +389,15 @@ export default function AprovacaoPage() {
           {selectedSol.mensagem && (
             <div style={{ background: "#FFFBEB", borderRadius: "12px", padding: "14px", marginBottom: "16px", border: "1px solid #FDE68A" }}>
               <p style={{ margin: "0 0 4px", fontSize: "11px", fontWeight: 700, color: "#92400E", textTransform: "uppercase" }}>Mensagem</p>
-              <p style={{ margin: 0, fontSize: "13px", color: "#555", fontStyle: "italic" }}>"{selectedSol.mensagem}"</p>
+              <p style={{ margin: 0, fontSize: "13px", color: "#555", fontStyle: "italic" }}>&quot;{selectedSol.mensagem}&quot;</p>
             </div>
           )}
+          <Escopo servicos={selectedSol.servicosCategorias} />
           {/* Certificações por ISO (novo formato) */}
           {selectedSol.certificacoesISO ? (() => {
             let certs: { iso: string; validade: string; documento: string }[] = [];
             try {
-              const raw = JSON.parse(selectedSol.certificacoesISO);
-              certs = Array.isArray(raw) ? raw : Object.entries(raw).map(([iso, cert]: [string, any]) => ({ iso, validade: cert.validade, documento: cert.documento || cert.arquivoUrl }));
+              certs = certificadosDoCadastro(selectedSol.certificacoesISO);
             } catch { /* ignora */ }
             return certs.length > 0 ? (
               <div style={{ marginBottom: "20px" }}>
@@ -458,14 +460,15 @@ export default function AprovacaoPage() {
               )}
             </>
           )}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {selectedSol.status === "PENDENTE" && <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <button onClick={handleAprovarVend} disabled={processandoVend} style={{ padding: "14px", background: "linear-gradient(90deg,#22C55E,#16A34A)", color: "#fff", border: "none", borderRadius: "12px", fontSize: "15px", fontWeight: 700, cursor: "pointer" }}>
               ✅ Aprovar Certificadora
             </button>
             <button onClick={() => setVendedorModal("motivo")} style={{ padding: "14px", background: "transparent", color: "#EF4444", border: "1.5px solid #EF4444", borderRadius: "12px", fontSize: "15px", fontWeight: 700, cursor: "pointer" }}>
               ✕ Rejeitar certificadora
             </button>
-          </div>
+          </div>}
+          <button onClick={closeVend} style={{ marginTop: 16, background: "#00EBCB", padding: "10px 24px", borderRadius: 10, color: "#020D1D" }}>Fechar</button>
         </Overlay>
       )}
 
@@ -571,7 +574,7 @@ export default function AprovacaoPage() {
         <Overlay onClose={closeList}>
           <h2 style={{ fontSize: "22px", fontWeight: 800, marginTop: 0, marginBottom: "8px", color: "#111" }}>Rejeitar Listagem</h2>
           <p style={{ color: "#888", marginBottom: "6px", fontSize: "14px" }}>
-            Informe o motivo para rejeição de <strong>"{selectedList?.titulo}"</strong>.
+            Informe o motivo para rejeição de <strong>&quot;{selectedList?.titulo}&quot;</strong>.
           </p>
           <p style={{ color: "#9CA3AF", marginBottom: "16px", fontSize: "12px" }}>
             A certificadora será notificada com este motivo para que possa corrigir e reenviar.

@@ -8,21 +8,21 @@ import { getTodasPropostas, fecharProposta } from "@/app/actions/negociacao";
 type PropostaAdmin = {
   id: number; solicitante: string; servico: string; status: string;
   documentoCompra: string | null; documentoProposta: string | null;
-  Comprador: { name: string; email: string } | null;
+  Comprador: { name: string; email: string | null } | null;
   Vendedor: { name: string } | null;
   Listagem: { isoTipo: string; titulo: string } | null;
 };
 
 export default function PagamentosPage() {
   const [propostas, setPropostas] = useState<PropostaAdmin[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<Awaited<ReturnType<typeof getSession>>>(null);
   const [loading, setLoading] = useState(true);
   const [arquivando, setArquivando] = useState<number | null>(null);
 
   const carregar = async () => {
     getTodasPropostas().then((res) => {
       if (res.success && res.propostas) {
-        setPropostas((res.propostas as any).filter((p: any) =>
+        setPropostas((res.propostas).filter((p) =>
           ["EM_NEGOCIACAO", "PROPOSTA_FECHADA"].includes(p.status)
         ));
       }

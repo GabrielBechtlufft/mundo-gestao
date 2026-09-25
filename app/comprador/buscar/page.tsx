@@ -76,7 +76,12 @@ export default function CompradorBuscarPage() {
       normas: normasSelecionadas,
       estados: estadosSelecionados,
     });
-    if (res.success) setServicos(res.servicos as Servico[]);
+    if (!res.success) {
+      alert(res.error || "Não foi possível concluir a busca. Tente novamente.");
+      setStep(4);
+      return;
+    }
+    setServicos(res.servicos as Servico[]);
     setStep("results");
   };
 

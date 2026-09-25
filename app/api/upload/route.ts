@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import { randomUUID } from "crypto";
 import { writeFile, mkdir } from "fs/promises";
+import { MAX_UPLOAD_BYTES } from "@/app/lib/cadastro";
 
 const ALLOWED_TYPES = [
    "application/pdf",
@@ -11,14 +12,17 @@ const ALLOWED_TYPES = [
    "image/webp",
 ];
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE = MAX_UPLOAD_BYTES;
 const RATE_WINDOW_MS = 10 * 60 * 1000;
-const MAX_UPLOADS_PER_WINDOW = 60;
+const MAX_UPLOADS_PER_WINDOW = 600;
 const uploadAttempts = new Map<string, number[]>();
 
 function isRateLimited(request: NextRequest) {
    const key = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
    const now = Date.now();
+   for (const [ip, attempts] of uploadAttempts) {
+      if (!attempts.some((time) => now - time < RATE_WINDOW_MS)) uploadAttempts.delete(ip);
+   }
    const recent = (uploadAttempts.get(key) || []).filter((time) => now - time < RATE_WINDOW_MS);
    if (recent.length >= MAX_UPLOADS_PER_WINDOW) {
       uploadAttempts.set(key, recent);
@@ -62,6 +66,10 @@ export async function POST(request: NextRequest) {
    // enviem certificados durante a etapa de cadastro (quando ainda não estão logados).
 
    try {
+      if (process.env.VERCEL && !process.env.BLOB_READ_WRITE_TOKEN) {
+         console.error("Upload indisponível: configure BLOB_READ_WRITE_TOKEN no ambiente Vercel.");
+         return NextResponse.json({ success: false, error: "O armazenamento de arquivos está temporariamente indisponível. Entre em contato com o suporte." }, { status: 503 });
+      }
       const origin = request.headers.get("origin");
       if (origin && origin !== request.nextUrl.origin) {
          return NextResponse.json({ success: false, error: "Origem não permitida." }, { status: 403 });
@@ -77,7 +85,7 @@ export async function POST(request: NextRequest) {
       const formData = await request.formData();
       const file = formData.get("file") as File | null;
 
-      if (!file) {
+      if (!(file instanceof File)) {
          return NextResponse.json(
             { success: false, error: "Nenhum arquivo enviado." },
             { status: 400 },
@@ -98,7 +106,7 @@ export async function POST(request: NextRequest) {
          return NextResponse.json(
             {
                success: false,
-               error: "Arquivo muito grande. Tamanho máximo: 5MB.",
+               error: "Arquivo muito grande. Tamanho máximo: 4MB.",
             },
             { status: 400 },
          );

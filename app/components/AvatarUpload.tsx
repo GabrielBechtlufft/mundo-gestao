@@ -17,8 +17,8 @@ export default function AvatarUpload({ nome, imagemAtual, tamanho = 96, onUpload
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Imagem muito grande. Máximo: 5MB.");
+    if (file.size > 4 * 1024 * 1024) {
+      alert("Imagem muito grande. Máximo: 4MB.");
       return;
     }
 

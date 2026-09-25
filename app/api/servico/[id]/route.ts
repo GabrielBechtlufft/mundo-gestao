@@ -10,10 +10,10 @@ export async function GET(
   try {
     const listagem = await prisma.listagem.findUnique({
       where: { id: Number(id) },
-      include: { User: { select: { name: true, rankTier: true } } },
+      include: { User: { select: { name: true, rankTier: true, statusVendedor: true } } },
     });
 
-    if (!listagem || listagem.status !== "ATIVA") {
+    if (!listagem || listagem.status !== "ATIVA" || listagem.User?.statusVendedor !== "APROVADO") {
       return NextResponse.json({ error: "Não encontrado" }, { status: 404 });
     }
 
@@ -23,7 +23,7 @@ export async function GET(
       // Re-fetch com rank atualizado
       const atualizado = await prisma.listagem.findUnique({
         where: { id: Number(id) },
-        include: { User: { select: { name: true, rankTier: true } } },
+        include: { User: { select: { name: true, rankTier: true, statusVendedor: true } } },
       });
       return NextResponse.json(atualizado);
     }

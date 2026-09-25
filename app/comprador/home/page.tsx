@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { getSession } from "@/app/actions/auth";
 import { getPropostasComprador, confirmarNegociacao, cancelarProposta, aceitarProposta, recusarProposta } from "@/app/actions/negociacao";
@@ -8,7 +8,7 @@ import CompradorSidebar from "@/app/components/layout/CompradorSidebar";
 
 type PropostaDB = {
   id: number; solicitante: string; servico: string; status: string;
-  documentoProposta: string | null; motivoRecusa: string | null; createdAt: string;
+  documentoProposta: string | null; motivoRecusa: string | null; createdAt: Date | string;
   vendedorConfirmou: boolean; compradorConfirmou: boolean;
   Listagem: { isoTipo: string; titulo: string } | null;
   Vendedor: { name: string } | null;
@@ -38,7 +38,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
 export default function CompradorHome() {
   const router = useRouter();
   const [propostas, setPropostas] = useState<PropostaDB[]>([]);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<Awaited<ReturnType<typeof getSession>>>(null);
   const [detalhes, setDetalhes] = useState<PropostaDB | null>(null);
   const [loadingAcao, setLoadingAcao] = useState(false);
   const [busca, setBusca] = useState("");
@@ -47,19 +47,18 @@ export default function CompradorHome() {
   const [motivoRecusa, setMotivoRecusa] = useState("");
   const [erroRecusa, setErroRecusa] = useState("");
 
-  const carregar = async () => {
-    const [sessionData, propostasRes] = await Promise.all([getSession(), getPropostasComprador()]);
+  const carregar = useCallback(() => Promise.all([getSession(), getPropostasComprador()]).then(([sessionData, propostasRes]) => {
     setUser(sessionData);
     if (propostasRes.success && propostasRes.propostas) {
-      const lista = propostasRes.propostas as any[];
+      const lista = propostasRes.propostas;
       setPropostas(lista);
-      if (lista.length === 0 && (sessionData as any)?.role === "COMPRADOR") {
+      if (lista.length === 0 && sessionData?.role === "COMPRADOR") {
         router.replace("/comprador/buscar");
       }
     }
-  };
+  }), [router]);
 
-  useEffect(() => { carregar(); }, []);
+  useEffect(() => { void carregar(); }, [carregar]);
 
   const handleAceitar = async (id: number) => {
     setLoadingAcao(true);

@@ -4,81 +4,14 @@ import { useState } from "react";
 import Link from "next/link";
 import { solicitarCadastro } from "@/app/actions/cadastro";
 import { Logo } from "@/app/components/layout/Logo";
-import { ESTADOS, TIPOS_SERVICO, CATEGORIAS_SERVICO } from "@/app/lib/estados";
+import { ESTADOS, TIPOS_SERVICO, CATEGORIAS_SERVICO, ISOS_DISPONIVEIS } from "@/app/lib/estados";
 
-const ISO_OPTIONS = [
-  // Normas certificáveis – Sistemas de Gestão
-  { value: "ISO 9001",         label: "ISO 9001",         desc: "Sistema de Gestão da Qualidade" },
-  { value: "ISO 14001",        label: "ISO 14001",        desc: "Sistema de Gestão Ambiental" },
-  { value: "ISO 45001",        label: "ISO 45001",        desc: "Gestão de Saúde e Segurança Ocupacional" },
-  { value: "ISO/IEC 27001",    label: "ISO/IEC 27001",    desc: "Sistema de Gestão de Segurança da Informação" },
-  { value: "ISO 22000",        label: "ISO 22000",        desc: "Sistema de Gestão de Segurança de Alimentos" },
-  { value: "ISO 50001",        label: "ISO 50001",        desc: "Sistema de Gestão de Energia" },
-  { value: "ISO 22301",        label: "ISO 22301",        desc: "Sistema de Gestão de Continuidade de Negócios" },
-  { value: "ISO 37001",        label: "ISO 37001",        desc: "Sistema de Gestão Antissuborno" },
-  { value: "ISO 37301",        label: "ISO 37301",        desc: "Sistema de Gestão de Compliance" },
-  { value: "ISO 39001",        label: "ISO 39001",        desc: "Sistema de Gestão de Segurança Viária" },
-  { value: "ISO 41001",        label: "ISO 41001",        desc: "Sistema de Gestão de Facility Management" },
-  { value: "ISO/IEC 42001",    label: "ISO/IEC 42001",    desc: "Sistema de Gestão de Inteligência Artificial" },
-  { value: "ISO 44001",        label: "ISO 44001",        desc: "Sistema de Gestão de Relacionamentos Colaborativos" },
-  { value: "ISO 46001",        label: "ISO 46001",        desc: "Sistema de Gestão de Eficiência Hídrica" },
-  { value: "ISO 21001",        label: "ISO 21001",        desc: "Sistema de Gestão para Organizações Educacionais" },
-  { value: "ISO 20121",        label: "ISO 20121",        desc: "Sistema de Gestão de Sustentabilidade de Eventos" },
-  { value: "ISO 21401",        label: "ISO 21401",        desc: "Sustentabilidade para Meios de Hospedagem" },
-  { value: "ISO 21101",        label: "ISO 21101",        desc: "Segurança para Turismo de Aventura" },
-  { value: "ISO 35001",        label: "ISO 35001",        desc: "Gestão de Biorrisco para Laboratórios" },
-  { value: "ISO 37101",        label: "ISO 37101",        desc: "Desenvolvimento Sustentável em Comunidades" },
-  { value: "ISO 7101",         label: "ISO 7101",         desc: "Gestão da Qualidade em Organizações de Saúde" },
-  { value: "ISO 13485",        label: "ISO 13485",        desc: "Gestão da Qualidade para Dispositivos Médicos" },
-  { value: "ISO/IEC 20000-1",  label: "ISO/IEC 20000-1",  desc: "Sistema de Gestão de Serviços de TI" },
-  { value: "ISO 22163",        label: "ISO 22163",        desc: "Gestão da Qualidade no Setor Ferroviário" },
-  { value: "ISO 28000",        label: "ISO 28000",        desc: "Segurança para a Cadeia de Suprimentos" },
-  { value: "ISO 55001",        label: "ISO 55001",        desc: "Sistema de Gestão de Ativos" },
-  { value: "ISO 56001",        label: "ISO 56001",        desc: "Sistema de Gestão da Inovação" },
-  // Normas não certificáveis – Diretrizes e Guias
-  { value: "ISO 31000",        label: "ISO 31000",        desc: "Gestão de Riscos – Diretrizes" },
-  { value: "IEC 31010",        label: "IEC 31010",        desc: "Técnicas de Avaliação de Riscos" },
-  { value: "ISO 19011",        label: "ISO 19011",        desc: "Diretrizes para Auditoria de SGS" },
-  { value: "ISO 9004",         label: "ISO 9004",         desc: "Qualidade – Orientação para Sucesso Sustentado" },
-  { value: "ISO 14004",        label: "ISO 14004",        desc: "Gestão Ambiental – Diretrizes" },
-  { value: "ISO 45002",        label: "ISO 45002",        desc: "Diretrizes para Implementação da ISO 45001" },
-  { value: "ISO 45003",        label: "ISO 45003",        desc: "Saúde Psicológica e Segurança no Trabalho" },
-  { value: "ISO 37002",        label: "ISO 37002",        desc: "Sistemas de Gestão de Denúncias" },
-  { value: "ISO 37003",        label: "ISO 37003",        desc: "Gestão de Controle de Fraude" },
-  { value: "ISO 44002",        label: "ISO 44002",        desc: "Diretrizes para Implementação da ISO 44001" },
-  { value: "ISO 56002",        label: "ISO 56002",        desc: "Gestão da Inovação – Diretrizes" },
-  { value: "ISO 56003",        label: "ISO 56003",        desc: "Gestão da Inovação – Parcerias" },
-  { value: "ISO 56005",        label: "ISO 56005",        desc: "Gestão da Inovação – Propriedade Intelectual" },
-  { value: "ISO 56006",        label: "ISO 56006",        desc: "Gestão da Inovação – Inteligência Estratégica" },
-  { value: "ISO 56007",        label: "ISO 56007",        desc: "Gestão da Inovação – Oportunidades e Ideias" },
-  { value: "ISO 56008",        label: "ISO 56008",        desc: "Gestão da Inovação – Medição das Operações" },
-  { value: "ISO 37120",        label: "ISO 37120",        desc: "Cidades Sustentáveis – Indicadores Urbanos" },
-  { value: "ISO 37122",        label: "ISO 37122",        desc: "Cidades Sustentáveis – Cidades Inteligentes" },
-  { value: "ISO 37123",        label: "ISO 37123",        desc: "Cidades Sustentáveis – Cidades Resilientes" },
-  { value: "ISO 37125",        label: "ISO 37125",        desc: "Cidades Sustentáveis – Indicadores ESG" },
-  // Outros referenciais/esquemas
-  { value: "IATF 16949",       label: "IATF 16949",       desc: "Gestão da Qualidade Automotiva" },
-  { value: "VDA 6.3",          label: "VDA 6.3",          desc: "Auditoria de Processo – Automotivo" },
-  { value: "FSSC 22000",       label: "FSSC 22000",       desc: "Certificação de Segurança de Alimentos" },
-  { value: "PBQP-H / SiAC",   label: "PBQP-H / SiAC",   desc: "Avaliação da Conformidade – Serviços e Obras" },
-  { value: "ISO/IEC 17025",    label: "ISO/IEC 17025",    desc: "Competência de Laboratórios de Ensaio e Calibração" },
-];
-
+import { formatPhone, SENHA_FORTE, MAX_UPLOAD_BYTES } from "@/app/lib/cadastro";
+const ISO_OPTIONS = ISOS_DISPONIVEIS.map(({ label, sub }) => ({ value: label, label, desc: sub }));
 
 function formatCNPJ(v: string) {
   const d = v.replace(/\D/g, "").slice(0, 14);
   return d.replace(/^(\d{2})(\d)/, "$1.$2").replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3").replace(/\.(\d{3})(\d)/, ".$1/$2").replace(/(\d{4})(\d)/, "$1-$2");
-}
-
-function formatPhone(v: string) {
-  let d = v.replace(/\D/g, "");
-  if (d.startsWith("55") && d.length > 2) d = d.slice(2);
-  d = d.slice(0, 11);
-  if (d.length === 0) return "";
-  if (d.length <= 2) return `+55 (${d}`;
-  if (d.length <= 3) return `+55 (${d.slice(0, 2)}) ${d.slice(2)}`;
-  if (d.length <= 7) return `+55 (${d.slice(0, 2)}) ${d.slice(2, 3)} ${d.slice(3)}`;
-  return `+55 (${d.slice(0, 2)}) ${d.slice(2, 3)} ${d.slice(3, 7)}-${d.slice(7)}`;
 }
 
 const inputStyle: React.CSSProperties = { width: "100%", padding: "13px 16px", background: "#020D1D", color: "#FFFFFF", border: "1.5px solid rgba(232, 237, 240, 0.18)", borderRadius: "12px", fontSize: "14px", outline: "none", boxSizing: "border-box" };
@@ -128,7 +61,7 @@ export default function CadastroPage() {
     setIsoCerts((c) => ({ ...c, [iso]: { ...c[iso], validade } }));
 
   const setIsoCertArquivo = (iso: string, arquivo: File | null) => {
-    if (arquivo && arquivo.size > 5 * 1024 * 1024) { setErro(`Arquivo de ${iso} muito grande. Máximo: 5MB.`); return; }
+    if (arquivo && arquivo.size > MAX_UPLOAD_BYTES) { setErro(`Arquivo de ${iso} muito grande. Máximo: 4MB.`); return; }
     setIsoCerts((c) => ({ ...c, [iso]: { ...c[iso], arquivo } }));
     setErro("");
   };
@@ -137,17 +70,18 @@ export default function CadastroPage() {
     if (!form.razaoSocial || !form.cnpj || !form.email || !form.telefone || !form.estado || !form.senha || servicosCategorias.length === 0) {
       setErro("Preencha todos os campos obrigatórios."); return false;
     }
-    if (form.senha.length < 8) { setErro("A senha deve ter pelo menos 8 caracteres."); return false; }
+    if (!SENHA_FORTE.test(form.senha)) { setErro("A senha deve ter entre 8 e 128 caracteres, incluindo letras e números."); return false; }
     if (form.senha !== form.confirmarSenha) { setErro("As senhas não coincidem."); return false; }
     setErro(""); return true;
   };
 
   const uploadFile = async (file: File): Promise<string> => {
+    if (file.size > MAX_UPLOAD_BYTES) throw new Error("Arquivo muito grande. Máximo: 4 MB.");
     const fd = new FormData();
     fd.append("file", file);
     const res = await fetch("/api/upload", { method: "POST", body: fd });
-    const data = await res.json();
-    if (!data.url) throw new Error(data.error || "Erro no upload");
+    const data = await res.json().catch(() => ({ error: "Não foi possível enviar o arquivo. Tente novamente." }));
+    if (!res.ok || !data.url) throw new Error(data.error || "Erro no upload");
     return data.url;
   };
 
@@ -158,7 +92,7 @@ export default function CadastroPage() {
     }
     for (const iso of selectedISOs) {
       const cert = isoCerts[iso];
-      if (!cert?.validade) {
+      if (!cert?.validade || cert.validade < new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" })) {
         setErro(`Informe a data de validade do certificado para ${iso}.`);
         return;
       }
@@ -195,8 +129,8 @@ export default function CadastroPage() {
       setLoading(false);
       if (res.success) setEnviado(true);
       else setErro(res.error || "Erro ao enviar.");
-    } catch (err: any) {
-      setErro(err.message || "Erro ao enviar documentos.");
+    } catch (err: unknown) {
+      setErro(err instanceof Error ? err.message : "Erro ao enviar documentos.");
       setLoading(false);
       setUploading(false);
     }
@@ -281,7 +215,7 @@ export default function CadastroPage() {
             <div>
               <label style={labelStyle}>Logo da certificadora</label>
               <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => setLogoFile(e.target.files?.[0] || null)} style={inputStyle} />
-              <p style={{ fontSize: "11px", color: "#A7B0B8", margin: "6px 0 0" }}>PNG, JPG ou WebP, até 5 MB.</p>
+              <p style={{ fontSize: "11px", color: "#A7B0B8", margin: "6px 0 0" }}>PNG, JPG ou WebP, até 4 MB.</p>
             </div>
 
             <div style={{ borderTop: "1px solid rgba(232,237,240,0.12)", paddingTop: "16px" }}>

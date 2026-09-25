@@ -89,7 +89,7 @@ export default function ServicoPage() {
 
   const [listagem, setListagem] = useState<Listagem | null>(null);
   const [loading, setLoading] = useState(true);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Awaited<ReturnType<typeof getSession>>>(null);
   const [solicitando, setSolicitando] = useState(false);
   const [erroSolicitacao, setErroSolicitacao] = useState("");
 

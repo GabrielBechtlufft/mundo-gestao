@@ -9,36 +9,36 @@ export async function getSession() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return null;
 
-  const id = (session.user as any).id as string | undefined;
+  const id = session.user.id as string | undefined;
   if (!id) return null;
 
-  const tokenVersion = (session.user as any).sessionVersion ?? 0;
+  const tokenVersion = session.user.sessionVersion ?? 0;
 
   const dbUser = await prisma.user.findUnique({
     where: { id },
     select: { sessionVersion: true, statusVendedor: true, role: true, trocarSenha: true },
   });
 
-  if (!dbUser || dbUser.sessionVersion !== tokenVersion) return null;
+  if (!dbUser || dbUser.statusVendedor === "SUSPENSO" || dbUser.sessionVersion !== tokenVersion) return null;
 
   return {
     id,
     name: session.user.name,
     email: session.user.email,
     role: dbUser.role,
-    login: (session.user as any).login,
+    login: session.user.login,
     statusVendedor: dbUser.statusVendedor,
     trocarSenha: dbUser.trocarSenha,
     image: session.user.image,
-    funcionarioVendedorId: (session.user as any).funcionarioVendedorId as number | null,
-    vendedorPaiId: (session.user as any).vendedorPaiId as string | null,
+    funcionarioVendedorId: session.user.funcionarioVendedorId as number | null,
+    vendedorPaiId: session.user.vendedorPaiId as string | null,
   };
 }
 
 export async function getVendedorCertificado() {
   const session = await getServerSession(authOptions);
   if (!session?.user) return null;
-  const userId = (session.user as any).id;
+  const userId = session.user.id;
 
   const user = await prisma.user.findUnique({
     where: { id: userId },

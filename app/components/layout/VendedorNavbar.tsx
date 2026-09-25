@@ -9,7 +9,7 @@ export default function VendedorNavbar() {
   const [profileOpen, setProfileOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const { data: session } = useSession();
-  const user = session?.user as any;
+  const user = session?.user;
 
   const handleLogout = async () => {
     setLoggingOut(true);

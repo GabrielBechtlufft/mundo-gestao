@@ -8,9 +8,9 @@ import { getSession } from "@/app/actions/auth";
 
 type PropostaVendedor = {
   id: number; solicitante: string; servico: string; status: string;
-  documentoProposta: string | null; motivoRecusa: string | null; createdAt: string;
+  documentoProposta: string | null; motivoRecusa: string | null; createdAt: Date | string;
   vendedorConfirmou: boolean; compradorConfirmou: boolean;
-  Comprador: { name: string; email: string } | null;
+  Comprador: { name: string; email: string | null } | null;
   Listagem: { isoTipo: string; titulo: string } | null;
   _count: { mensagens: number };
 };
@@ -39,7 +39,7 @@ export default function VendedorPropostasPage() {
   const router = useRouter();
   const [propostas, setPropostas] = useState<PropostaVendedor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<Awaited<ReturnType<typeof getSession>>>(null);
   const [detalhes, setDetalhes] = useState<PropostaVendedor | null>(null);
   const [envioModal, setEnvioModal] = useState(false);
   const [uploadFile, setUploadFile] = useState<File | null>(null);
@@ -51,11 +51,10 @@ export default function VendedorPropostasPage() {
 
   const firstName = user?.name ? user.name.split(" ")[0] : "Certificadora";
 
-  const carregar = async () => {
-    const res = await getPropostasVendedor();
-    if (res.success && res.propostas) setPropostas(res.propostas as any);
+  const carregar = () => getPropostasVendedor().then((res) => {
+    if (res.success && res.propostas) setPropostas(res.propostas);
     setLoading(false);
-  };
+  });
 
   useEffect(() => {
     getSession().then(setUser);

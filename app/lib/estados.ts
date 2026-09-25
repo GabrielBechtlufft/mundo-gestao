@@ -54,7 +54,6 @@ export const ISOS_DISPONIVEIS = [
   { label: "FSSC 22000",       sub: "Certificação de Segurança Alimentar" },
   { label: "PBQP-H / SiAC",   sub: "Avaliação – Serviços e Obras" },
   { label: "ISO/IEC 17025",    sub: "Laboratórios de Ensaio e Calibração" },
-  { label: "Outras",           sub: "Outras normas" },
 ];
 
 

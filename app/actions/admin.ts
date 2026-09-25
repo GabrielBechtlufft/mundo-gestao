@@ -4,6 +4,7 @@ import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 import { enviarEmailAprovacaoVendedor, enviarEmailRejeicaoVendedor } from "@/app/lib/email";
 import { getSession } from "./auth";
+import { certificadosDoCadastro, listagemNoEscopo, validarEscopo } from "@/app/lib/cadastro";
 
 const SENHA_PADRAO = "senha@123";
 const MAX_MOTIVO = 500;
@@ -18,6 +19,7 @@ export async function getSolicitacoes() {
   if (!await requireAdmin()) return { success: false, error: "Sem permissão", solicitacoes: [] };
 
   const solicitacoes = await prisma.solicitacaoCadastro.findMany({
+    omit: { senhaHash: true },
     orderBy: { createdAt: "desc" },
   });
   return { success: true, solicitacoes };
@@ -58,12 +60,12 @@ export async function aprovarVendedor(solicitacaoId: number) {
       password: senhaHash,
       role: "VENDEDOR",
       statusVendedor: "APROVADO",
-      trocarSenha: true,
+      trocarSenha: !sol.senhaHash,
       isosVendidas: sol.isosVendidas,
       servicosCategorias: sol.servicosCategorias,
       estadosAtuacao: JSON.stringify([sol.estado].filter(Boolean)),
       logo: sol.logo,
-      certificacoesISO: sol.certificacoesISO,
+      certificacoesISO: certificadosDoCadastro(sol.certificacoesISO).length ? sol.certificacoesISO : sol.documentoComprovante ? JSON.stringify(sol.isosVendidas.split(",").map((iso) => ({ iso: iso.trim(), validade: sol.validadeCertificado || "", documento: sol.documentoComprovante }))) : null,
       cnpj: sol.cnpj || null,
       razaoSocial: sol.nome,
       validadeCertificado: validadeCert,
@@ -105,6 +107,7 @@ export async function rejeitarVendedor(solicitacaoId: number, motivo: string) {
 
   const sol = await prisma.solicitacaoCadastro.findUnique({ where: { id: solicitacaoId } });
   if (!sol) return { success: false, error: "Solicitação não encontrada." };
+  if (sol.status !== "PENDENTE") return { success: false, error: "Esta solicitação já foi analisada." };
 
   await prisma.solicitacaoCadastro.update({
     where: { id: solicitacaoId },
@@ -196,8 +199,19 @@ export async function getNormasAdmin() {
 
 export async function suspenderListagemAdmin(id: number) {
   if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
-  await prisma.listagem.update({ where: { id }, data: { status: "PAUSADA" } });
-  return { success: true };
+  const result = await prisma.listagem.updateMany({ where: { id, status: { in: ["ATIVA", "PAUSADA"] } }, data: { status: "SUSPENSA_ADMIN" } });
+  return result.count ? { success: true } : { success: false, error: "Esta listagem não pode ser suspensa." };
+}
+
+export async function reativarListagemAdmin(id: number) {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
+  const listagem = await prisma.listagem.findUnique({ where: { id }, include: { User: { select: { statusVendedor: true, isosVendidas: true, servicosCategorias: true, estadosAtuacao: true } } } });
+  if (!listagem || !listagemNoEscopo(listagem)) return { success: false, error: "Confira o escopo e a aprovação da certificadora antes de reativar." };
+  const result = await prisma.listagem.updateMany({
+    where: { id, status: { in: ["SUSPENSA_ADMIN", "PAUSADA"] }, User: { is: { statusVendedor: "APROVADO" } } },
+    data: { status: "ATIVA" },
+  });
+  return result.count ? { success: true } : { success: false, error: "Reative a certificadora antes da listagem. Listagens removidas ou rejeitadas não podem ser reativadas." };
 }
 
 export async function getVendedoresSuspensos() {
@@ -219,7 +233,7 @@ export async function suspenderVendedor(vendedorId: string) {
   if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
 
   await prisma.user.update({ where: { id: vendedorId }, data: { statusVendedor: "SUSPENSO", sessionVersion: { increment: 1 } } });
-  await prisma.listagem.updateMany({ where: { userId: vendedorId }, data: { status: "PAUSADA" } });
+  await prisma.listagem.updateMany({ where: { userId: vendedorId, status: { in: ["ATIVA", "PAUSADA"] } }, data: { status: "SUSPENSA_ADMIN" } });
   return { success: true };
 }
 
@@ -246,8 +260,10 @@ export async function getNormasPendentes() {
 export async function aprovarListagem(id: number) {
   if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
 
-  const listagem = await prisma.listagem.findUnique({ where: { id } });
+  const listagem = await prisma.listagem.findUnique({ where: { id }, include: { User: { select: { statusVendedor: true, isosVendidas: true, servicosCategorias: true, estadosAtuacao: true } } } });
   if (!listagem) return { success: false, error: "Listagem não encontrada" };
+  if (listagem.status !== "PENDENTE_APROVACAO" || listagem.User?.statusVendedor !== "APROVADO") return { success: false, error: "A listagem precisa estar pendente e a certificadora aprovada." };
+  if (!listagemNoEscopo(listagem)) return { success: false, error: "A listagem não corresponde ao escopo atual da certificadora." };
 
   await prisma.listagem.update({ where: { id }, data: { status: "ATIVA" } });
 
@@ -325,4 +341,18 @@ export async function cadastrarVendedorDireto(data: { name: string; email: strin
     console.error(error);
     return { success: false, error: "Erro ao cadastrar vendedor." };
   }
+}
+
+export async function atualizarEscopoVendedorAdmin(id: string, data: { normas: string[]; servicos: string[]; estados: string[] }) {
+  if (!await requireAdmin()) return { success: false, error: "Sem permissão" };
+  if (!data.estados.length || data.estados.some((estado) => validarEscopo(estado, data.servicos, data.normas))) return { success: false, error: "Selecione normas, serviços e estados válidos." };
+  const vendedor = await prisma.user.findFirst({ where: { id, role: "VENDEDOR" } });
+  if (!vendedor) return { success: false, error: "Certificadora não encontrada." };
+  await prisma.$transaction(async (tx) => {
+    const user = await tx.user.update({ where: { id }, data: { isosVendidas: data.normas.join(","), servicosCategorias: JSON.stringify(data.servicos), estadosAtuacao: JSON.stringify(data.estados) } });
+    const listagens = await tx.listagem.findMany({ where: { userId: id, status: "ATIVA" } });
+    const ids = listagens.filter((item) => !listagemNoEscopo({ ...item, User: user })).map((item) => item.id);
+    if (ids.length) await tx.listagem.updateMany({ where: { id: { in: ids } }, data: { status: "SUSPENSA_ADMIN" } });
+  });
+  return { success: true };
 }

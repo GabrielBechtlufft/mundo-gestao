@@ -1,4 +1,5 @@
 "use server";
+import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/app/lib/prisma";
 import { getSession } from "./auth";
@@ -193,7 +194,7 @@ export async function getMinhasConversas() {
   const session = await getSession();
   if (!session) return { success: false, conversas: [] };
 
-  let whereClause: any;
+  let whereClause: Prisma.PropostaWhereInput;
 
   if (session.role === "FUNCIONARIO") {
     // Funcionário vê apenas chats atribuídos a ele

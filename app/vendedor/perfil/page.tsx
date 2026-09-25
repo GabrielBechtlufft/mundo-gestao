@@ -7,10 +7,15 @@ import AvatarUpload from "@/app/components/AvatarUpload";
 import { getPerfilVendedor, atualizarPerfilVendedor } from "@/app/actions/perfil";
 import { trocarSenhaAutenticado } from "@/app/actions/senha";
 
+import Certificados from "@/app/components/Certificados";
+import EscopoEditor from "@/app/components/EscopoEditor";
+import { stringList } from "@/app/lib/cadastro";
+
 type Perfil = {
+  logo: string | null; servicosCategorias: string; estadosAtuacao: string; certificacoesISO: string | null;
   id: string; name: string; email: string | null; login: string; image: string | null;
   razaoSocial: string | null; cnpj: string | null;
-  validadeCertificado: string | null; isosVendidas: string;
+  validadeCertificado: Date | string | null; isosVendidas: string;
   rankTier: string; rankScore: number; statusVendedor: string;
 };
 
@@ -42,7 +47,7 @@ function Campo({ label, value, onChange, placeholder, type = "text", readOnly = 
   );
 }
 
-function certStatus(validadeIso: string | null): { label: string; color: string; bg: string } {
+function certStatus(validadeIso: Date | string | null): { label: string; color: string; bg: string } {
   if (!validadeIso) return { label: "Não informado", color: "#A7B0B8", bg: "rgba(232,237,240,0.08)" };
   const dias = Math.ceil((new Date(validadeIso).getTime() - Date.now()) / 86400000);
   if (dias < 0) return { label: `Expirado há ${Math.abs(dias)} dia(s)`, color: "#F87171", bg: "rgba(239,68,68,0.15)" };
@@ -63,6 +68,9 @@ export default function PerfilPage() {
   const [razaoSocial, setRazaoSocial] = useState("");
   const [cnpj, setCnpj] = useState("");
   const [email, setEmail] = useState("");
+  const [logo, setLogo] = useState("");
+  const [servicos, setServicos] = useState<string[]>([]);
+  const [estados, setEstados] = useState<string[]>([]);
   const [imagemUrl, setImagemUrl] = useState<string>("");
 
   const [mostrarModalSenha, setMostrarModalSenha] = useState(false);
@@ -83,6 +91,9 @@ export default function PerfilPage() {
         setCnpj(p.cnpj ?? "");
         setEmail(p.email ?? "");
         setImagemUrl(p.image ?? "");
+        setLogo(p.logo ?? "");
+        setServicos(stringList(p.servicosCategorias));
+        setEstados(stringList(p.estadosAtuacao));
       }
       setLoading(false);
     });
@@ -105,7 +116,7 @@ export default function PerfilPage() {
     setErro(""); setSucesso(false);
     if (!nome.trim()) { setErro("O nome não pode ser vazio."); return; }
     setSalvando(true);
-    const res = await atualizarPerfilVendedor({ name: nome, razaoSocial, cnpj, email, image: imagemUrl });
+    const res = await atualizarPerfilVendedor({ name: nome, razaoSocial, cnpj, email, image: imagemUrl, logo, servicosCategorias: servicos, estadosAtuacao: estados });
     setSalvando(false);
     if (!res.success) { setErro(res.error || "Erro ao salvar."); return; }
     await update({ image: imagemUrl || null });
@@ -167,6 +178,10 @@ export default function PerfilPage() {
                 </div>
                 <Campo label="Login (não editável)" value={perfil?.login ?? ""} readOnly />
 
+                <h4>Logo da certificadora</h4>
+                <AvatarUpload nome={nome || "C"} imagemAtual={logo || null} onUpload={setLogo} />
+                <EscopoEditor servicos={servicos} estados={estados} onServicos={setServicos} onEstados={setEstados} />
+                <Certificados value={perfil?.certificacoesISO} />
                 {erro && <div style={{ background: "rgba(239, 68, 68, 0.1)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: "10px", padding: "10px 14px", color: "#F87171", fontSize: "13px", marginTop: "16px" }}>{erro}</div>}
                 {sucesso && <div style={{ background: "rgba(34, 197, 94, 0.15)", border: "1px solid rgba(34, 197, 94, 0.3)", borderRadius: "10px", padding: "10px 14px", color: "#22C55E", fontSize: "13px", fontWeight: 600, marginTop: "16px" }}>✓ Perfil atualizado com sucesso!</div>}
 

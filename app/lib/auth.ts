@@ -31,7 +31,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) return null;
 
-        if (user.role === "COMPRADOR" && user.statusVendedor === "SUSPENSO") return null;
+        if (user.statusVendedor === "SUSPENSO") return null;
 
         let passwordValid = false;
         if (user.password.startsWith("$2")) {
@@ -112,30 +112,31 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
-        if (dbUser.role === "COMPRADOR" && dbUser.statusVendedor === "SUSPENSO") return false;
+        if (dbUser.statusVendedor === "SUSPENSO") return false;
 
         // Attach db info to user object for JWT
-        (user as any).id = dbUser.id;
-        (user as any).role = dbUser.role;
-        (user as any).login = dbUser.login;
-        (user as any).statusVendedor = dbUser.statusVendedor;
-        (user as any).sessionVersion = dbUser.sessionVersion;
-        (user as any).primeiroAcesso = dbUser.primeiroAcesso;
+        user.id = dbUser.id;
+        user.role = dbUser.role;
+        user.login = dbUser.login;
+        user.statusVendedor = dbUser.statusVendedor;
+        user.sessionVersion = dbUser.sessionVersion;
+        user.primeiroAcesso = dbUser.primeiroAcesso;
+        user.trocarSenha = dbUser.trocarSenha;
       }
       return true;
     },
-    async jwt({ token, user, trigger, session }: any) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
-        token.id = (user as any).id;
-        token.role = (user as any).role;
-        token.login = (user as any).login;
-        token.statusVendedor = (user as any).statusVendedor;
-        token.trocarSenha = (user as any).trocarSenha;
-        token.picture = (user as any).image ?? null;
-        token.sessionVersion = (user as any).sessionVersion ?? 0;
-        token.primeiroAcesso = (user as any).primeiroAcesso ?? true;
-        token.funcionarioVendedorId = (user as any).funcionarioVendedorId ?? null;
-        token.vendedorPaiId = (user as any).vendedorPaiId ?? null;
+        token.id = user.id;
+        token.role = user.role;
+        token.login = user.login;
+        token.statusVendedor = user.statusVendedor;
+        token.trocarSenha = user.trocarSenha;
+        token.picture = user.image ?? null;
+        token.sessionVersion = user.sessionVersion ?? 0;
+        token.primeiroAcesso = user.primeiroAcesso ?? true;
+        token.funcionarioVendedorId = user.funcionarioVendedorId ?? null;
+        token.vendedorPaiId = user.vendedorPaiId ?? null;
       }
       if (trigger === "update") {
         if (session?.image !== undefined) token.picture = session.image;
@@ -151,15 +152,15 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
-        (session.user as any).login = token.login;
-        (session.user as any).statusVendedor = token.statusVendedor;
-        (session.user as any).trocarSenha = token.trocarSenha;
-        (session.user as any).sessionVersion = token.sessionVersion ?? 0;
-        (session.user as any).primeiroAcesso = token.primeiroAcesso ?? true;
-        (session.user as any).funcionarioVendedorId = token.funcionarioVendedorId ?? null;
-        (session.user as any).vendedorPaiId = token.vendedorPaiId ?? null;
+        session.user.id = token.id ?? "";
+        session.user.role = token.role ?? "";
+        session.user.login = token.login ?? "";
+        session.user.statusVendedor = token.statusVendedor ?? "";
+        session.user.trocarSenha = token.trocarSenha ?? false;
+        session.user.sessionVersion = token.sessionVersion ?? 0;
+        session.user.primeiroAcesso = token.primeiroAcesso ?? true;
+        session.user.funcionarioVendedorId = token.funcionarioVendedorId ?? null;
+        session.user.vendedorPaiId = token.vendedorPaiId ?? null;
         session.user.image = (token.picture as string | null) ?? null;
       }
       return session;

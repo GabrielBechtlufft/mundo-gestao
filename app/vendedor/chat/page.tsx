@@ -12,7 +12,7 @@ type Conversa = {
   vendedorNome: string; vendedorImagem: string | null; vendedorRankTier: string;
   status: string;
   funcionario: { id: number; nome: string } | null;
-  ultimaMensagem: { texto: string; remetente: string; createdAt: string | Date } | null;
+  ultimaMensagem: { texto: string; remetente: string; createdAt: Date | string | Date } | null;
   naoLidas: number; updatedAt: string | Date;
 };
 
@@ -174,14 +174,13 @@ export default function VendedorChatPage() {
   const [funcionarios, setFuncionarios] = useState<FuncOpcao[]>([]);
   const [modalConversa, setModalConversa] = useState<Conversa | null>(null);
 
-  const carregar = async () => {
-    const res = await getMinhasConversas();
+  const carregar = () => getMinhasConversas().then((res) => {
     if (res.success) {
-      setConversas(res.conversas as any);
-      setSessionRole((res as any).sessionRole ?? "");
+      setConversas(res.conversas);
+      setSessionRole(res.sessionRole ?? "");
     }
     setLoading(false);
-  };
+  });
 
   useEffect(() => {
     carregar();
@@ -190,7 +189,7 @@ export default function VendedorChatPage() {
   useEffect(() => {
     if (sessionRole === "VENDEDOR") {
       listarFuncionariosParaAtribuicao().then((res) => {
-        if (res.success) setFuncionarios(res.funcionarios as any);
+        if (res.success) setFuncionarios(res.funcionarios);
       });
     }
   }, [sessionRole]);

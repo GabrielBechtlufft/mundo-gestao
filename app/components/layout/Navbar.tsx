@@ -8,7 +8,7 @@ import { Logo } from "./Logo";
 
 export default function Navbar() {
   const [profileOpen, setProfileOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<Awaited<ReturnType<typeof getSession>>>(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {

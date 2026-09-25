@@ -695,7 +695,7 @@ export default function ChatPage() {
     setMensagens((res.mensagens as Mensagem[]) ?? []);
     setProposta((res.proposta as PropostaInfo) ?? null);
     setSessionId(res.sessionId ?? "");
-    setSessionRole((res as any).sessionRole ?? "");
+    setSessionRole(res.sessionRole ?? "");
     setLoading(false);
     if (scroll) bottomRef.current?.scrollIntoView({ behavior: "smooth" });
     await marcarMensagensLidas(propostaId);

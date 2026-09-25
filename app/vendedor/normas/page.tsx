@@ -14,26 +14,28 @@ export default function VendedorNormasPage() {
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("TODOS");
 
-  const carregar = async () => {
-    const res = await getMinhasNormas();
-    if (res.success) setNormas(res.normas as any);
+  const carregar = () => getMinhasNormas().then((res) => {
+    if (res.success) setNormas(res.normas ?? []);
     setLoading(false);
-  };
+  });
 
   useEffect(() => { carregar(); }, []);
 
   const handleStatus = async (id: number, status: "ATIVA" | "PAUSADA") => {
-    await atualizarStatusListagem(id, status);
+    const result = await atualizarStatusListagem(id, status);
+    if (!result.success) alert(result.error);
     carregar();
   };
 
   const handleExcluir = async (id: number) => {
     if (!confirm("Deseja excluir esta norma?")) return;
-    await excluirListagem(id);
+    const result = await excluirListagem(id);
+    if (!result.success) alert(result.error);
     carregar();
   };
 
   const statusColor: Record<string, string> = {
+    SUSPENSA_ADMIN: "#EF4444",
     ATIVA: "#22C55E",
     PAUSADA: "#F59E0B",
     REMOVIDA: "#EF4444",
@@ -41,6 +43,7 @@ export default function VendedorNormasPage() {
     REJEITADA: "#EF4444",
   };
   const statusLabel: Record<string, string> = {
+    SUSPENSA_ADMIN: "Suspensa pelo Admin",
     ATIVA: "Ativa",
     PAUSADA: "Pausada",
     REMOVIDA: "Removida",
@@ -139,7 +142,7 @@ export default function VendedorNormasPage() {
                     {l.status === "PAUSADA" && (
                       <button onClick={() => handleStatus(l.id, "ATIVA")} style={{ padding: "8px 16px", borderRadius: "8px", border: "1.5px solid #22C55E", color: "#22C55E", fontWeight: 600, fontSize: "13px", background: "transparent", cursor: "pointer" }}>Reativar</button>
                     )}
-                    {l.status !== "PENDENTE_APROVACAO" && (
+                    {!["PENDENTE_APROVACAO", "SUSPENSA_ADMIN", "REMOVIDA"].includes(l.status) && (
                       <button onClick={() => handleExcluir(l.id)} style={{ padding: "8px 16px", borderRadius: "8px", border: "1.5px solid #EF4444", color: "#EF4444", fontWeight: 600, fontSize: "13px", background: "transparent", cursor: "pointer" }}>Excluir</button>
                     )}
                   </div>

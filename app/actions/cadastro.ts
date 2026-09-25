@@ -4,13 +4,7 @@ import { prisma } from "@/app/lib/prisma";
 import bcrypt from "bcryptjs";
 import { enviarEmailSolicitacaoRecebida } from "@/app/lib/email";
 
-const SENHA_FORTE = /^(?=.{8,128}$)(?=.*[A-Za-z])(?=.*\d).*$/;
-const LOCAL_UPLOAD = /^\/uploads\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(pdf|png|jpe?g|webp)$/i;
-const BLOB_UPLOAD = /^https:\/\/[a-z0-9-]+\.public\.blob\.vercel-storage\.com\/uploads\/[a-z0-9-]+\.(pdf|png|jpe?g|webp)$/i;
-
-function arquivoValido(url: unknown) {
-  return typeof url === "string" && (LOCAL_UPLOAD.test(url) || BLOB_UPLOAD.test(url));
-}
+import { SENHA_FORTE, arquivoValido, stringList, validarEscopo, validarCertificados, certificadosDoCadastro } from "@/app/lib/cadastro";
 
 export async function solicitarCadastro(data: {
   nome: string;
@@ -48,12 +42,12 @@ export async function solicitarCadastro(data: {
       return { success: false, error: "A senha deve ter entre 8 e 128 caracteres e incluir letras e números." };
     }
 
-    if (data.logo && !arquivoValido(data.logo)) {
+    if (data.logo && !arquivoValido(data.logo, true)) {
       return { success: false, error: "Logo inválido." };
     }
 
     const existingUser = await prisma.user.findFirst({
-      where: { email: data.email },
+      where: { OR: [{ email: data.email }, { login: data.email }] },
     });
     if (existingUser) {
       return { success: false, error: "Este e-mail já está cadastrado na plataforma." };
@@ -66,19 +60,15 @@ export async function solicitarCadastro(data: {
       return { success: false, error: "Já existe uma solicitação pendente para este e-mail." };
     }
 
-    // Se enviou certificações por ISO, extrai a menor validade como validadeCertificado global
-    let validadeCertificadoFinal = data.validadeCertificado || null;
-    if (data.certificacoesISO) {
-      try {
-        const certs = JSON.parse(data.certificacoesISO) as Record<string, { validade?: string; arquivoUrl?: string; documento?: string }> | { validade?: string; arquivoUrl?: string; documento?: string }[];
-        const itens = Array.isArray(certs) ? certs : Object.values(certs);
-        if (!itens.length || itens.some((cert) => !cert.validade || !arquivoValido(cert.arquivoUrl || cert.documento))) {
-          return { success: false, error: "Certificados inválidos." };
-        }
-        const validades = itens.flatMap(c => c.validade ? [c.validade] : []).sort();
-        if (validades.length > 0) validadeCertificadoFinal = validades[0];
-      } catch { return { success: false, error: "Dados dos certificados inválidos." }; }
+    const normas = [...new Set(data.isosVendidas.split(",").map((iso) => iso.trim()).filter(Boolean))];
+    const escopos = stringList(data.servicosCategorias);
+    const erroEscopo = validarEscopo(data.estado, escopos, normas);
+    if (erroEscopo) return { success: false, error: erroEscopo };
+    if (!validarCertificados(data.certificacoesISO, normas)) {
+      return { success: false, error: "Anexe um certificado válido, com data não vencida, para cada norma selecionada." };
     }
+    const certificados = certificadosDoCadastro(data.certificacoesISO);
+    const validadeCertificadoFinal = certificados.map((cert) => cert.validade).sort()[0];
 
     if (data.documentoComprovante && !arquivoValido(data.documentoComprovante)) {
       return { success: false, error: "Documento inválido." };
@@ -94,14 +84,14 @@ export async function solicitarCadastro(data: {
         estado: data.estado,
         senhaHash: await bcrypt.hash(data.senha, 10),
         logo: data.logo || null,
-        servicosCategorias: data.servicosCategorias || "",
+        servicosCategorias: JSON.stringify(escopos),
         nomeContato: data.nomeContato || null,
         cargoContato: data.cargoContato || null,
         mensagem: data.mensagem || null,
-        isosVendidas: data.isosVendidas,
+        isosVendidas: normas.join(","),
         validadeCertificado: validadeCertificadoFinal,
         documentoComprovante: data.documentoComprovante || null,
-        certificacoesISO: data.certificacoesISO || null,
+        certificacoesISO: JSON.stringify(certificados),
       },
     });
 

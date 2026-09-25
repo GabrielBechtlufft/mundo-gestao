@@ -17,7 +17,7 @@ type Funcionario = {
   cargo: string | null;
   email: string | null;
   ativo: boolean;
-  createdAt: string;
+  createdAt: Date | string;
   LinkedUser: { id: string; login: string; trocarSenha: boolean } | null;
 };
 
@@ -74,11 +74,10 @@ export default function FuncionariosPage() {
   const [cargo, setCargo] = useState("");
   const [email, setEmail] = useState("");
 
-  const carregar = async () => {
-    const res = await listarFuncionarios();
-    if (res.success) setFuncionarios(res.funcionarios as any);
+  const carregar = () => listarFuncionarios().then((res) => {
+    if (res.success) setFuncionarios(res.funcionarios);
     setLoading(false);
-  };
+  });
 
   useEffect(() => { carregar(); }, []);
 

@@ -49,7 +49,7 @@ function HorizontalBarChart({ data }: { data: Record<string, number> }) {
 }
 
 export default function VendedorHomePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<Awaited<ReturnType<typeof getSession>>>(null);
   const [metrics, setMetrics] = useState<VendedorMetrics | null>(null);
   const [certificado, setCertificado] = useState<CertificadoInfo>(null);
   const [loading, setLoading] = useState(true);

@@ -70,7 +70,7 @@ function VerticalBarChart({ data }: { data: { label: string; value: number }[] }
 }
 
 export default function AdminHomePage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<Awaited<ReturnType<typeof getSession>>>(null);
   const [metrics, setMetrics] = useState<Metrics | null>(null);
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(true);
